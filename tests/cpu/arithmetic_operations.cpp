@@ -1,11 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <cpu/cpu.hpp>
-
-#include "../mockMemory.hpp"
+#include <memory/slowMemory.hpp>
 
 SCENARIO("Can perform adc operation", "[cpu][arithmetic_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -3451,7 +3450,7 @@ SCENARIO("Can perform adc operation", "[cpu][arithmetic_ops]")
 
 SCENARIO("Can perform dec operation", "[cpu][arithmetic_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -3742,7 +3741,7 @@ SCENARIO("Can perform dec operation", "[cpu][arithmetic_ops]")
 
 SCENARIO("Can perform dex operation", "[cpu][arithmetic_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -3814,7 +3813,7 @@ SCENARIO("Can perform dex operation", "[cpu][arithmetic_ops]")
 
 SCENARIO("Can perform dey operation", "[cpu][arithmetic_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -3886,7 +3885,7 @@ SCENARIO("Can perform dey operation", "[cpu][arithmetic_ops]")
 
 SCENARIO("Can perform inc operation", "[cpu][arithmetic_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -4177,7 +4176,7 @@ SCENARIO("Can perform inc operation", "[cpu][arithmetic_ops]")
 
 SCENARIO("Can perform inx operation", "[cpu][arithmetic_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -4249,7 +4248,7 @@ SCENARIO("Can perform inx operation", "[cpu][arithmetic_ops]")
 
 SCENARIO("Can perform iny operation", "[cpu][arithmetic_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -4321,7 +4320,7 @@ SCENARIO("Can perform iny operation", "[cpu][arithmetic_ops]")
 
 SCENARIO("Can perform sbc operation", "[cpu][arithmetic_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 

@@ -1,11 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <cpu/cpu.hpp>
-
-#include "../mockMemory.hpp"
+#include <memory/slowMemory.hpp>
 
 SCENARIO("Can perform lda operation", "[cpu][load_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 	cpu.accumulator(0);
@@ -673,7 +672,7 @@ SCENARIO("Can perform lda operation", "[cpu][load_ops]")
 
 SCENARIO("Can perform ldx operation", "[cpu][load_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 	cpu.x_register(0);
@@ -1031,7 +1030,7 @@ SCENARIO("Can perform ldx operation", "[cpu][load_ops]")
 
 SCENARIO("Can perform ldy operation", "[cpu][load_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 	cpu.y_register(0);

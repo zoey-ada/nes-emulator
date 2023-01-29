@@ -1,12 +1,12 @@
 #include <vector>
 
-#include <cpu/iMemory.hpp>
+#include "iMemory.hpp"
 
-class MockMemory: public IMemory
+class SlowMemory: public IMemory
 {
 public:
-	MockMemory();
-	virtual ~MockMemory() = default;
+	SlowMemory();
+	virtual ~SlowMemory() = default;
 
 	uint8_t read(uint16_t address) const override { return this->_data[address]; }
 	void write(const uint16_t address, const uint8_t data) override { this->_data[address] = data; }

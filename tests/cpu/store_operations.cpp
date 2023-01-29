@@ -1,13 +1,12 @@
 #include <catch2/catch_test_macros.hpp>
 #include <cpu/cpu.hpp>
-
-#include "../mockMemory.hpp"
+#include <memory/slowMemory.hpp>
 
 SCENARIO("Can perform sta operation", "[cpu][store_ops]")
 {
 	GIVEN("accumulator has value of 7 and address byte is 0x13")
 	{
-		MockMemory mem;
+		SlowMemory mem;
 		mem._data[0] = 0x85;
 		mem._data[1] = 0x13;
 
@@ -30,7 +29,7 @@ SCENARIO("Can perform sta operation", "[cpu][store_ops]")
 
 	GIVEN("accumulator has value of 7, x has value of 0x0a, and address byte is 0x13")
 	{
-		MockMemory mem;
+		SlowMemory mem;
 		mem._data[0] = 0x95;
 		mem._data[1] = 0x13;
 
@@ -55,7 +54,7 @@ SCENARIO("Can perform sta operation", "[cpu][store_ops]")
 
 	GIVEN("accumulator has value of 7 and address bytes are 0x1004")
 	{
-		MockMemory mem;
+		SlowMemory mem;
 		mem._data[0] = 0x8d;
 		// address needs to be written in reverse order
 		mem._data[2] = 0x10;
@@ -81,7 +80,7 @@ SCENARIO("Can perform sta operation", "[cpu][store_ops]")
 
 	GIVEN("accumulator has value of 7, x has value of 0x02, and address bytes are 0x1004")
 	{
-		MockMemory mem;
+		SlowMemory mem;
 		mem._data[0] = 0x9d;
 		// address needs to be written in reverse order
 		mem._data[2] = 0x10;
@@ -109,7 +108,7 @@ SCENARIO("Can perform sta operation", "[cpu][store_ops]")
 
 	GIVEN("accumulator has value of 7, y has value of 0x0a, and address bytes are 0x1004")
 	{
-		MockMemory mem;
+		SlowMemory mem;
 		mem._data[0] = 0x99;
 		// address needs to be written in reverse order
 		mem._data[2] = 0x10;
@@ -139,7 +138,7 @@ SCENARIO("Can perform sta operation", "[cpu][store_ops]")
 		"accumulator has value of 7, x has value of 0x04, address byte is 0x04, and indirect "
 		"address is 0x0115")
 	{
-		MockMemory mem;
+		SlowMemory mem;
 		mem._data[0] = 0x81;
 		mem._data[1] = 0x04;
 		mem._data[0x08] = 0x15;
@@ -170,7 +169,7 @@ SCENARIO("Can perform sta operation", "[cpu][store_ops]")
 		"accumulator has value of 7, y has value of 0x04, address byte is 0x08, and indirect "
 		"address is 0x0115")
 	{
-		MockMemory mem;
+		SlowMemory mem;
 		mem._data[0] = 0x91;
 		mem._data[1] = 0x08;
 		mem._data[0x08] = 0x15;
@@ -202,7 +201,7 @@ SCENARIO("Can perform stx operation", "[cpu][store_ops]")
 {
 	GIVEN("x has value of 7 and address byte is 0x13")
 	{
-		MockMemory mem;
+		SlowMemory mem;
 		mem._data[0] = 0x86;
 		mem._data[1] = 0x13;
 
@@ -225,7 +224,7 @@ SCENARIO("Can perform stx operation", "[cpu][store_ops]")
 
 	GIVEN("x has value of 7, y has value of 0x0a, and address byte is 0x13")
 	{
-		MockMemory mem;
+		SlowMemory mem;
 		mem._data[0] = 0x96;
 		mem._data[1] = 0x13;
 
@@ -250,7 +249,7 @@ SCENARIO("Can perform stx operation", "[cpu][store_ops]")
 
 	GIVEN("y has value of 7 and address bytes are 0x1004")
 	{
-		MockMemory mem;
+		SlowMemory mem;
 		mem._data[0] = 0x8e;
 		// address needs to be written in reverse order
 		mem._data[2] = 0x10;
@@ -279,7 +278,7 @@ SCENARIO("Can perform sty operation", "[cpu][store_ops]")
 {
 	GIVEN("y has value of 7 and address byte is 0x13")
 	{
-		MockMemory mem;
+		SlowMemory mem;
 		mem._data[0] = 0x84;
 		mem._data[1] = 0x13;
 
@@ -302,7 +301,7 @@ SCENARIO("Can perform sty operation", "[cpu][store_ops]")
 
 	GIVEN("y has value of 7, x has value of 0x0a, and address byte is 0x13")
 	{
-		MockMemory mem;
+		SlowMemory mem;
 		mem._data[0] = 0x94;
 		mem._data[1] = 0x13;
 
@@ -327,7 +326,7 @@ SCENARIO("Can perform sty operation", "[cpu][store_ops]")
 
 	GIVEN("y has value of 7 and address bytes are 0x1004")
 	{
-		MockMemory mem;
+		SlowMemory mem;
 		mem._data[0] = 0x8c;
 		// address needs to be written in reverse order
 		mem._data[2] = 0x10;

@@ -1,11 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <cpu/cpu.hpp>
-
-#include "../mockMemory.hpp"
+#include <memory/slowMemory.hpp>
 
 SCENARIO("Can perform tax operation", "[cpu][transfer_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	mem._data[0] = 0xaa;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
@@ -91,7 +90,7 @@ SCENARIO("Can perform tax operation", "[cpu][transfer_ops]")
 
 SCENARIO("Can perform tay operation", "[cpu][transfer_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	mem._data[0] = 0xa8;
 	Cpu cpu(&mem);
 
@@ -179,7 +178,7 @@ SCENARIO("Can perform tay operation", "[cpu][transfer_ops]")
 
 SCENARIO("Can perform tsx operation", "[cpu][transfer_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	mem._data[0] = 0xba;
 	Cpu cpu(&mem);
 
@@ -267,7 +266,7 @@ SCENARIO("Can perform tsx operation", "[cpu][transfer_ops]")
 
 SCENARIO("Can perform txa operation", "[cpu][transfer_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	mem._data[0] = 0x8a;
 	Cpu cpu(&mem);
 
@@ -355,7 +354,7 @@ SCENARIO("Can perform txa operation", "[cpu][transfer_ops]")
 
 SCENARIO("Can perform txs operation", "[cpu][transfer_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	mem._data[0] = 0x9a;
 	Cpu cpu(&mem);
 
@@ -443,7 +442,7 @@ SCENARIO("Can perform txs operation", "[cpu][transfer_ops]")
 
 SCENARIO("Can perform tya operation", "[cpu][transfer_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	mem._data[0] = 0x98;
 	Cpu cpu(&mem);
 

@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+#include <memory/iMemory.hpp>
+
 Cpu::Cpu(IMemory* memory)
 {
 	assert(memory != nullptr);

@@ -8,9 +8,6 @@ target_link_libraries(nes_emulator_tests
 
 target_sources(nes_emulator_tests
 	PRIVATE
-		mockMemory.hpp
-		mockMemory.cpp
-
 		cpu/arithmetic_operations.cpp
 		cpu/branch_operations.cpp
 		cpu/load_operations.cpp

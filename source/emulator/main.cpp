@@ -1,6 +1,6 @@
 #include <SDL.h>
 #include <cpu/cpu.hpp>
-#include <cpu/randomAccessMemory.hpp>
+#include <memory/randomAccessMemory.hpp>
 
 #include "window.hpp"
 

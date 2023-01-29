@@ -1,11 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <cpu/cpu.hpp>
-
-#include "../mockMemory.hpp"
+#include <memory/slowMemory.hpp>
 
 SCENARIO("Can perform asl operation", "[cpu][shift_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -721,7 +720,7 @@ SCENARIO("Can perform asl operation", "[cpu][shift_ops]")
 
 SCENARIO("Can perform lsr operation", "[cpu][shift_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 	cpu.accumulator(0);
@@ -1108,7 +1107,7 @@ SCENARIO("Can perform lsr operation", "[cpu][shift_ops]")
 
 SCENARIO("Can perform rol operation", "[cpu][shift_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -1854,7 +1853,7 @@ SCENARIO("Can perform rol operation", "[cpu][shift_ops]")
 
 SCENARIO("Can perform ror operation", "[cpu][shift_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 

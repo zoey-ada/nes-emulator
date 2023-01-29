@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "iMemory.hpp"
 
 class RandomAccessMemory: public IMemory

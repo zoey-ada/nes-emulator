@@ -1,11 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <cpu/cpu.hpp>
-
-#include "../mockMemory.hpp"
+#include <memory/slowMemory.hpp>
 
 SCENARIO("Can perform and operation", "[cpu][logical_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -882,7 +881,7 @@ SCENARIO("Can perform and operation", "[cpu][logical_ops]")
 
 SCENARIO("Can perform bit operation", "[cpu][logical_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -1250,7 +1249,7 @@ SCENARIO("Can perform bit operation", "[cpu][logical_ops]")
 
 SCENARIO("Can perform cmp operation", "[cpu][logical_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -2551,7 +2550,7 @@ SCENARIO("Can perform cmp operation", "[cpu][logical_ops]")
 
 SCENARIO("Can perform cpx operation", "[cpu][logical_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -2905,7 +2904,7 @@ SCENARIO("Can perform cpx operation", "[cpu][logical_ops]")
 
 SCENARIO("Can perform cpy operation", "[cpu][logical_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -3259,7 +3258,7 @@ SCENARIO("Can perform cpy operation", "[cpu][logical_ops]")
 
 SCENARIO("Can perform eor operation", "[cpu][logical_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -4136,7 +4135,7 @@ SCENARIO("Can perform eor operation", "[cpu][logical_ops]")
 
 SCENARIO("Can perform ora operation", "[cpu][logical_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 

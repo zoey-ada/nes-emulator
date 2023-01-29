@@ -1,12 +1,11 @@
 // brk, rti
 #include <catch2/catch_test_macros.hpp>
 #include <cpu/cpu.hpp>
-
-#include "../mockMemory.hpp"
+#include <memory/slowMemory.hpp>
 
 SCENARIO("Can perform jsr operation", "[cpu][subroutine_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -41,7 +40,7 @@ SCENARIO("Can perform jsr operation", "[cpu][subroutine_ops]")
 
 SCENARIO("Can perform rts operation", "[cpu][subroutine_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -81,7 +80,7 @@ SCENARIO("Can perform rts operation", "[cpu][subroutine_ops]")
 
 SCENARIO("Can perform brk operation", "[cpu][subroutine_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -125,7 +124,7 @@ SCENARIO("Can perform brk operation", "[cpu][subroutine_ops]")
 
 SCENARIO("Can perform rti operation", "[cpu][subroutine_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 

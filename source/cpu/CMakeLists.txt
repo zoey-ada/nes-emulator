@@ -4,9 +4,6 @@ set(root_srcs
 	alu.cpp
 	cpu.hpp
 	cpu.cpp
-	iMemory.hpp
-	randomAccessMemory.hpp
-	randomAccessMemory.cpp
 )
 source_group(source FILES ${root_srcs})
 
@@ -15,3 +12,12 @@ set(all_srcs
 )
 
 add_library(cpu STATIC ${all_srcs})
+
+target_link_libraries(cpu
+	memory
+)
+
+target_include_directories(cpu
+	PRIVATE
+		${CMAKE_SOURCE_DIR}/source
+)

@@ -1,6 +1,6 @@
-#include "mockMemory.hpp"
+#include "slowMemory.hpp"
 
-MockMemory::MockMemory()
+SlowMemory::SlowMemory()
 {
 	this->_data = std::vector<uint8_t>(0x10000, 0);
 }

@@ -1,11 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <cpu/cpu.hpp>
-
-#include "../mockMemory.hpp"
+#include <memory/slowMemory.hpp>
 
 SCENARIO("Can perform bcc operation", "[cpu][branch_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -72,7 +71,7 @@ SCENARIO("Can perform bcc operation", "[cpu][branch_ops]")
 
 SCENARIO("Can perform bcs operation", "[cpu][branch_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -139,7 +138,7 @@ SCENARIO("Can perform bcs operation", "[cpu][branch_ops]")
 
 SCENARIO("Can perform beq operation", "[cpu][branch_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -206,7 +205,7 @@ SCENARIO("Can perform beq operation", "[cpu][branch_ops]")
 
 SCENARIO("Can perform bmi operation", "[cpu][branch_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -273,7 +272,7 @@ SCENARIO("Can perform bmi operation", "[cpu][branch_ops]")
 
 SCENARIO("Can perform bne operation", "[cpu][branch_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -340,7 +339,7 @@ SCENARIO("Can perform bne operation", "[cpu][branch_ops]")
 
 SCENARIO("Can perform bpl operation", "[cpu][branch_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -407,7 +406,7 @@ SCENARIO("Can perform bpl operation", "[cpu][branch_ops]")
 
 SCENARIO("Can perform bvc operation", "[cpu][branch_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -474,7 +473,7 @@ SCENARIO("Can perform bvc operation", "[cpu][branch_ops]")
 
 SCENARIO("Can perform bvs operation", "[cpu][branch_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -541,7 +540,7 @@ SCENARIO("Can perform bvs operation", "[cpu][branch_ops]")
 
 SCENARIO("Can perform jmp operation", "[cpu][branch_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 

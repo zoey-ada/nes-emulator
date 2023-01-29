@@ -14,6 +14,8 @@ add_executable(emulator ${all_srcs})
 target_link_libraries(emulator
 	PUBLIC
 		cpu
+		memory
+
 		SDL2main
 		SDL2-static
 		SDL2_ttf

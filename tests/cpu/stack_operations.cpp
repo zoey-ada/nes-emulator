@@ -1,12 +1,11 @@
 // pha, php, pla, plp
 #include <catch2/catch_test_macros.hpp>
 #include <cpu/cpu.hpp>
-
-#include "../mockMemory.hpp"
+#include <memory/slowMemory.hpp>
 
 SCENARIO("Can perform pha operation", "[cpu][stack_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -37,7 +36,7 @@ SCENARIO("Can perform pha operation", "[cpu][stack_ops]")
 
 SCENARIO("Can perform php operation", "[cpu][stack_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -68,7 +67,7 @@ SCENARIO("Can perform php operation", "[cpu][stack_ops]")
 
 SCENARIO("Can perform pla operation", "[cpu][stack_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 
@@ -151,7 +150,7 @@ SCENARIO("Can perform pla operation", "[cpu][stack_ops]")
 
 SCENARIO("Can perform plp operation", "[cpu][stack_ops]")
 {
-	MockMemory mem;
+	SlowMemory mem;
 	Cpu cpu(&mem);
 	cpu.program_counter(0x0000);
 

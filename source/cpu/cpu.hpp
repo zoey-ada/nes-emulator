@@ -7,12 +7,12 @@
 
 #include "addressing_modes.hpp"
 #include "alu.hpp"
-#include "iMemory.hpp"
 
 using Register = uint8_t;
 using WideRegister = uint16_t;
 
 class Cpu;
+class IMemory;
 
 struct Operation
 {
@@ -158,9 +158,6 @@ private:
 	void indirect_x();
 	void indirect_y_read();
 	void indirect_y_write();
-
-	void push_stack(uint8_t value);
-	uint8_t pop_stack();
 
 	void adc(AddressingMode mode);
 	void and_(AddressingMode mode);
