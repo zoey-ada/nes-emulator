@@ -1,0 +1,9 @@
+[submodule "libraries/catch"]
+	path = libraries/catch
+	url = https://github.com/catchorg/Catch2.git
+[submodule "libraries/sdl"]
+	path = libraries/sdl
+	url = https://github.com/libsdl-org/SDL.git
+[submodule "libraries/sdl_ttf"]
+	path = libraries/sdl_ttf
+	url = https://github.com/libsdl-org/SDL_ttf.git
