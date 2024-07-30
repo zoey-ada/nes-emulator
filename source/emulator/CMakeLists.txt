@@ -1,6 +1,9 @@
 set(root_srcs
 	main.cpp
 
+	nes.hpp
+	nes.cpp
+
 	window.hpp
 	window.cpp
 )
@@ -15,6 +18,7 @@ target_link_libraries(emulator
 	PUBLIC
 		cpu
 		memory
+		ppu
 
 		SDL2main
 		SDL2-static
