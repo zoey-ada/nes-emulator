@@ -3,14 +3,13 @@
 #include "iMemory.hpp"
 
 class Cartridge;
-class PictureProcessingUnit;
 class RandomAccessMemory;
 
-class MemoryMapper: public IMemory
+class PpuMemoryMapper: public IMemory
 {
 public:
-	MemoryMapper(PictureProcessingUnit* ppu);
-	virtual ~MemoryMapper();
+	PpuMemoryMapper();
+	virtual ~PpuMemoryMapper();
 
 	uint8_t read(uint16_t address) const override;
 	void write(uint16_t address, const uint8_t data) override;
@@ -21,5 +20,4 @@ public:
 private:
 	RandomAccessMemory* _ram {nullptr};
 	Cartridge* _cartridge;
-	PictureProcessingUnit* _ppu;
 };

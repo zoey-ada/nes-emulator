@@ -2,6 +2,8 @@ set(root_srcs
 	iMemory.hpp
 	memoryMapper.hpp
 	memoryMapper.cpp
+	ppuMemoryMapper.hpp
+	ppuMemoryMapper.cpp
 	randomAccessMemory.hpp
 	randomAccessMemory.cpp
 	slowMemory.hpp
@@ -9,8 +11,27 @@ set(root_srcs
 )
 source_group(source FILES ${root_srcs})
 
+set(cartridge_srcs
+	cartridge/cartridge.hpp
+	cartridge/cartridge.cpp
+	cartridge/cartridgeLoader.hpp
+	cartridge/cartridgeLoader.cpp
+	cartridge/inesHeader.hpp
+	cartridge/inesHeader.cpp
+)
+source_group(source\\cartridge FILES ${cartridge_srcs})
+
+set(mappers_srcs
+	cartridge/mappers/iMapper.hpp
+	cartridge/mappers/mapper0.hpp
+	cartridge/mappers/mapper0.cpp
+)
+source_group(source\\cartridge\\mappers FILES ${mappers_srcs})
+
 set(all_srcs
 	${root_srcs}
+	${cartridge_srcs}
+	${mappers_srcs}
 )
 
 add_library(memory STATIC ${all_srcs})

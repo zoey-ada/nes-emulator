@@ -1,6 +1,22 @@
 #include "ppu.hpp"
 
+#include <cassert>
+
 #include <memory/iMemory.hpp>
+#include <memory/randomAccessMemory.hpp>
+
+PictureProcessingUnit::PictureProcessingUnit(IMemory* memory)
+{
+	assert(memory != nullptr);
+	this->_memory = memory;
+
+	this->_object_attribute_memory = new (std::nothrow) RandomAccessMemory(0x0100);
+}
+
+PictureProcessingUnit::~PictureProcessingUnit()
+{
+	this->_memory = nullptr;
+}
 
 void PictureProcessingUnit::cycle()
 {
@@ -64,6 +80,12 @@ void PictureProcessingUnit::cycle()
 		this->_is_even_frame = !this->_is_even_frame;
 	}
 }
+
+void PictureProcessingUnit::clear_registers()
+{}
+
+void PictureProcessingUnit::power_up()
+{}
 
 void PictureProcessingUnit::cycle(uint8_t number_cycles)
 {
