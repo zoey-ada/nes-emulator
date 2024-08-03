@@ -35,6 +35,9 @@ public:
 	Cpu(IMemory* memory);
 	virtual ~Cpu();
 
+	void clear_registers();
+	void power_up();
+
 	void cycle();
 	void cycle(uint8_t number_cycles);
 

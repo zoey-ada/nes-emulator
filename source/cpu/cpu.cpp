@@ -18,6 +18,26 @@ Cpu::~Cpu()
 	this->_memory = nullptr;
 }
 
+void Cpu::clear_registers()
+{
+	accumulator(0x00);
+	x_register(0x00);
+	y_register(0x00);
+	program_counter(0xfffc);
+	stack_register(0xfd);
+	c_flag(0);
+	z_flag(0);
+	i_flag(1);
+	d_flag(0);
+	v_flag(0);
+	n_flag(0);
+}
+
+void Cpu::power_up()
+{
+	this->res(AddressingMode::implicit);
+}
+
 void Cpu::cycle()
 {
 	if (this->_actions.empty())
@@ -56,7 +76,8 @@ void Cpu::queue_next_instruction()
 {
 	this->_actions.push_back([this]() {
 		this->fetch();
-		auto operation = this->_operations.at(this->_data_bus);
+		this->_instruction = this->_data_bus;
+		auto operation = this->_operations.at(this->_instruction);
 		std::invoke(operation.operation, *this, operation.addressing_mode);
 	});
 }
@@ -608,6 +629,15 @@ void Cpu::indirect_y_write()
 	});
 }
 
+/// @brief Add with Carry (2-6 cycles)
+/// @param mode 0x69 Immediate;
+/// 0x65 Zero Page;
+/// 0x75 Zero Page,X;
+/// 0x6d Absolute;
+/// 0x7d Absolute,X;
+/// 0x79 Absolute,Y;
+/// 0x61 Indirect,X;
+/// 0x71 Indirect,Y;
 void Cpu::adc(AddressingMode mode)
 {
 	queue_addressing_actions(mode);
@@ -626,6 +656,15 @@ void Cpu::adc(AddressingMode mode)
 	});
 }
 
+/// @brief Logical AND (2-6 cycles)
+/// @param mode 0x29 Immediate;
+/// 0x25 Zero Page;
+/// 0x35 Zero Page,X;
+/// 0x2d Absolute;
+/// 0x3d Absolute,X;
+/// 0x39 Absolute,Y;
+/// 0x21 Indirect,X;
+/// 0x31 Indirect,Y;
 void Cpu::and_(AddressingMode mode)
 {
 	queue_addressing_actions(mode);
@@ -642,6 +681,12 @@ void Cpu::and_(AddressingMode mode)
 	});
 }
 
+/// @brief Arithmetic Shift Left (2-7 cycles)
+/// @param mode 0x0a Accumulator;
+/// 0x06 Zero Page;
+/// 0x16 Zero Page,X;
+/// 0x0e Absolute;
+/// 0x1e Absolute,X;
 void Cpu::asl(AddressingMode mode)
 {
 	if (mode == AddressingMode::accumulator)
@@ -669,6 +714,8 @@ void Cpu::asl(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() { this->write_memory(); });
 }
 
+/// @brief Branch if Carry Clear (2-4 cycles)
+/// @param mode 0x90 Relative
 void Cpu::bcc(AddressingMode mode)
 {
 	this->_actions.push_back([this, &mode]() {
@@ -681,6 +728,8 @@ void Cpu::bcc(AddressingMode mode)
 	});
 }
 
+/// @brief Branch if Carry Set (2-4 cycles)
+/// @param mode 0xb0 Relative
 void Cpu::bcs(AddressingMode mode)
 {
 	this->_actions.push_back([this, &mode]() {
@@ -693,6 +742,8 @@ void Cpu::bcs(AddressingMode mode)
 	});
 }
 
+/// @brief Branch if Equal (2-4 cycles)
+/// @param mode 0xf0 Relative
 void Cpu::beq(AddressingMode mode)
 {
 	this->_actions.push_back([this, &mode]() {
@@ -705,6 +756,9 @@ void Cpu::beq(AddressingMode mode)
 	});
 }
 
+/// @brief Bit Test (3-4 cycles)
+/// @param mode 0x24 Zero Page;
+/// 0x2c Absolute;
 void Cpu::bit(AddressingMode mode)
 {
 	queue_addressing_actions(mode);
@@ -719,6 +773,8 @@ void Cpu::bit(AddressingMode mode)
 	});
 }
 
+/// @brief Branch if Minus (2-4 cycles)
+/// @param mode 0x30 Relative
 void Cpu::bmi(AddressingMode mode)
 {
 	this->_actions.push_back([this, &mode]() {
@@ -731,6 +787,8 @@ void Cpu::bmi(AddressingMode mode)
 	});
 }
 
+/// @brief Branch if Not Equal (2-4 cycles)
+/// @param mode 0xd0 Relative
 void Cpu::bne(AddressingMode mode)
 {
 	this->_actions.push_back([this, &mode]() {
@@ -743,6 +801,8 @@ void Cpu::bne(AddressingMode mode)
 	});
 }
 
+/// @brief Branch if Positive (2-4 cycles)
+/// @param mode 0x10 Relative
 void Cpu::bpl(AddressingMode mode)
 {
 	this->_actions.push_back([this, &mode]() {
@@ -755,6 +815,8 @@ void Cpu::bpl(AddressingMode mode)
 	});
 }
 
+/// @brief Force Interrupt (7 cycles)
+/// @param mode 0x00 Implicit
 void Cpu::brk(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
@@ -805,6 +867,8 @@ void Cpu::brk(AddressingMode mode)
 	});
 }
 
+/// @brief Branch if Overflow Clear (2-4 cycles)
+/// @param mode 0x50 Relative
 void Cpu::bvc(AddressingMode mode)
 {
 	this->_actions.push_back([this, &mode]() {
@@ -817,6 +881,8 @@ void Cpu::bvc(AddressingMode mode)
 	});
 }
 
+/// @brief Branch if Overflow Set (2-4 cycles)
+/// @param mode 0x70 Relative
 void Cpu::bvs(AddressingMode mode)
 {
 	this->_actions.push_back([this, &mode]() {
@@ -829,26 +895,43 @@ void Cpu::bvs(AddressingMode mode)
 	});
 }
 
+/// @brief Clear Carry Flag (2 cycles)
+/// @param mode 0x18 Implicit
 void Cpu::clc(AddressingMode mode)
 {
 	this->_actions.push_back([this]() { this->c_flag(false); });
 }
 
+/// @brief Clear Decimal Flag (2 cycles)
+/// @param mode 0xd8 Implicit
 void Cpu::cld(AddressingMode mode)
 {
 	this->_actions.push_back([this]() { this->d_flag(false); });
 }
 
+/// @brief Clear Interrupt Flag (2 cycles)
+/// @param mode 0x58 Implicit
 void Cpu::cli(AddressingMode mode)
 {
 	this->_actions.push_back([this]() { this->i_flag(false); });
 }
 
+/// @brief Clear Overflow Flag (2 cycles)
+/// @param mode 0xb8 Implicit
 void Cpu::clv(AddressingMode mode)
 {
 	this->_actions.push_back([this]() { this->v_flag(false); });
 }
 
+/// @brief Compare (2-6 cycles)
+/// @param mode 0xc9 Immediate;
+/// 0xc5 Zero Page;
+/// 0xd5 Zero Page,X;
+/// 0xcd Absolute;
+/// 0xdd Absolute,X;
+/// 0xd9 Absolute,Y;
+/// 0xc1 Indirect,X;
+/// 0xd1 Indirect,Y;
 void Cpu::cmp(AddressingMode mode)
 {
 	queue_addressing_actions(mode);
@@ -866,6 +949,10 @@ void Cpu::cmp(AddressingMode mode)
 	});
 }
 
+/// @brief Compare X Register (2-4 cycles)
+/// @param mode 0xe0 Immediate;
+/// 0xe4 Zero Page;
+/// 0xec Absolute;
 void Cpu::cpx(AddressingMode mode)
 {
 	queue_addressing_actions(mode);
@@ -883,6 +970,10 @@ void Cpu::cpx(AddressingMode mode)
 	});
 }
 
+/// @brief Compare Y Register (2-4 cycles)
+/// @param mode 0xc0 Immediate;
+/// 0xc4 Zero Page;
+/// 0xcc Absolute;
 void Cpu::cpy(AddressingMode mode)
 {
 	queue_addressing_actions(mode);
@@ -900,6 +991,11 @@ void Cpu::cpy(AddressingMode mode)
 	});
 }
 
+/// @brief Decrement Memory (5-7 cycles)
+/// @param mode 0xc6 Zero Page;
+/// 0xd6 Zero Page,X;
+/// 0xce Absolute;
+/// 0xde ABsolute,X;
 void Cpu::dec(AddressingMode mode)
 {
 	this->queue_addressing_actions(mode);
@@ -915,6 +1011,8 @@ void Cpu::dec(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() { this->write_memory(); });
 }
 
+/// @brief Decrement X Register (2 cycles)
+/// @param mode 0xca Implicit
 void Cpu::dex(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
@@ -924,6 +1022,8 @@ void Cpu::dex(AddressingMode mode)
 	});
 }
 
+/// @brief Decrement Y Register (2 cycles)
+/// @param mode 0x88 Implicit
 void Cpu::dey(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
@@ -933,6 +1033,15 @@ void Cpu::dey(AddressingMode mode)
 	});
 }
 
+/// @brief Exclusive OR (2-6 cycles)
+/// @param mode 0x49 Immediate;
+/// 0x45 Zero Page;
+/// 0x55 Zero Page,X;
+/// 0x4d Absolute;
+/// 0x5d Absolute,X;
+/// 0x59 Absolute,Y;
+/// 0x41 Indirect,X;
+/// 0x51 Indirect,Y;
 void Cpu::eor(AddressingMode mode)
 {
 	queue_addressing_actions(mode);
@@ -949,6 +1058,11 @@ void Cpu::eor(AddressingMode mode)
 	});
 }
 
+/// @brief Increment Memory (5-7 cycles)
+/// @param mode 0xe6 Zero Page;
+/// 0xf6 Zero Page,X;
+/// 0xee Absolute;
+/// 0xfe ABsolute,X;
 void Cpu::inc(AddressingMode mode)
 {
 	this->queue_addressing_actions(mode);
@@ -964,6 +1078,8 @@ void Cpu::inc(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() { this->write_memory(); });
 }
 
+/// @brief Increment X Register (2 cycles)
+/// @param mode 0xe8 Implicit
 void Cpu::inx(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
@@ -973,6 +1089,8 @@ void Cpu::inx(AddressingMode mode)
 	});
 }
 
+/// @brief Increment Y Register (2 cycles)
+/// @param mode 0xc8 Implicit
 void Cpu::iny(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
@@ -982,6 +1100,9 @@ void Cpu::iny(AddressingMode mode)
 	});
 }
 
+/// @brief Jump (3-5 cycles)
+/// @param mode 0x4c Absolute;
+/// 0x6c Indirect;
 void Cpu::jmp(AddressingMode mode)
 {
 	if (mode == AddressingMode::absolute)
@@ -1004,6 +1125,8 @@ void Cpu::jmp(AddressingMode mode)
 	}
 }
 
+/// @brief Jump to Subroutine (6 cycles)
+/// @param mode 0x20 Absolute
 void Cpu::jsr(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
@@ -1041,6 +1164,15 @@ void Cpu::jsr(AddressingMode mode)
 	});
 }
 
+/// @brief Load A Register (2-6 cycles)
+/// @param mode 0xa9 Immediate;
+/// 0xa5 Zero Page;
+/// 0xb5 Zero Page,X;
+/// 0xad Absolute;
+/// 0xbd Absolute,X;
+/// 0xb9 Absolute,Y;
+/// 0xa1 Indirect,X;
+/// 0xb1 Indirect,Y;
 void Cpu::lda(AddressingMode mode)
 {
 	queue_addressing_actions(mode);
@@ -1057,6 +1189,12 @@ void Cpu::lda(AddressingMode mode)
 	});
 }
 
+/// @brief Load X Register (2-5 cycles)
+/// @param mode 0xa2 Immediate;
+/// 0xa6 Zero Page;
+/// 0xb6 Zero Page,Y;
+/// 0xae Absolute;
+/// 0xbe Absolute,Y;
 void Cpu::ldx(AddressingMode mode)
 {
 	queue_addressing_actions(mode);
@@ -1073,6 +1211,12 @@ void Cpu::ldx(AddressingMode mode)
 	});
 }
 
+/// @brief Load Y Register (2-5 cycles)
+/// @param mode 0xa0 Immediate;
+/// 0xa4 Zero Page;
+/// 0xb4 Zero Page,X;
+/// 0xac Absolute;
+/// 0xbc Absolute,X;
 void Cpu::ldy(AddressingMode mode)
 {
 	queue_addressing_actions(mode);
@@ -1089,6 +1233,12 @@ void Cpu::ldy(AddressingMode mode)
 	});
 }
 
+/// @brief Logical Shift Right (2-7 cycles)
+/// @param mode 0x4a Accumulator;
+/// 0x46 Zero Page;
+/// 0x56 Zero Page,X;
+/// 0x4e Absolute;
+/// 0x5e Absolute,X;
 void Cpu::lsr(AddressingMode mode)
 {
 	if (mode == AddressingMode::accumulator)
@@ -1116,6 +1266,8 @@ void Cpu::lsr(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() { this->write_memory(); });
 }
 
+/// @brief No Operation (2 cycles)
+/// @param mode 0xea Implicit
 void Cpu::nop(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
@@ -1123,6 +1275,15 @@ void Cpu::nop(AddressingMode mode)
 	});
 }
 
+/// @brief Logical Inclusive OR (2-6 cycles)
+/// @param mode 0x09 Immediate;
+/// 0x05 Zero Page;
+/// 0x15 Zero Page,X;
+/// 0x0d Absolute;
+/// 0x1d Absolute,X;
+/// 0x19 Absolute,Y;
+/// 0x01 Indirect,X;
+/// 0x11 Indirect,Y;
 void Cpu::ora(AddressingMode mode)
 {
 	queue_addressing_actions(mode);
@@ -1139,6 +1300,8 @@ void Cpu::ora(AddressingMode mode)
 	});
 }
 
+/// @brief Push Accumlulator (3 cycles)
+/// @param mode 0x48 Implicit
 void Cpu::pha(AddressingMode mode)
 {
 	this->_actions.push_back([this, &mode]() {
@@ -1154,6 +1317,8 @@ void Cpu::pha(AddressingMode mode)
 	});
 }
 
+/// @brief Push Processor Status (3 cycles)
+/// @param mode 0x08 Implicit
 void Cpu::php(AddressingMode mode)
 {
 	this->_actions.push_back([this, &mode]() {
@@ -1169,6 +1334,8 @@ void Cpu::php(AddressingMode mode)
 	});
 }
 
+/// @brief Pull Accumulator (4 cycles)
+/// @param mode 0x68 Implicit
 void Cpu::pla(AddressingMode mode)
 {
 	this->_actions.push_back([this, &mode]() {
@@ -1191,6 +1358,8 @@ void Cpu::pla(AddressingMode mode)
 	});
 }
 
+/// @brief Pull Processor Status (4 cycles)
+/// @param mode 0x28 Implicit
 void Cpu::plp(AddressingMode mode)
 {
 	this->_actions.push_back([this, &mode]() {
@@ -1211,6 +1380,12 @@ void Cpu::plp(AddressingMode mode)
 	});
 }
 
+/// @brief Rotate Left (2-7 cycles)
+/// @param mode 0x2a Accumulator;
+/// 0x26 Zero Page;
+/// 0x36 Zero Page,X;
+/// 0x2e Absolute;
+/// 0x3e Absolute,X;
 void Cpu::rol(AddressingMode mode)
 {
 	if (mode == AddressingMode::accumulator)
@@ -1238,6 +1413,12 @@ void Cpu::rol(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() { this->write_memory(); });
 }
 
+/// @brief Rotate Right (2-7 cycles)
+/// @param mode 0x6a Accumulator;
+/// 0x66 Zero Page;
+/// 0x76 Zero Page,X;
+/// 0x6e Absolute;
+/// 0x7e Absolute,X;
 void Cpu::ror(AddressingMode mode)
 {
 	if (mode == AddressingMode::accumulator)
@@ -1265,6 +1446,8 @@ void Cpu::ror(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() { this->write_memory(); });
 }
 
+/// @brief Return from Interrupt (6 cycles)
+/// @param mode 0x40 Implicit
 void Cpu::rti(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
@@ -1303,6 +1486,8 @@ void Cpu::rti(AddressingMode mode)
 	});
 }
 
+/// @brief Return from Subroutine (6 cycles)
+/// @param mode 0x60 Implicit
 void Cpu::rts(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
@@ -1335,6 +1520,15 @@ void Cpu::rts(AddressingMode mode)
 	this->_actions.push_back([this]() { this->fetch(); });
 }
 
+/// @brief Subtract with Carry (2-6 cycles)
+/// @param mode 0xe9 Immediate;
+/// 0xe5 Zero Page;
+/// 0xf5 Zero Page,X;
+/// 0xed Absolute;
+/// 0xfd Absolute,X;
+/// 0xf9 Absolute,Y;
+/// 0xe1 Indirect,X;
+/// 0xf1 Indirect,Y;
 void Cpu::sbc(AddressingMode mode)
 {
 	queue_addressing_actions(mode);
@@ -1353,21 +1547,35 @@ void Cpu::sbc(AddressingMode mode)
 	});
 }
 
+/// @brief Set Carry Flag (2 cycles)
+/// @param mode 0x38 Implicit
 void Cpu::sec(AddressingMode mode)
 {
 	this->_actions.push_back([this]() { this->c_flag(true); });
 }
 
+/// @brief Set Decimal Flag (2 cycles)
+/// @param mode 0xf8 implicit
 void Cpu::sed(AddressingMode mode)
 {
 	this->_actions.push_back([this]() { this->d_flag(true); });
 }
 
+/// @brief Set Interrupt Disable (2 cycles)
+/// @param mode 0x78 Implicit
 void Cpu::sei(AddressingMode mode)
 {
 	this->_actions.push_back([this]() { this->i_flag(true); });
 }
 
+/// @brief Store Accumulator (3-6 cycles)
+/// @param mode 0x85 Zero Page;
+/// 0x95 Zero Page,X;
+/// 0x8d Absolute;
+/// 0x9d Absolute,X;
+/// 0x99 Absolute,Y;
+/// 0x81 Indirect,X;
+/// 0x91 Indirect,Y
 void Cpu::sta(AddressingMode mode)
 {
 	queue_addressing_actions(mode);
@@ -1378,6 +1586,9 @@ void Cpu::sta(AddressingMode mode)
 	});
 }
 
+/// @brief Store X Register (3-4 cycles)
+/// @param mode 0x86 Zero Page;
+/// 0x96 Zero Page,X; 0x8e Absolute;
 void Cpu::stx(AddressingMode mode)
 {
 	queue_addressing_actions(mode);
@@ -1388,6 +1599,9 @@ void Cpu::stx(AddressingMode mode)
 	});
 }
 
+/// @brief Store Y Register (3-4 cycles)
+/// @param mode 0x84 Zero Page;
+/// 0x94 Zero Page,X; 0x8c Absolute;
 void Cpu::sty(AddressingMode mode)
 {
 	queue_addressing_actions(mode);
@@ -1464,14 +1678,14 @@ void Cpu::nmi(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
 		this->fetch();
-		this->address_bus_high() = 0x01;
-		this->address_bus_low() = this->_s;
-		this->_data_bus = this->_p;
+		this->program_counter()--;
+		this->_instruction = 0x00;
+		this->address_bus_high() = this->program_counter_high();
+		this->address_bus_low() = this->program_counter_low();
 	});
 
-	this->_actions.push_back([this, &mode]() {
-		this->write_memory();
-		this->_s--;
+	this->_actions.push_back([this]() {
+		this->fetch();
 		this->address_bus_high() = 0x01;
 		this->address_bus_low() = this->_s;
 		this->_data_bus = this->program_counter_high();
@@ -1483,6 +1697,15 @@ void Cpu::nmi(AddressingMode mode)
 		this->address_bus_high() = 0x01;
 		this->address_bus_low() = this->_s;
 		this->_data_bus = this->program_counter_low();
+	});
+
+	this->_actions.push_back([this, &mode]() {
+		this->write_memory();
+		this->_s--;
+		this->address_bus_high() = 0x01;
+		this->address_bus_low() = this->_s;
+		this->b_flag(false);
+		this->_data_bus = this->_p;
 	});
 
 	this->_actions.push_back([this, &mode]() {
@@ -1501,7 +1724,6 @@ void Cpu::nmi(AddressingMode mode)
 
 	this->_actions.push_back([this]() {
 		this->fetch();
-		this->_input_data_latch = this->_data_bus;
 		this->program_counter_low() = this->_input_data_latch;
 		this->program_counter_high() = this->_data_bus;
 	});
@@ -1511,14 +1733,14 @@ void Cpu::res(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
 		this->fetch();
-		this->address_bus_high() = 0x01;
-		this->address_bus_low() = this->_s;
-		this->_data_bus = this->_p;
+		this->program_counter()--;
+		this->_instruction = 0x00;
+		this->address_bus_high() = this->program_counter_high();
+		this->address_bus_low() = this->program_counter_low();
 	});
 
-	this->_actions.push_back([this, &mode]() {
-		this->write_memory();
-		this->_s--;
+	this->_actions.push_back([this]() {
+		this->fetch();
 		this->address_bus_high() = 0x01;
 		this->address_bus_low() = this->_s;
 		this->_data_bus = this->program_counter_high();
@@ -1530,6 +1752,15 @@ void Cpu::res(AddressingMode mode)
 		this->address_bus_high() = 0x01;
 		this->address_bus_low() = this->_s;
 		this->_data_bus = this->program_counter_low();
+	});
+
+	this->_actions.push_back([this, &mode]() {
+		this->write_memory();
+		this->_s--;
+		this->address_bus_high() = 0x01;
+		this->address_bus_low() = this->_s;
+		this->b_flag(false);
+		this->_data_bus = this->_p;
 	});
 
 	this->_actions.push_back([this, &mode]() {
@@ -1548,7 +1779,6 @@ void Cpu::res(AddressingMode mode)
 
 	this->_actions.push_back([this]() {
 		this->fetch();
-		this->_input_data_latch = this->_data_bus;
 		this->program_counter_low() = this->_input_data_latch;
 		this->program_counter_high() = this->_data_bus;
 	});
