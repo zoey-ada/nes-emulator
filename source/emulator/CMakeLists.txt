@@ -20,6 +20,7 @@ target_link_libraries(emulator
 		memory
 		ppu
 
+		nfd
 		SDL2main
 		SDL2-static
 		SDL2_ttf

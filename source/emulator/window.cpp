@@ -3,6 +3,7 @@
 #include <cstdio>
 
 #include <SDL.h>
+#include <nfd.h>
 
 bool Window::open()
 {
@@ -29,17 +30,29 @@ bool Window::open()
 		return false;
 	}
 
-	this->_surface = SDL_GetWindowSurface(this->_window);
-	if (this->_surface == nullptr)
+	this->_nes_texture = SDL_CreateTexture(this->_renderer, SDL_PIXELFORMAT_ARGB8888,
+		SDL_TEXTUREACCESS_STREAMING, this->_nes_base_width, this->_nes_base_height);
+	if (this->_nes_texture == nullptr)
 	{
-		printf("Surface could not be gotten. SDL_Error: %s\n", SDL_GetError());
+		printf("NES texture could not be created. SDL_Error: %s\n", SDL_GetError());
 		return false;
 	}
 
-	this->_frame_buffer = SDL_CreateRGBSurface(0, 341, 262, 32, 0, 0, 0, 0);
-	if (this->_frame_buffer == nullptr)
+	this->_left_pattern_table_texture =
+		SDL_CreateTexture(this->_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
+			this->_pattern_table_base_width, this->_pattern_table_base_height);
+	if (this->_left_pattern_table_texture == nullptr)
 	{
-		printf("Frame buffer could not be gotten. SDL_Error: %s\n", SDL_GetError());
+		printf("left pattern table texture could not be created. SDL_Error: %s\n", SDL_GetError());
+		return false;
+	}
+
+	this->_right_pattern_table_texture =
+		SDL_CreateTexture(this->_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
+			this->_pattern_table_base_width, this->_pattern_table_base_height);
+	if (this->_right_pattern_table_texture == nullptr)
+	{
+		printf("right pattern table texture could not be created. SDL_Error: %s\n", SDL_GetError());
 		return false;
 	}
 
@@ -72,6 +85,15 @@ void Window::run()
 
 		while (SDL_PollEvent(&e) != 0)
 		{
+			if (e.type == SDL_EventType::SDL_KEYDOWN)
+			{
+				auto key = e.key.keysym.scancode;
+				auto mod = e.key.keysym.mod;
+				if (key == SDL_Scancode::SDL_SCANCODE_O && (mod & KMOD_CTRL) > 0)
+				{
+					this->openFileDialog();
+				}
+			}
 			if (e.type == SDL_EventType::SDL_QUIT)
 			{
 				quit = true;
@@ -82,21 +104,67 @@ void Window::run()
 	}
 }
 
-void Window::renderFrame(Frame frame)
+void Window::renderFrame(NesFrame frame)
 {
-	SDL_LockSurface(this->_surface);
+	// main nes
+	void* pixels = nullptr;
+	int pitch = 0;
+	SDL_LockTexture(this->_nes_texture, nullptr, &pixels, &pitch);
+	memcpy(pixels, frame.data(), sizeof(frame));
+	pixels = nullptr;
+	SDL_UnlockTexture(this->_nes_texture);
 
-	memcpy(this->_frame_buffer->pixels, frame.data(), sizeof(frame));
-	// for (int i = 0; i < total_pixel_parts; ++i)
-	// 	((uint8_t*)this->_surface->pixels)[i] = frame[i];
+	SDL_Rect source_rect {0, 0, this->_nes_base_width, this->_nes_base_height};
+	SDL_Rect dest_rect {0, 0, this->_nes_width, this->_nes_height};
+	SDL_RenderCopy(this->_renderer, this->_nes_texture, &source_rect, &dest_rect);
 
-	SDL_UnlockSurface(this->_surface);
+	// left pattern table
+	SDL_LockTexture(this->_left_pattern_table_texture, nullptr, &pixels, &pitch);
+	auto left_pt_frame = this->_nes.getLeftPatternTableFrame();
+	memcpy(pixels, left_pt_frame.data(), sizeof(left_pt_frame));
+	pixels = nullptr;
+	SDL_UnlockTexture(this->_left_pattern_table_texture);
 
-	const SDL_Rect source_rect {0, 0, 341, 262};
-	SDL_Rect dest_rect {0, 0, 341, 262};
-	auto screen_format = SDL_GetPixelFormatName(_surface->format->format);
-	auto buffer_format = SDL_GetPixelFormatName(_frame_buffer->format->format);
-	SDL_BlitSurface(this->_frame_buffer, &source_rect, this->_surface, &dest_rect);
+	source_rect = {0, 0, this->_pattern_table_base_width, this->_pattern_table_base_height};
+	dest_rect = {this->_nes_width + 2, this->_height - this->_pattern_table_height,
+		this->_pattern_table_width, this->_pattern_table_height};
+	SDL_RenderCopy(this->_renderer, this->_left_pattern_table_texture, &source_rect, &dest_rect);
+
+	// right pattern table
+	SDL_LockTexture(this->_right_pattern_table_texture, nullptr, &pixels, &pitch);
+	auto right_pt_frame = this->_nes.getRightPatternTableFrame();
+	memcpy(pixels, right_pt_frame.data(), sizeof(right_pt_frame));
+	pixels = nullptr;
+	SDL_UnlockTexture(this->_right_pattern_table_texture);
+
+	source_rect = {0, 0, this->_pattern_table_base_width, this->_pattern_table_base_height};
+	dest_rect = {this->_nes_width + 3 + this->_pattern_table_width,
+		this->_height - this->_pattern_table_height, this->_pattern_table_width,
+		this->_pattern_table_height};
+	SDL_RenderCopy(this->_renderer, this->_right_pattern_table_texture, &source_rect, &dest_rect);
+}
+
+void Window::openFileDialog()
+{
+	nfdu8filteritem_t filters[1] = {
+		{"NES ROM", "nes"},
+	};
+	nfdopendialogu8args_t args = {0};
+	args.filterList = filters;
+	args.filterCount = 1;
+
+	nfdu8char_t* out_path;
+	nfdresult_t result = NFD_OpenDialogU8_With(&out_path, &args);
+	if (result == nfdresult_t::NFD_OKAY)
+	{
+		std::string filepath(out_path);
+		NFD_FreePathU8(out_path);
+		this->_nes.loadFile(filepath);
+	}
+	else if (result == nfdresult_t::NFD_ERROR)
+	{
+		printf("Error: %s\n", NFD_GetError());
+	}
 }
 
 void Window::prepareScene()
@@ -107,6 +175,5 @@ void Window::prepareScene()
 
 void Window::presentScene()
 {
-	SDL_UpdateWindowSurface(this->_window);
-	// SDL_RenderPresent(this->_renderer);
+	SDL_RenderPresent(this->_renderer);
 }

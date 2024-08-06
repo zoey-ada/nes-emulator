@@ -25,6 +25,12 @@ set(cartridge_srcs
 )
 source_group(source\\cartridge FILES ${cartridge_srcs})
 
+set(debugging_src
+	debugging/patternTable.hpp
+	debugging/patternTable.cpp
+)
+source_group(source\\debugging FILES ${debugging_src})
+
 set(mappers_srcs
 	cartridge/mappers/iMapper.hpp
 	cartridge/mappers/mapper0.hpp
@@ -35,6 +41,7 @@ source_group(source\\cartridge\\mappers FILES ${mappers_srcs})
 set(all_srcs
 	${root_srcs}
 	${cartridge_srcs}
+	${debugging_src}
 	${mappers_srcs}
 )
 
