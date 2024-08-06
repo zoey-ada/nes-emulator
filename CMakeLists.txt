@@ -14,5 +14,6 @@ add_subdirectory(source/memory)
 add_subdirectory(source/cpu)
 add_subdirectory(source/ppu)
 add_subdirectory(tests)
+add_subdirectory(tools)
 
 add_subdirectory(source/emulator)

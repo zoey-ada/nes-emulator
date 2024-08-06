@@ -7,12 +7,24 @@ PatternTable::PatternTable(bool right_table): _is_right_table(right_table)
 {
 	this->_cart_loader = std::make_unique<CartridgeLoader>();
 	// std::string cart_name = "c:/Users/zoeya/Downloads/Super Mario Bros (E).nes";
-	std::string cart_name = "c:/Users/zoeya/Downloads/Excitebike (E).nes";
-	this->_cart = this->_cart_loader->load_cartridge(cart_name);
+	// std::string cart_name = "c:/Users/zoeya/Downloads/Excitebike (E).nes";
+	// this->_cart = this->_cart_loader->load_cartridge(cart_name);
 }
 
 void PatternTable::produceFrame()
 {
+	if (!this->_cart)
+	{
+		for (auto& pixel : this->_frame)
+		{
+			pixel.r = 0x00;
+			pixel.g = 0x00;
+			pixel.b = 0x00;
+		}
+
+		return;
+	}
+
 	for (int y = 0; y < 16; ++y)
 	{
 		for (int x = 0; x < 16; ++x)
@@ -41,6 +53,11 @@ void PatternTable::produceFrame()
 			}
 		}
 	}
+}
+
+void PatternTable::loadFile(const std::string& filepath)
+{
+	this->_cart = this->_cart_loader->load_cartridge(filepath);
 }
 
 std::array<uint32_t, 8 * 8> PatternTable::getTile(const uint8_t tile_num)

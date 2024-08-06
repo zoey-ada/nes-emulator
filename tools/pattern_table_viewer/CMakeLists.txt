@@ -18,9 +18,9 @@ target_link_libraries(pattern_table_viewer
 	PUBLIC
 		memory
 
+		nfd
 		SDL2main
 		SDL2-static
-		SDL2_ttf
 )
 
 target_include_directories(pattern_table_viewer

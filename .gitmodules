@@ -7,3 +7,6 @@
 [submodule "libraries/sdl_ttf"]
 	path = libraries/sdl_ttf
 	url = https://github.com/libsdl-org/SDL_ttf.git
+[submodule "libraries/nativefiledialog-extended"]
+	path = libraries/nativefiledialog-extended
+	url = https://github.com/btzy/nativefiledialog-extended.git

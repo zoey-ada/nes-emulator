@@ -27,12 +27,13 @@ public:
 	virtual ~PatternTable() = default;
 
 	void produceFrame();
+	void loadFile(const std::string& filepath);
 	Frame getFrame() { return this->_frame; }
 
+private:
 	std::array<uint32_t, 8 * 8> getTile(const uint8_t tile_num);
 	uint32_t indexToPixel(uint8_t index);
 
-private:
 	std::unique_ptr<CartridgeLoader> _cart_loader;
 	std::unique_ptr<Cartridge> _cart;
 

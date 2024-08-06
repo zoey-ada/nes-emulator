@@ -4,9 +4,16 @@
 
 #include <SDL.h>
 #include <SDL_surface.h>
+#include <nfd.h>
 
 bool Window::open()
 {
+	if (NFD_Init() != nfdresult_t::NFD_OKAY)
+	{
+		printf("NFD could not initialize. NFD Error: %s\n", NFD_GetError());
+		return false;
+	}
+
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
 		printf("SDL could not initialize. SDL_Error: %s\n", SDL_GetError());
@@ -66,6 +73,8 @@ void Window::close()
 
 		SDL_Quit();
 	}
+
+	NFD_Quit();
 }
 
 void Window::run()
@@ -84,7 +93,16 @@ void Window::run()
 
 		while (SDL_PollEvent(&e) != 0)
 		{
-			if (e.type == SDL_EventType::SDL_QUIT)
+			if (e.type == SDL_EventType::SDL_KEYDOWN)
+			{
+				auto key = e.key.keysym.scancode;
+				auto mod = e.key.keysym.mod;
+				if (key == SDL_Scancode::SDL_SCANCODE_O && (mod & KMOD_CTRL) > 0)
+				{
+					this->openFileDialog();
+				}
+			}
+			else if (e.type == SDL_EventType::SDL_QUIT)
 			{
 				quit = true;
 			}
@@ -107,12 +125,34 @@ void Window::renderFrame(Frame left_frame, Frame right_frame)
 	const SDL_Rect source_rect {0, 0, this->_pattern_table_width, this->_pattern_table_height};
 	SDL_Rect dest_rect {0, 0, this->_pattern_table_width * this->_scale_factor,
 		this->_pattern_table_height * this->_scale_factor};
-	// auto screen_format = SDL_GetPixelFormatName(_surface->format->format);
-	// auto buffer_format = SDL_GetPixelFormatName(_left_table_frame_buffer->format->format);
 	SDL_BlitScaled(this->_left_table_frame_buffer, &source_rect, this->_surface, &dest_rect);
 
 	dest_rect.x = this->_pattern_table_width * this->_scale_factor;
 	SDL_BlitScaled(this->_right_table_frame_buffer, &source_rect, this->_surface, &dest_rect);
+}
+
+void Window::openFileDialog()
+{
+	nfdu8filteritem_t filters[1] = {
+		{"NES ROM", "nes"},
+	};
+	nfdopendialogu8args_t args = {0};
+	args.filterList = filters;
+	args.filterCount = 1;
+
+	nfdu8char_t* out_path;
+	nfdresult_t result = NFD_OpenDialogU8_With(&out_path, &args);
+	if (result == nfdresult_t::NFD_OKAY)
+	{
+		std::string filepath(out_path);
+		NFD_FreePathU8(out_path);
+		this->_left.loadFile(filepath);
+		this->_right.loadFile(filepath);
+	}
+	else if (result == nfdresult_t::NFD_ERROR)
+	{
+		printf("Error: %s\n", NFD_GetError());
+	}
 }
 
 void Window::prepareScene()

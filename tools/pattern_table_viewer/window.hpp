@@ -20,6 +20,8 @@ public:
 	void prepareScene();
 	void presentScene();
 
+	void openFileDialog();
+
 private:
 	int _height {128};
 	int _width {256};
