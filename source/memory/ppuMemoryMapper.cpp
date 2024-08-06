@@ -32,7 +32,7 @@ uint8_t PpuMemoryMapper::read(uint16_t address) const
 {
 	if (address < 0x3F00)
 	{
-		return this->_cartridge->read(address);
+		return this->_cartridge->read_character(address);
 	}
 	else
 	{
@@ -45,7 +45,7 @@ void PpuMemoryMapper::write(uint16_t address, const uint8_t data)
 {
 	if (address < 0x2000)
 	{
-		return this->_cartridge->write(address, data);
+		// return this->_cartridge->write_character(address, data);
 	}
 	else
 	{

@@ -164,7 +164,7 @@ uint8_t MemoryMapper::read(uint16_t address) const
 	}
 	else
 	{
-		return this->_cartridge->read(address);
+		return this->_cartridge->read_program(address);
 	}
 }
 
@@ -224,7 +224,7 @@ void MemoryMapper::write(uint16_t address, const uint8_t data)
 	}
 	else
 	{
-		return this->_cartridge->write(address, data);
+		// return this->_cartridge->write_program(address, data);
 	}
 }
 

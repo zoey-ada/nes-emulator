@@ -2,17 +2,11 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "cartridge.hpp"
-#include "inesHeader.hpp"
 
 class IMapper;
-
-struct CartridgeData
-{
-	uint8_t* data {nullptr};
-	uint32_t data_size {0};
-};
 
 class CartridgeLoader
 {
@@ -23,7 +17,6 @@ public:
 	std::unique_ptr<Cartridge> load_cartridge(const std::string& filepath);
 
 private:
-	CartridgeData load_rom_into_memory(const std::string& filepath);
-	InesVersion get_version(const CartridgeData& cart_data);
-	std::unique_ptr<IMapper> load_mapper(const CartridgeData& cart_data, InesVersion ines_version);
+	std::unique_ptr<IMapper> load_v1_mapper(const CartridgeData_1_0& cart_data);
+	std::unique_ptr<IMapper> load_v2_mapper(const CartridgeData_2_0& cart_data);
 };

@@ -18,6 +18,10 @@ set(cartridge_srcs
 	cartridge/cartridgeLoader.cpp
 	cartridge/inesHeader.hpp
 	cartridge/inesHeader.cpp
+	cartridge/inesHeader_1_0.hpp
+	cartridge/inesHeader_1_0.cpp
+	cartridge/inesHeader_2_0.hpp
+	cartridge/inesHeader_2_0.cpp
 )
 source_group(source\\cartridge FILES ${cartridge_srcs})
 

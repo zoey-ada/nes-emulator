@@ -1,25 +1,27 @@
 #include "inesHeader.hpp"
 
-InesHeader_1_0::InesHeader_1_0(const InesHeader& header)
-	: _identifier(header.identifier),
-	  _prg_rom_size(header.prg_rom_size),
-	  _chr_rom_size(header.chr_rom_size),
-	  _flags_6(header.flags_6),
-	  _flags_7(header.flags_7)
-{}
+#include "inesHeader_2_0.hpp"
 
-InesHeader_2_0::InesHeader_2_0(const InesHeader& header)
-	: _identifier(header.identifier),
-	  _prg_rom_size(header.prg_rom_size),
-	  _chr_rom_size(header.chr_rom_size),
-	  _flags_6(header.flags_6),
-	  _flags_7(header.flags_7),
-	  _flags_8(header.flags_8),
-	  _flags_9(header.flags_9),
-	  _flags_10(header.flags_10),
-	  _flags_11(header.flags_11),
-	  _flags_12(header.flags_12),
-	  _flags_13(header.flags_13),
-	  _flags_14(header.flags_14),
-	  _flags_15(header.flags_15)
-{}
+InesVersion get_header_version(InesHeader header_data, uint64_t rom_size)
+{
+	uint8_t version = (header_data.flags_7 & 0b00001100) >> 2;
+
+	if (version == 0)
+	{
+		bool v2_padding_is_empty = header_data.flags_12 == 0 && header_data.flags_13 == 0 &&
+			header_data.flags_14 == 0 && header_data.flags_15 == 0;
+
+		if (v2_padding_is_empty)
+			return InesVersion::ines_1_0;
+	}
+	else if (version == 2)
+	{
+		InesHeader_2_0 v2_header(header_data);
+		uint32_t total_rom_size = v2_header.program_rom_size() + v2_header.character_rom_size();
+
+		if (total_rom_size <= rom_size)
+			return InesVersion::ines_2_0;
+	}
+
+	return InesVersion::unsupported;
+}

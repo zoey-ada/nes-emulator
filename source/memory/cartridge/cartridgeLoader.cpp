@@ -1,68 +1,80 @@
 #include "cartridgeLoader.hpp"
 
+#include <array>
 #include <fstream>
 
 #include "../iMemory.hpp"
+#include "inesHeader.hpp"
+#include "inesHeader_1_0.hpp"
+#include "inesHeader_2_0.hpp"
 #include "mappers/mapper0.hpp"
 
 std::unique_ptr<Cartridge> CartridgeLoader::load_cartridge(const std::string& filepath)
 {
-	CartridgeData cart_data = this->load_rom_into_memory(filepath);
-	InesVersion ines_version = this->get_version(cart_data);
-	auto mapper = this->load_mapper(cart_data, ines_version);
-	return std::make_unique<Cartridge>(cart_data.data, cart_data.data_size, std::move(mapper));
-}
-
-CartridgeData CartridgeLoader::load_rom_into_memory(const std::string& filepath)
-{
-	CartridgeData cart_data;
-
 	std::ifstream rom_file(filepath.c_str(), std::ios::in | std::ios::binary);
 	rom_file.seekg(0, std::ios::end);
-	cart_data.data_size = rom_file.tellg();
+	uint64_t rom_size = rom_file.tellg();
+
+	InesHeader header_data;
 	rom_file.seekg(0, std::ios::beg);
+	rom_file.read((char*)&header_data, 16);
+	auto ines_version = get_header_version(header_data, rom_size);
 
-	cart_data.data = new (std::nothrow) uint8_t[cart_data.data_size];
-	if (!cart_data.data)
+	std::vector<uint8_t> program_rom;
+	std::vector<uint8_t> character_rom;
+	std::vector<uint8_t> misc_rom;
+
+	if (ines_version == InesVersion::ines_1_0)
 	{
-		throw std::exception("failed to create buffer for rom.");
+		InesHeader_1_0 header(header_data);
+		program_rom.resize(header.program_rom_size());
+		character_rom.resize(header.character_rom_size());
+
+		rom_file.seekg(header.trainer_data_size(), std::ios::cur);  // skip over the trainer data
+		rom_file.read((char*)program_rom.data(), program_rom.size());
+		rom_file.read((char*)character_rom.data(), character_rom.size());
+
+		CartridgeData_1_0 cart_data {header, program_rom, character_rom};
+		auto mapper = this->load_v1_mapper(cart_data);
+		return std::make_unique<Cartridge>(std::move(cart_data), std::move(mapper));
 	}
-
-	rom_file.read((char*)cart_data.data, cart_data.data_size);
-
-	return cart_data;
-}
-
-InesVersion CartridgeLoader::get_version(const CartridgeData& cart_data)
-{
-	InesHeader* header = (InesHeader*)cart_data.data;
-	InesHeader_2_0 v2_header(*header);
-
-	uint32_t total_rom_size = v2_header.prg_rom_size() + v2_header.chr_rom_size();
-	if (v2_header.version() == 2 && total_rom_size <= cart_data.data_size)
-		return InesVersion::ines_2_0;
-	else if (v2_header.version() == 1)
-		throw std::exception("cannot load archaic iNES ROM");
-	else if (v2_header.version() == 0 && v2_header.is_v2_padding_zero())
-		return InesVersion::ines_1_0;
-	else
-		throw std::exception("cannot load archaic iNES ROM");
-}
-
-std::unique_ptr<IMapper> CartridgeLoader::load_mapper(const CartridgeData& cart_data,
-	InesVersion ines_version)
-{
-	if (ines_version == InesVersion::ines_2_0)
-		throw std::exception("cannot load iNES v2 ROM");
-
-	InesHeader* header = (InesHeader*)cart_data.data;
-	InesHeader_1_0 v1_header(*header);
-
-	if (v1_header.mapper_number() == 0)
+	else if (ines_version == InesVersion::ines_2_0)
 	{
-		bool has_two_mem_banks = (v1_header.prg_rom_size() == 2);
+		InesHeader_2_0 header(header_data);
+		uint64_t misc_rom_size = rom_size - 16 - header.trainer_data_size() -
+			header.program_rom_size() - header.character_rom_size();
+
+		program_rom.resize(header.program_rom_size());
+		character_rom.resize(header.character_rom_size());
+		misc_rom.resize(misc_rom_size);
+
+		rom_file.seekg(header.trainer_data_size(), std::ios::cur);  // skip over the trainer data
+		rom_file.read((char*)program_rom.data(), program_rom.size());
+		rom_file.read((char*)character_rom.data(), character_rom.size());
+		rom_file.read((char*)misc_rom.data(), misc_rom.size());
+
+		CartridgeData_2_0 cart_data {header, program_rom, character_rom};
+		auto mapper = this->load_v2_mapper(cart_data);
+		return std::make_unique<Cartridge>(std::move(cart_data), std::move(mapper));
+	}
+	else
+	{
+		throw std::exception("could not load ROM: invalid header type");
+	}
+}
+
+std::unique_ptr<IMapper> CartridgeLoader::load_v1_mapper(const CartridgeData_1_0& cart_data)
+{
+	if (cart_data.header.mapper_number() == 0)
+	{
+		bool has_two_mem_banks = (cart_data.header.program_rom_size() == 2);
 		return std::make_unique<Mapper0>(has_two_mem_banks);
 	}
 
+	return nullptr;
+}
+
+std::unique_ptr<IMapper> CartridgeLoader::load_v2_mapper(const CartridgeData_2_0& cart_data)
+{
 	return nullptr;
 }
