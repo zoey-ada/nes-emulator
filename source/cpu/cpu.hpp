@@ -120,6 +120,7 @@ public:
 	inline bool read_write() const { return this->_read_write; }
 
 	void nmi();
+	void irq();
 
 protected:
 	IMemory* _memory;
@@ -250,5 +251,6 @@ private:
 	void tya(AddressingMode mode);
 
 	void nmi(AddressingMode mode);
+	void irq(AddressingMode mode);
 	void res(AddressingMode mode);
 };

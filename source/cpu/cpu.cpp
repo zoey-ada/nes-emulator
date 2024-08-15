@@ -77,8 +77,12 @@ void Cpu::write_memory()
 
 void Cpu::nmi()
 {
-	// this->_actions.clear();
 	this->nmi(AddressingMode::implicit);
+}
+
+void Cpu::irq()
+{
+	this->irq(AddressingMode::implicit);
 }
 
 void Cpu::queue_next_instruction()
@@ -856,7 +860,6 @@ void Cpu::brk(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() {
 		this->write_memory();
 		this->_s--;
-
 		this->address_bus_high() = 0x01;
 		this->address_bus_low() = this->_s;
 		this->_data_bus = this->program_counter_low();
@@ -867,14 +870,13 @@ void Cpu::brk(AddressingMode mode)
 		this->_s--;
 		this->address_bus_high() = 0x01;
 		this->address_bus_low() = this->_s;
+		this->b_flag(true);
 		this->_data_bus = this->_p;
 	});
 
 	this->_actions.push_back([this, &mode]() {
 		this->write_memory();
-
 		this->i_flag(true);
-
 		this->_s--;
 		this->address_bus_high() = 0xff;
 		this->address_bus_low() = 0xfe;
@@ -1704,22 +1706,21 @@ void Cpu::tya(AddressingMode mode)
 void Cpu::nmi(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
-		this->fetch();
-		this->program_counter()--;
+		this->address_bus() = this->program_counter();
+		this->read_memory();
 		this->_instruction = 0x00;
-		this->address_bus_high() = this->program_counter_high();
-		this->address_bus_low() = this->program_counter_low();
+		this->address_bus() = this->program_counter();
 	});
 
 	this->_actions.push_back([this]() {
-		this->fetch();
+		this->read_memory();
 		this->address_bus_high() = 0x01;
 		this->address_bus_low() = this->_s;
 		this->_data_bus = this->program_counter_high();
 	});
 
 	this->_actions.push_back([this, &mode]() {
-		// this->write_memory();
+		this->write_memory();
 		this->_s--;
 		this->address_bus_high() = 0x01;
 		this->address_bus_low() = this->_s;
@@ -1727,7 +1728,7 @@ void Cpu::nmi(AddressingMode mode)
 	});
 
 	this->_actions.push_back([this, &mode]() {
-		// this->write_memory();
+		this->write_memory();
 		this->_s--;
 		this->address_bus_high() = 0x01;
 		this->address_bus_low() = this->_s;
@@ -1736,7 +1737,7 @@ void Cpu::nmi(AddressingMode mode)
 	});
 
 	this->_actions.push_back([this, &mode]() {
-		// this->write_memory();
+		this->write_memory();
 		this->_s--;
 		this->address_bus_high() = 0xff;
 		this->address_bus_low() = 0xfa;
@@ -1756,18 +1757,17 @@ void Cpu::nmi(AddressingMode mode)
 	});
 }
 
-void Cpu::res(AddressingMode mode)
+void Cpu::irq(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
-		// this->fetch();
-		this->program_counter()--;
+		this->address_bus() = this->program_counter();
+		this->read_memory();
 		this->_instruction = 0x00;
-		this->address_bus_high() = this->program_counter_high();
-		this->address_bus_low() = this->program_counter_low();
+		this->address_bus() = this->program_counter();
 	});
 
 	this->_actions.push_back([this]() {
-		// this->fetch();
+		this->read_memory();
 		this->address_bus_high() = 0x01;
 		this->address_bus_low() = this->_s;
 		this->_data_bus = this->program_counter_high();
@@ -1792,6 +1792,60 @@ void Cpu::res(AddressingMode mode)
 
 	this->_actions.push_back([this, &mode]() {
 		this->write_memory();
+		this->_s--;
+		this->address_bus_high() = 0xff;
+		this->address_bus_low() = 0xfe;
+	});
+
+	this->_actions.push_back([this]() {
+		this->read_memory();
+		this->_input_data_latch = this->_data_bus;
+		this->address_bus_high() = 0xff;
+		this->address_bus_low() = 0xff;
+	});
+
+	this->_actions.push_back([this]() {
+		this->read_memory();
+		this->program_counter_low() = this->_input_data_latch;
+		this->program_counter_high() = this->_data_bus;
+	});
+}
+
+void Cpu::res(AddressingMode mode)
+{
+	this->_actions.push_back([this]() {
+		this->address_bus() = this->program_counter();
+		this->read_memory();
+		this->_instruction = 0x00;
+		this->address_bus() = this->program_counter();
+	});
+
+	this->_actions.push_back([this]() {
+		this->read_memory();
+		this->address_bus_high() = 0x01;
+		this->address_bus_low() = this->_s;
+		this->_data_bus = this->program_counter_high();
+	});
+
+	this->_actions.push_back([this, &mode]() {
+		// this->write_memory();
+		this->_s--;
+		this->address_bus_high() = 0x01;
+		this->address_bus_low() = this->_s;
+		this->_data_bus = this->program_counter_low();
+	});
+
+	this->_actions.push_back([this, &mode]() {
+		// this->write_memory();
+		this->_s--;
+		this->address_bus_high() = 0x01;
+		this->address_bus_low() = this->_s;
+		this->b_flag(false);
+		this->_data_bus = this->_p;
+	});
+
+	this->_actions.push_back([this, &mode]() {
+		// this->write_memory();
 		this->_s--;
 		this->address_bus_high() = 0xff;
 		this->address_bus_low() = 0xfc;
