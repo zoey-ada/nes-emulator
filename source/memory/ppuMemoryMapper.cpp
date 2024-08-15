@@ -1,16 +1,14 @@
 #include "ppuMemoryMapper.hpp"
 
-#include <new>
-
 #include "cartridge/cartridge.hpp"
 #include "randomAccessMemory.hpp"
 #include "slowMemory.hpp"
 
 PpuMemoryMapper::PpuMemoryMapper()
 {
-	this->_palette_ram = new (std::nothrow) RandomAccessMemory(0x0100);
-	// this->_video_ram = new (std::nothrow) RandomAccessMemory(0x0800);
-	this->_video_ram = new (std::nothrow) SlowMemory(0x0800);
+	this->_palette_ram = std::make_unique<RandomAccessMemory>(0x0100);
+	// this->_video_ram = std::make_unique<RandomAccessMemory>(0x0800);
+	this->_video_ram = std::make_unique<SlowMemory>(0x0800);
 }
 
 PpuMemoryMapper::~PpuMemoryMapper()
@@ -18,14 +16,6 @@ PpuMemoryMapper::~PpuMemoryMapper()
 	if (this->_cartridge)
 		this->unload_cartridge();
 	this->_cartridge = nullptr;
-
-	if (this->_palette_ram != nullptr)
-		delete this->_palette_ram;
-	this->_palette_ram = nullptr;
-
-	if (this->_video_ram != nullptr)
-		delete this->_video_ram;
-	this->_video_ram = nullptr;
 }
 
 // $0000-$0FFF	$1000	Pattern table 0			Cartridge
@@ -67,7 +57,7 @@ void PpuMemoryMapper::write(uint16_t address, const uint8_t data)
 void PpuMemoryMapper::load_cartridge(Cartridge* cartridge)
 {
 	this->_cartridge = cartridge;
-	this->_cartridge->setConsoleVideoRam(this->_video_ram);
+	this->_cartridge->setConsoleVideoRam(this->_video_ram.get());
 }
 
 void PpuMemoryMapper::unload_cartridge()

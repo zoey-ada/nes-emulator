@@ -76,4 +76,5 @@ private:
 
 	void blankFrame();
 	void resetCurrentCycle();
+	void renderDebugImages();
 };

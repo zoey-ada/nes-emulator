@@ -28,11 +28,12 @@ Nes::Nes(SDL_Renderer* renderer)
 
 void Nes::produceFrame()
 {
+	this->renderDebugImages();
 	// this->produceNesFrame();
 	// this->_left->produceFrame();
 	// this->_right->produceFrame();
-	auto cycle_data = this->_debug_cpu->getLastStackFrame();
-	this->_cpu_renderer->produceFrame(cycle_data);
+	// auto cycle_data = this->_debug_cpu->getLastStackFrame();
+	// this->_cpu_renderer->produceFrame(cycle_data);
 }
 
 void Nes::produceNesFrame()
@@ -164,6 +165,14 @@ void Nes::resetCurrentCycle()
 {
 	this->_is_even_frame = !this->_is_even_frame;
 	this->_current_cycle = 0;
+}
+
+void Nes::renderDebugImages()
+{
+	this->_left->produceFrame();
+	this->_right->produceFrame();
+	auto cycle_data = this->_debug_cpu->getLastStackFrame();
+	this->_cpu_renderer->produceFrame(cycle_data);
 }
 
 void Nes::blankFrame()

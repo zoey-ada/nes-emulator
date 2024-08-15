@@ -1,9 +1,10 @@
 #pragma once
 
+#include <memory>
+
 #include "iMemory.hpp"
 
 class Cartridge;
-class IMemory;
 
 class PpuMemoryMapper: public IMemory
 {
@@ -18,7 +19,7 @@ public:
 	void unload_cartridge();
 
 private:
-	IMemory* _palette_ram {nullptr};
-	IMemory* _video_ram {nullptr};
+	std::unique_ptr<IMemory> _palette_ram {nullptr};
+	std::unique_ptr<IMemory> _video_ram {nullptr};
 	Cartridge* _cartridge {nullptr};
 };

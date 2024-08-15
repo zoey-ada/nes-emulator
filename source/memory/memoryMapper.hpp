@@ -1,10 +1,11 @@
 #pragma once
 
+#include <memory>
+
 #include "iMemory.hpp"
 
 class Cartridge;
 class PictureProcessingUnit;
-class RandomAccessMemory;
 
 class MemoryMapper: public IMemory
 {
@@ -19,7 +20,7 @@ public:
 	void unload_cartridge();
 
 private:
-	RandomAccessMemory* _ram {nullptr};
-	Cartridge* _cartridge;
-	PictureProcessingUnit* _ppu;
+	std::unique_ptr<IMemory> _ram {nullptr};
+	Cartridge* _cartridge {nullptr};
+	PictureProcessingUnit* _ppu {nullptr};
 };

@@ -107,7 +107,8 @@ void PictureProcessingUnit::power_up()
 	this->_row = 0;
 	this->_column = 0;
 	this->_is_even_frame = false;
-	std::array<uint8_t, 2> _vram_address {0x00, 0x00};
+	this->_vram_address(0x0000);
+	this->_temp_vram_address(0x0000);
 }
 
 void PictureProcessingUnit::cycle(uint8_t number_cycles)
@@ -118,41 +119,40 @@ void PictureProcessingUnit::cycle(uint8_t number_cycles)
 
 void PictureProcessingUnit::ppu_ctrl(const uint8_t value)
 {
-	this->_ppuctrl = value;
+	this->_ppuctrl(value);
 
 	uint8_t nt_bits = (value & 0b0000'0011) << 2;
-	uint8_t nt_cleared = this->temp_vram_address_high() & 0b0111'0011;
+	uint8_t nt_cleared = this->_temp_vram_address.highByte() & 0b0111'0011;
 	uint8_t nt_set = nt_cleared | nt_bits;
-	this->temp_vram_address_high(nt_set);
+	this->_temp_vram_address.highByte(nt_set);
 }
 
 uint8_t PictureProcessingUnit::ppu_status()
 {
 	this->_second_write_flag = false;
-	return this->_ppustatus;
+	return this->_ppustatus();
 }
 
 void PictureProcessingUnit::ppu_scroll(const uint8_t value)
 {
 	if (!this->_second_write_flag)
 	{
-		// using the setter will only grab the lowest 3 bits of the value
-		this->fine_x_scroll(value);
+		this->_fine_x_scroll(value);
 
 		uint8_t addr_bits = (value & 0b1111'1000) >> 3;
-		uint8_t addr_cleared = this->temp_vram_address_low() & 0b1110'0000;
+		uint8_t addr_cleared = this->_temp_vram_address.lowByte() & 0b1110'0000;
 		uint8_t addr_set = addr_cleared | addr_bits;
-		this->temp_vram_address_low(addr_set);
+		this->_temp_vram_address.lowByte(addr_set);
 	}
 	else
 	{
-		// using the setter will only grab the lowest 3 bits of the value
+		// using the setter will only set the lowest 3 bits of the value
 		this->set_fine_y_scroll(value);
 
 		uint16_t addr_bits = static_cast<uint16_t>(value & 0b1111'1000) << 2;
-		uint16_t addr_cleared = this->temp_vram_address() & 0b0111'1100'0001'1111;
+		uint16_t addr_cleared = this->_temp_vram_address() & 0b0111'1100'0001'1111;
 		uint16_t addr_set = addr_cleared | addr_bits;
-		this->temp_vram_address(addr_set);
+		this->_temp_vram_address(addr_set);
 	}
 
 	this->_second_write_flag = !this->_second_write_flag;
@@ -163,12 +163,12 @@ void PictureProcessingUnit::ppu_addr(const uint8_t value)
 	if (!this->_second_write_flag)
 	{
 		uint8_t addr_bits = value & 0b0011'1111;
-		this->temp_vram_address_high(addr_bits);
+		this->_temp_vram_address.highByte(addr_bits);
 	}
 	else
 	{
-		this->temp_vram_address_low(value);
-		this->vram_address(this->temp_vram_address());
+		this->_temp_vram_address.lowByte(value);
+		this->_vram_address(this->_temp_vram_address());
 	}
 
 	this->_second_write_flag = !this->_second_write_flag;
@@ -176,16 +176,16 @@ void PictureProcessingUnit::ppu_addr(const uint8_t value)
 
 uint8_t PictureProcessingUnit::ppu_data()
 {
-	this->ppu_address_bus(this->vram_address());
+	this->_address_bus(this->_vram_address());
 	this->read_memory();
 	this->increment_vram_address();
-	return this->ppu_data_bus();
+	return this->_data_bus();
 }
 
 void PictureProcessingUnit::ppu_data(const uint8_t value)
 {
-	this->ppu_address_bus(this->vram_address());
-	this->ppu_data_bus() = value;
+	this->_address_bus(this->_vram_address());
+	this->_data_bus(value);
 	this->write_memory();
 	this->increment_vram_address();
 }
@@ -286,12 +286,12 @@ void PictureProcessingUnit::load_next_operation()
 
 void PictureProcessingUnit::read_memory()
 {
-	this->ppu_data_bus() = this->_memory->read(this->ppu_address_bus());
+	this->_data_bus(this->_memory->read(this->_address_bus()));
 }
 
 void PictureProcessingUnit::write_memory()
 {
-	this->_memory->write(this->ppu_address_bus(), this->ppu_data_bus());
+	this->_memory->write(this->_address_bus(), this->_data_bus());
 }
 
 void PictureProcessingUnit::feed_vout()
@@ -303,12 +303,12 @@ void PictureProcessingUnit::feed_vout()
 void PictureProcessingUnit::nametable_read()
 {
 	this->_actions.push_back([this] {
-		this->ppu_address_bus(this->get_nametable_address());
+		this->_address_bus(this->get_nametable_address());
 		this->feed_vout();
 	});
 	this->_actions.push_back([this] {
 		this->read_memory();
-		this->_nametable_latch = this->ppu_data_bus();
+		this->_nametable_latch = this->_data_bus();
 		this->feed_vout();
 	});
 }
@@ -316,12 +316,12 @@ void PictureProcessingUnit::nametable_read()
 void PictureProcessingUnit::attribute_table_read()
 {
 	this->_actions.push_back([this] {
-		this->ppu_address_bus(this->get_attribute_table_address());
+		this->_address_bus(this->get_attribute_table_address());
 		this->feed_vout();
 	});
 	this->_actions.push_back([this] {
 		this->read_memory();
-		this->_attribute_table_latch = this->ppu_data_bus();
+		this->_attribute_table_latch = this->_data_bus();
 		this->feed_vout();
 	});
 }
@@ -329,22 +329,22 @@ void PictureProcessingUnit::attribute_table_read()
 void PictureProcessingUnit::process_visible_pixels()
 {
 	this->_actions.push_back([this] {
-		this->ppu_address_bus(this->calculate_pattern_table_address(false));
+		this->_address_bus(this->calculate_pattern_table_address(false));
 		this->feed_vout();
 	});
 	this->_actions.push_back([this] {
 		this->read_memory();
-		this->_pattern_table_tile_low_latch = this->ppu_data_bus();
+		this->_pattern_table_tile_low_latch = this->_data_bus();
 		this->feed_vout();
 	});
 
 	this->_actions.push_back([this] {
-		this->ppu_address_bus(this->calculate_pattern_table_address(true));
+		this->_address_bus(this->calculate_pattern_table_address(true));
 		this->feed_vout();
 	});
 	this->_actions.push_back([this] {
 		this->read_memory();
-		this->_pattern_table_tile_high_latch = this->ppu_data_bus();
+		this->_pattern_table_tile_high_latch = this->_data_bus();
 		this->feed_vout();
 
 		if (this->_column == 256)
@@ -469,7 +469,7 @@ uint16_t PictureProcessingUnit::calculate_pattern_table_address(bool bit_plane)
 	uint16_t plane1_offset = 0b0000'00000'0000'1000;
 	uint16_t tile_offset = static_cast<uint16_t>(this->_nametable_latch) << 4;
 	uint8_t fine_y_scroll_offset =
-		static_cast<uint16_t>((this->vram_address_high() & 0b0111'0000) >> 4);
+		static_cast<uint16_t>((this->_vram_address.highByte() & 0b0111'0000) >> 4);
 
 	uint16_t address = tile_offset | fine_y_scroll_offset;
 	if (bit_plane)
@@ -485,85 +485,85 @@ void PictureProcessingUnit::fetch_sprite_tile_data()
 
 void PictureProcessingUnit::set_fine_x_scroll(uint8_t pos)
 {
-	this->_fine_x_scroll = pos & 0b00000111;
+	this->_fine_x_scroll(pos & 0b00000111);
 }
 
 void PictureProcessingUnit::increment_fine_x_scroll()
 {
 	// Because of the way I am forcing the register to 3 bits, this should effectively work like a
 	// mod 8 operation.
-	this->fine_x_scroll(this->fine_x_scroll() + 1);
+	this->_fine_x_scroll(this->_fine_x_scroll() + 1);
 }
 
 uint8_t PictureProcessingUnit::get_fine_y_scroll()
 {
-	return (this->vram_address_high() & 0b0111'0000) >> 4;
+	return (this->_vram_address.highByte() & 0b0111'0000) >> 4;
 }
 
 void PictureProcessingUnit::set_fine_y_scroll(uint8_t pos)
 {
 	uint8_t scroll_bits = (pos & 0b0000'0111) << 4;
-	uint8_t scroll_clear = this->vram_address_high() & 0b0000'1111;
+	uint8_t scroll_clear = this->_vram_address.highByte() & 0b0000'1111;
 	uint8_t scroll_set = scroll_clear | scroll_bits;
-	this->vram_address_high(scroll_set);
+	this->_vram_address.highByte(scroll_set);
 }
 
 void PictureProcessingUnit::increment_fine_y_scroll()
 {
 	// Because of the way I am forcing the most significant bit to 0, this should effectively work
 	// like a mod 8 operation.
-	this->vram_address_high(this->vram_address_high() + 0b0001'0000);
+	this->_vram_address.highByte(this->_vram_address.highByte() + 0b0001'0000);
 }
 
 uint8_t PictureProcessingUnit::get_coarse_x_scroll()
 {
-	return this->vram_address_low() & 0b0001'1111;
+	return this->_vram_address.lowByte() & 0b0001'1111;
 }
 
 void PictureProcessingUnit::set_coarse_x_scroll(const uint8_t pos)
 {
-	uint8_t scroll_clear = this->vram_address_low() & 0b1110'0000;
+	uint8_t scroll_clear = this->_vram_address.lowByte() & 0b1110'0000;
 	uint8_t scroll_set = scroll_clear | (pos & 0b0001'1111);
-	this->vram_address_low(scroll_set);
+	this->_vram_address.lowByte(scroll_set);
 }
 
 void PictureProcessingUnit::increment_coarse_x_scroll()
 {
-	uint8_t x_scroll = this->vram_address_low() & 0b0001'1111;
+	uint8_t x_scroll = this->_vram_address.lowByte() & 0b0001'1111;
 	x_scroll++;
 	if ((x_scroll & 0b0010'0000) > 1)
 	{
-		uint8_t scroll_clear = this->vram_address() & 0b0111'1111'1110'0000;
+		uint8_t scroll_clear = this->_vram_address() & 0b0111'1111'1110'0000;
 		uint8_t nt_toggled = scroll_clear ^ 0b0000'0100'0000'0000;
-		this->vram_address(nt_toggled);
+		this->_vram_address(nt_toggled);
 	}
 	else
 	{
-		uint8_t scroll_clear = this->vram_address_low() & 0b1110'0000;
+		uint8_t scroll_clear = this->_vram_address.lowByte() & 0b1110'0000;
 		uint8_t scroll_set = scroll_clear | (x_scroll & 0b0001'1111);
-		this->vram_address_low(scroll_set);
+		this->_vram_address.lowByte(scroll_set);
 	}
 }
 
 void PictureProcessingUnit::reset_coarse_x_scroll()
 {
-	uint16_t scroll_bits = this->temp_vram_address() & 0b0000'0100'0001'1111;
-	uint16_t scroll_clear = this->vram_address() & 0b0111'1011'1110'0000;
+	uint16_t scroll_bits = this->_temp_vram_address() & 0b0000'0100'0001'1111;
+	uint16_t scroll_clear = this->_vram_address() & 0b0111'1011'1110'0000;
 	uint16_t scroll_set = scroll_clear | scroll_bits;
-	this->vram_address(scroll_set);
+	this->_vram_address(scroll_set);
 }
 
 uint8_t PictureProcessingUnit::get_coarse_y_scroll()
 {
-	return static_cast<uint8_t>((this->vram_address() & 0b0000'0011'1110'0000) >> 5);
+	return static_cast<uint8_t>((this->_vram_address() & 0b0000'0011'1110'0000) >> 5);
 }
 
 void PictureProcessingUnit::set_coarse_y_scroll(const uint8_t pos)
 {
 	uint16_t scroll_bits = static_cast<uint16_t>(pos & 0b0001'1111) << 5;
-	uint16_t scroll_clear = this->vram_address() & 0b0111'1100'0001'1111;
+	uint16_t scroll_clear = this->_vram_address() & 0b0111'1100'0001'1111;
 	uint16_t scroll_set = scroll_clear | scroll_bits;
-	this->vram_address(scroll_set);
+	this->_vram_address(scroll_set);
 }
 
 void PictureProcessingUnit::increment_coarse_y_scroll()
@@ -578,9 +578,9 @@ void PictureProcessingUnit::increment_coarse_y_scroll()
 
 		if (coarse_y == 30)
 		{
-			uint8_t scroll_clear = this->vram_address() & 0b0000'1000'0001'1111;
+			uint8_t scroll_clear = this->_vram_address() & 0b0000'1000'0001'1111;
 			uint8_t nt_toggled = scroll_clear ^ 0b0000'1000'0000'0000;
-			this->vram_address(nt_toggled);
+			this->_vram_address(nt_toggled);
 		}
 		else if (coarse_y == 31)
 		{
@@ -595,31 +595,31 @@ void PictureProcessingUnit::increment_coarse_y_scroll()
 
 void PictureProcessingUnit::reset_coarse_y_scroll()
 {
-	uint16_t scroll_bits = this->temp_vram_address() & 0b0111'1011'1110'0000;
-	uint16_t scroll_clear = this->vram_address() & 0b0000'0100'0001'1111;
+	uint16_t scroll_bits = this->_temp_vram_address() & 0b0111'1011'1110'0000;
+	uint16_t scroll_clear = this->_vram_address() & 0b0000'0100'0001'1111;
 	uint16_t scroll_set = scroll_clear | scroll_bits;
-	this->vram_address(scroll_set);
+	this->_vram_address(scroll_set);
 }
 
 void PictureProcessingUnit::increment_vram_address()
 {
 	if (this->increment_mode_flag())
-		this->vram_address(this->vram_address() + 32);
+		this->_vram_address(this->_vram_address() + 32);
 	else
-		this->vram_address(this->vram_address() + 1);
+		this->_vram_address(this->_vram_address() + 1);
 }
 
 void PictureProcessingUnit::increment_tile_offset()
 {
-	uint16_t vram_const_bits = this->vram_address() & 0b0001'1100'0000'0000;
-	uint16_t offset = this->vram_address() & 0b0000'1111'1111'1111;
+	uint16_t vram_const_bits = this->_vram_address() & 0b0001'1100'0000'0000;
+	uint16_t offset = this->_vram_address() & 0b0000'1111'1111'1111;
 	offset = (offset + 1) & 0b0000'1111'1111'1111;
-	this->vram_address(vram_const_bits + offset);
+	this->_vram_address(vram_const_bits + offset);
 }
 
 uint16_t PictureProcessingUnit::get_nametable_address()
 {
-	uint16_t nametable_offset = this->vram_address() & 0b0000'1111'1111'1111;
+	uint16_t nametable_offset = this->_vram_address() & 0b0000'1111'1111'1111;
 	return 0x2000 | nametable_offset;
 }
 
@@ -631,9 +631,9 @@ uint16_t PictureProcessingUnit::get_attribute_table_address()
 	// || ++++---------- attribute offset (960 bytes)
 	// ++--------------- nametable select
 
-	uint16_t coarse_x_offset = (this->vram_address() & 0b0000'0000'0001'1100) >> 2;
-	uint16_t coarse_y_offset = (this->vram_address() & 0b0000'0011'1000'0000) >> 4;
-	uint16_t nametable_offset = (this->vram_address() & 0b0000'1100'0000'0000) << 2;
+	uint16_t coarse_x_offset = (this->_vram_address() & 0b0000'0000'0001'1100) >> 2;
+	uint16_t coarse_y_offset = (this->_vram_address() & 0b0000'0011'1000'0000) >> 4;
+	uint16_t nametable_offset = (this->_vram_address() & 0b0000'1100'0000'0000) << 2;
 	uint16_t attribute_table_offset = 0b0011'1100'0000;
 	return nametable_offset | attribute_table_offset | coarse_y_offset | coarse_x_offset;
 }

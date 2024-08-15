@@ -6,4 +6,5 @@ target_sources(base
 	BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/..
 	FILES
 		pixel.hpp
+		register.hpp
 )
