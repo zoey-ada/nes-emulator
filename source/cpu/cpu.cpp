@@ -35,6 +35,8 @@ void Cpu::clear_registers()
 
 void Cpu::power_up()
 {
+	this->clear_registers();
+	this->_actions.clear();
 	this->res(AddressingMode::implicit);
 }
 
@@ -48,7 +50,7 @@ void Cpu::cycle()
 	action();
 }
 
-void Cpu::cycle(uint8_t number_cycles)
+void Cpu::cycle(const uint8_t number_cycles)
 {
 	for (auto i = 0; i < number_cycles; ++i)
 		this->cycle();
@@ -58,18 +60,25 @@ void Cpu::fetch()
 {
 	this->address_bus() = this->program_counter();
 	this->read_memory();
-	// this->_data_bus = this->_memory->read(this->program_counter());
 	this->program_counter()++;
 }
 
 void Cpu::read_memory()
 {
+	this->_read_write = true;
 	this->_data_bus = this->_memory->read(this->address_bus());
 }
 
 void Cpu::write_memory()
 {
+	this->_read_write = false;
 	this->_memory->write(this->address_bus(), this->_data_bus);
+}
+
+void Cpu::nmi()
+{
+	// this->_actions.clear();
+	this->nmi(AddressingMode::implicit);
 }
 
 void Cpu::queue_next_instruction()
@@ -381,13 +390,31 @@ void Cpu::no_address()
 void Cpu::relative()
 {
 	this->_actions.push_back([this]() {
-		this->program_counter_low() = this->_alu.add(this->program_counter_low(), this->_data_bus);
+		if ((this->_data_bus & 0b1000'0000) > 1)
+		{
+			uint8_t twos_comp = (~this->_data_bus) + 1;
 
-		if (this->_alu.carry())
-			this->_actions.push_front([this]() {
-				this->read_memory();
-				this->program_counter_high() = this->_alu.add(this->program_counter_high(), 1);
-			});
+			this->program_counter_low() =
+				this->_alu.subtract(this->program_counter_low(), twos_comp);
+
+			if (!this->_alu.carry())
+				this->_actions.push_front([this]() {
+					this->read_memory();
+					this->program_counter_high() =
+						this->_alu.subtract(this->program_counter_high(), 1);
+				});
+		}
+		else
+		{
+			this->program_counter_low() =
+				this->_alu.add(this->program_counter_low(), this->_data_bus);
+
+			if (this->_alu.carry())
+				this->_actions.push_front([this]() {
+					this->read_memory();
+					this->program_counter_high() = this->_alu.add(this->program_counter_high(), 1);
+				});
+		}
 	});
 }
 
@@ -1692,7 +1719,7 @@ void Cpu::nmi(AddressingMode mode)
 	});
 
 	this->_actions.push_back([this, &mode]() {
-		this->write_memory();
+		// this->write_memory();
 		this->_s--;
 		this->address_bus_high() = 0x01;
 		this->address_bus_low() = this->_s;
@@ -1700,7 +1727,7 @@ void Cpu::nmi(AddressingMode mode)
 	});
 
 	this->_actions.push_back([this, &mode]() {
-		this->write_memory();
+		// this->write_memory();
 		this->_s--;
 		this->address_bus_high() = 0x01;
 		this->address_bus_low() = this->_s;
@@ -1709,21 +1736,21 @@ void Cpu::nmi(AddressingMode mode)
 	});
 
 	this->_actions.push_back([this, &mode]() {
-		this->write_memory();
+		// this->write_memory();
 		this->_s--;
 		this->address_bus_high() = 0xff;
 		this->address_bus_low() = 0xfa;
 	});
 
 	this->_actions.push_back([this]() {
-		this->fetch();
+		this->read_memory();
 		this->_input_data_latch = this->_data_bus;
 		this->address_bus_high() = 0xff;
 		this->address_bus_low() = 0xfb;
 	});
 
 	this->_actions.push_back([this]() {
-		this->fetch();
+		this->read_memory();
 		this->program_counter_low() = this->_input_data_latch;
 		this->program_counter_high() = this->_data_bus;
 	});
@@ -1732,7 +1759,7 @@ void Cpu::nmi(AddressingMode mode)
 void Cpu::res(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
-		this->fetch();
+		// this->fetch();
 		this->program_counter()--;
 		this->_instruction = 0x00;
 		this->address_bus_high() = this->program_counter_high();
@@ -1740,7 +1767,7 @@ void Cpu::res(AddressingMode mode)
 	});
 
 	this->_actions.push_back([this]() {
-		this->fetch();
+		// this->fetch();
 		this->address_bus_high() = 0x01;
 		this->address_bus_low() = this->_s;
 		this->_data_bus = this->program_counter_high();
@@ -1771,14 +1798,14 @@ void Cpu::res(AddressingMode mode)
 	});
 
 	this->_actions.push_back([this]() {
-		this->fetch();
+		this->read_memory();
 		this->_input_data_latch = this->_data_bus;
 		this->address_bus_high() = 0xff;
 		this->address_bus_low() = 0xfd;
 	});
 
 	this->_actions.push_back([this]() {
-		this->fetch();
+		this->read_memory();
 		this->program_counter_low() = this->_input_data_latch;
 		this->program_counter_high() = this->_data_bus;
 	});

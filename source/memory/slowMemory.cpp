@@ -1,6 +1,6 @@
 #include "slowMemory.hpp"
 
-SlowMemory::SlowMemory()
+SlowMemory::SlowMemory(const uint16_t size)
 {
-	this->_data = std::vector<uint8_t>(0x10000, 0);
+	this->_data = std::vector<uint8_t>(size, 0);
 }

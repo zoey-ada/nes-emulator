@@ -9,7 +9,7 @@
 #include "alu.hpp"
 
 using Register = uint8_t;
-using WideRegister = uint16_t;
+using WideRegister = uint16_t;  // TODO: turn this into a class and use it?
 
 class Cpu;
 class IMemory;
@@ -31,28 +31,23 @@ using Action = std::function<void()>;
 class Cpu
 {
 public:
-	Cpu() = delete;
-	Cpu(IMemory* memory);
+	explicit Cpu(IMemory* memory);
 	virtual ~Cpu();
 
 	void clear_registers();
 	void power_up();
 
 	void cycle();
-	void cycle(uint8_t number_cycles);
+	void cycle(const uint8_t number_cycles);
 
+	//--------------------------------------------------------------------------
+	// registers
+	//--------------------------------------------------------------------------
 	uint16_t& program_counter() { return (uint16_t&)this->_program_counter[0]; }
 	void program_counter(const uint16_t data) { (uint16_t&)this->_program_counter[0] = data; }
 	// bytes are reversed so that reading the 16 bit values is correct
 	uint8_t& program_counter_high() { return this->_program_counter[1]; }
 	uint8_t& program_counter_low() { return this->_program_counter[0]; }
-
-	inline uint16_t& address_bus() { return (uint16_t&)this->_address_bus[0]; }
-	// bytes are reversed so that reading the 16 bit values is correct
-	inline uint8_t& address_bus_high() { return this->_address_bus[1]; }
-	inline uint8_t& address_bus_low() { return this->_address_bus[0]; }
-
-	uint8_t& data_bus() { return this->_data_bus; };
 
 	inline uint8_t accumulator() const { return this->_a; }
 	inline void accumulator(const uint8_t data) { this->_a = data; }
@@ -111,22 +106,47 @@ public:
 		state ? this->_p |= 0b00000001 : this->_p &= 0b11111110;
 	};
 
-private:
-	Register _a = 0x00;
-	Register _x = 0x00;
-	Register _y = 0x00;
-	Register _s = 0xfd;
-	Register _p = 0x34;
-	WideRegister _pc;
+	//--------------------------------------------------------------------------
+	// pins
+	//--------------------------------------------------------------------------
+	inline uint16_t& address_bus() { return (uint16_t&)this->_address_bus[0]; }
+	// bytes are reversed so that reading the 16 bit values is correct
+	inline uint8_t& address_bus_high() { return this->_address_bus[1]; }
+	inline uint8_t& address_bus_low() { return this->_address_bus[0]; }
 
-	Register _instruction = 0x00;
-	Register _input_data_latch = 0x00;
+	inline uint8_t& data_bus() { return this->_data_bus; }
+	inline bool audio_out_1() const { return this->_audio_out_1; }
+	inline bool audio_out_2() const { return this->_audio_out_2; }
+	inline bool read_write() const { return this->_read_write; }
 
-	std::array<uint8_t, 2> _program_counter = {0x00, 0x00};
-	std::array<uint8_t, 2> _address_bus = {0x00, 0x00};
-	uint8_t _data_bus = 0x00;
+	void nmi();
 
+protected:
 	IMemory* _memory;
+
+	inline Register instruction_register() { return this->_instruction; }
+	inline Register input_data_latch() { return this->_input_data_latch; }
+
+	virtual void queue_next_instruction();
+
+private:
+	// registers
+	Register _a {0x00};
+	Register _x {0x00};
+	Register _y {0x00};
+	Register _s {0xfd};
+	Register _p {0x34};
+	Register _instruction {0x00};
+	Register _input_data_latch {0x00};
+	std::array<uint8_t, 2> _program_counter = {0x00, 0x00};
+
+	// pins
+	std::array<uint8_t, 2> _address_bus = {0x00, 0x00};
+	uint8_t _data_bus {0x00};
+	bool _audio_out_1 {false};
+	bool _audio_out_2 {false};
+	bool _read_write {false};  // false -> write; true -> read
+
 	Alu _alu;
 	OperationMap _operations;
 	AddressingModeMap _addressing_modes;
@@ -137,8 +157,6 @@ private:
 	void fetch();
 	void read_memory();
 	void write_memory();
-
-	void queue_next_instruction();
 
 	void populate_operations();
 	void populate_addressing_modes();

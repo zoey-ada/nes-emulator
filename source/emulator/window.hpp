@@ -1,12 +1,14 @@
 #pragma once
 
-class SDL_Renderer;
-class SDL_Texture;
-class SDL_Window;
+#include <memory>
 
 #include <memory/debugging/patternTable.hpp>
 
 #include "nes.hpp"
+
+struct SDL_Renderer;
+struct SDL_Texture;
+struct SDL_Window;
 
 class Window
 {
@@ -23,6 +25,9 @@ public:
 	void presentScene();
 
 	void openFileDialog();
+	void step();
+	void leap();
+	void bound();
 
 private:
 	// int _height {262};
@@ -35,7 +40,7 @@ private:
 	int _nes_height {_nes_base_height * _nes_scale};
 	int _nes_width {_nes_base_width * _nes_scale};
 	SDL_Texture* _nes_texture {nullptr};
-	Nes _nes;
+	std::unique_ptr<Nes> _nes;
 
 	int _pattern_table_base_height {128};
 	int _pattern_table_base_width {128};
@@ -50,4 +55,6 @@ private:
 
 	SDL_Window* _window {nullptr};
 	SDL_Renderer* _renderer {nullptr};
+
+	bool _debugging {true};
 };

@@ -3,7 +3,7 @@
 #include "iMemory.hpp"
 
 class Cartridge;
-class RandomAccessMemory;
+class IMemory;
 
 class PpuMemoryMapper: public IMemory
 {
@@ -18,6 +18,7 @@ public:
 	void unload_cartridge();
 
 private:
-	RandomAccessMemory* _ram {nullptr};
-	Cartridge* _cartridge;
+	IMemory* _palette_ram {nullptr};
+	IMemory* _video_ram {nullptr};
+	Cartridge* _cartridge {nullptr};
 };

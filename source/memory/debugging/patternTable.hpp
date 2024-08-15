@@ -4,21 +4,15 @@
 #include <cstdint>
 #include <memory>
 
-#include "../cartridge/cartridge.hpp"
+#include <base/pixel.hpp>
 
-struct PtPixel
-{
-	uint8_t b;
-	uint8_t g;
-	uint8_t r;
-	uint8_t padding;
-};
+#include "../cartridge/cartridge.hpp"
 
 const uint16_t pt_width_in_pixels = 128;
 const uint16_t pt_height_in_pixels = 128;
 const uint64_t pt_total_pixels = pt_width_in_pixels * pt_height_in_pixels;
 
-using PtFrame = std::array<PtPixel, pt_total_pixels>;
+using PtFrame = std::array<Pixel, pt_total_pixels>;
 
 class PatternTable
 {

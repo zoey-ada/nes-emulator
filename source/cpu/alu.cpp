@@ -2,41 +2,63 @@
 
 uint8_t Alu::add(uint8_t a, uint8_t b)
 {
-	// uint8_t carry_6_sum = (a & 0x7f) + (b & 0x7f);
-	// bool carry_6 = (carry_6_sum & 0x80) > 0;
-
 	uint16_t sum = static_cast<uint16_t>(a) + static_cast<uint16_t>(b);
 	this->_carry = (sum & 0x0100) > 0;
+	uint8_t actual_sum = static_cast<uint8_t>(sum & 0x00ff);
 
 	// this->_overflow = this->_carry != carry_6;
-	this->_overflow = (((a ^ b) & 0x80) == 0) && (((a ^ sum) & 0x80) > 0);
-	return static_cast<uint8_t>(sum & 0x00ff);
+	bool terms_same_sign = (((a ^ b) & 0x80) == 0);
+	bool sum_sign_match_a = (((a ^ actual_sum) & 0x80) == 0);
+	this->_overflow = terms_same_sign && !sum_sign_match_a;
+
+	return actual_sum;
 }
 
 uint8_t Alu::add(uint8_t a, uint8_t b, bool carry)
 {
-	// uint8_t carry_6_sum = (a & 0x7f) + (b & 0x7f);
-	// bool carry_6 = (carry_6_sum & 0x80) > 0;
-
 	uint16_t sum = static_cast<uint16_t>(a) + static_cast<uint16_t>(b) + (carry ? 1 : 0);
 	this->_carry = (sum & 0x0100) > 0;
+	uint8_t actual_sum = static_cast<uint8_t>(sum & 0x00ff);
 
-	// this->_overflow = this->_carry  != carry_6;
-	this->_overflow = (((a ^ b) & 0x80) == 0) && (((a ^ sum) & 0x80) > 0);
-	return static_cast<uint8_t>(sum & 0x00ff);
+	bool terms_same_sign = (((a ^ b) & 0x80) == 0);
+	bool sum_sign_match_a = (((a ^ actual_sum) & 0x80) == 0);
+	this->_overflow = terms_same_sign && !sum_sign_match_a;
+
+	return actual_sum;
 }
 
 uint8_t Alu::subtract(uint8_t a, uint8_t b)
 {
-	uint8_t difference = this->add(a, ~b);
-	this->_overflow = (((a ^ b) & 0x80) > 0) && (((a ^ difference) & 0x80) > 0);
+	uint8_t twos_comp = ~b + 1;
+	uint8_t difference = this->add(a, twos_comp);
+
+	// bool terms_same_sign = (((a ^ twos_comp) & 0x80) == 0);
+	// bool sum_sign_match_a = (((a ^ difference) & 0x80) == 0);
+	// this->_overflow = terms_same_sign && !sum_sign_match_a;
+
 	return difference;
 }
 
+// A = A - b - (1 - C) -> A = A + (-b) + (c - 1)
 uint8_t Alu::subtract(uint8_t a, uint8_t b, bool borrow)
 {
-	uint8_t difference = this->add(a, ~b, !borrow);
-	this->_overflow = (((a ^ b) & 0x80) > 0) && (((a ^ difference) & 0x80) > 0);
+	uint8_t twos_comp = ~b + 1;
+	uint8_t difference = this->add(a, twos_comp);
+
+	if (borrow)
+	{
+		auto carry = this->_carry;
+		difference = this->add(difference, 0xff);
+		this->_carry = this->_carry && carry;
+	}
+
+	if (((a ^ b) == 0) && !borrow)
+		this->_carry = true;
+
+	// bool terms_same_sign = (((a ^ twos_comp) & 0x80) == 0);
+	// bool sum_sign_match_a = (((a ^ difference) & 0x80) == 0);
+	// this->_overflow = terms_same_sign && !sum_sign_match_a;
+
 	return difference;
 }
 

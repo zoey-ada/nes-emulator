@@ -1,9 +1,10 @@
 set(root_srcs
 	main.cpp
 
+	cpuRenderer.hpp
+	cpuRenderer.cpp
 	nes.hpp
 	nes.cpp
-
 	window.hpp
 	window.cpp
 )
@@ -16,6 +17,7 @@ set(all_srcs
 add_executable(emulator ${all_srcs})
 target_link_libraries(emulator
 	PUBLIC
+		base
 		cpu
 		memory
 		ppu

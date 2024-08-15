@@ -47,7 +47,7 @@ set(all_srcs
 
 add_library(memory STATIC ${all_srcs})
 
-target_include_directories(memory
+target_link_libraries(memory
 	PRIVATE
-		${CMAKE_SOURCE_DIR}/source
+		base
 )

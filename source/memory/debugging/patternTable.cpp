@@ -46,7 +46,7 @@ void PatternTable::produceFrame()
 					auto wanted_pixel = tile[tile_pixel_index];
 
 					int frame_index = ((coarse_y + fine_y) * 128) + coarse_x + fine_x;
-					auto pixel = ((PtPixel*)&this->_frame[frame_index]);
+					auto pixel = ((Pixel*)&this->_frame[frame_index]);
 					*((uint32_t*)pixel) = wanted_pixel;
 				}
 			}

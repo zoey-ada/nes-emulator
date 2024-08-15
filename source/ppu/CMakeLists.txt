@@ -1,4 +1,6 @@
 set(root_srcs
+	palette.hpp
+	palette.cpp
 	ppu.hpp
 	ppu.cpp
 )

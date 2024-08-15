@@ -67,8 +67,10 @@ std::unique_ptr<IMapper> CartridgeLoader::load_v1_mapper(const CartridgeData_1_0
 {
 	if (cart_data.header.mapper_number() == 0)
 	{
-		bool has_two_mem_banks = (cart_data.header.program_rom_size() == 2);
-		return std::make_unique<Mapper0>(has_two_mem_banks);
+		bool has_two_mem_banks = (cart_data.header.program_rom_size() == 32768);
+		bool has_vertical_nametable_mirror =
+			cart_data.header.nametable_arrangement() == NameTableArrangement::vertical;
+		return std::make_unique<Mapper0>(has_two_mem_banks, has_vertical_nametable_mirror);
 	}
 
 	return nullptr;

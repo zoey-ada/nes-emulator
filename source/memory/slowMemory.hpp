@@ -5,7 +5,7 @@
 class SlowMemory: public IMemory
 {
 public:
-	SlowMemory();
+	SlowMemory(const uint16_t size = 0x1000);
 	virtual ~SlowMemory() = default;
 
 	uint8_t read(uint16_t address) const override { return this->_data[address]; }

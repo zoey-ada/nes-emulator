@@ -1,5 +1,6 @@
 #include "cartridge.hpp"
 
+#include "../iMemory.hpp"
 #include "mappers/iMapper.hpp"
 
 Cartridge::Cartridge(CartridgeData_1_0 cart_data, std::unique_ptr<IMapper> mapper)
@@ -16,28 +17,73 @@ Cartridge::Cartridge(CartridgeData_2_0 cart_data, std::unique_ptr<IMapper> mappe
 {}
 
 Cartridge::~Cartridge()
-{}
+{
+	this->_console_video_ram = nullptr;
+}
 
 uint8_t Cartridge::read_program(uint16_t address) const
 {
-	uint16_t rom_address = this->_mapper->translate_address(address);
-	return this->_program_rom[rom_address];
+	auto location = this->_mapper->translate_program_address(address);
+	switch (location.device)
+	{
+	case MemoryDevice::CartridgeRom:
+		return this->_program_rom[location.address];
+	case MemoryDevice::CartridgeRam:
+		throw std::exception("Cartridge RAM not yet implemented");
+	case MemoryDevice::ConsoleRam:
+		throw std::exception("Console RAM not accessible for program reads");
+	default:
+		throw std::exception("unreachable");
+	}
 }
 
 void Cartridge::write_program(uint16_t address, const uint8_t data)
 {
-	uint16_t rom_address = this->_mapper->translate_address(address);
-	// this->_program_rom[rom_address] = data;
+	auto location = this->_mapper->translate_program_address(address);
+	switch (location.device)
+	{
+	case MemoryDevice::CartridgeRom:
+		// ROM cannot be written to
+		break;
+	case MemoryDevice::CartridgeRam:
+		throw std::exception("Cartridge RAM not yet implemented");
+	case MemoryDevice::ConsoleRam:
+		throw std::exception("Console RAM not accessible for program writes");
+	default:
+		throw std::exception("unreachable");
+	}
 }
 
 uint8_t Cartridge::read_character(uint16_t address) const
 {
-	uint16_t rom_address = this->_mapper->translate_address(address);
-	return this->_character_rom[rom_address];
+	auto location = this->_mapper->translate_character_address(address);
+	switch (location.device)
+	{
+	case MemoryDevice::CartridgeRom:
+		return this->_character_rom[location.address];
+	case MemoryDevice::CartridgeRam:
+		throw std::exception("Cartridge RAM not yet implemented");
+	case MemoryDevice::ConsoleRam:
+		return this->_console_video_ram->read(location.address);
+	default:
+		throw std::exception("unreachable");
+	}
 }
 
 void Cartridge::write_character(uint16_t address, const uint8_t data)
 {
-	uint16_t rom_address = this->_mapper->translate_address(address);
-	// this->_character_rom[rom_address] = data;
+	auto location = this->_mapper->translate_character_address(address);
+	switch (location.device)
+	{
+	case MemoryDevice::CartridgeRom:
+		// ROM cannot be written to
+		break;
+	case MemoryDevice::CartridgeRam:
+		throw std::exception("Cartridge RAM not yet implemented");
+	case MemoryDevice::ConsoleRam:
+		this->_console_video_ram->write(location.address, data);
+		break;
+	default:
+		throw std::exception("unreachable");
+	}
 }

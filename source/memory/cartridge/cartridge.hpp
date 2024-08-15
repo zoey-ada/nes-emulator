@@ -8,6 +8,7 @@
 #include "inesHeader_2_0.hpp"
 
 class IMapper;
+class IMemory;
 
 struct CartridgeData_1_0
 {
@@ -37,9 +38,12 @@ public:
 	uint8_t read_character(uint16_t address) const;
 	void write_character(uint16_t address, const uint8_t data);
 
+	inline void setConsoleVideoRam(IMemory* video_ram) { this->_console_video_ram = video_ram; }
+
 private:
 	std::vector<uint8_t> _program_rom;
 	std::vector<uint8_t> _character_rom;
 	std::vector<uint8_t> _misc_rom;
 	std::unique_ptr<IMapper> _mapper {nullptr};
+	IMemory* _console_video_ram {nullptr};
 };

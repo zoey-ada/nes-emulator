@@ -23,7 +23,6 @@ bool Window::open()
 	}
 
 	this->_renderer = SDL_CreateRenderer(this->_window, -1, SDL_RENDERER_ACCELERATED);
-
 	if (this->_renderer == nullptr)
 	{
 		printf("Renderer could not be created. SDL_Error: %s\n", SDL_GetError());
@@ -56,6 +55,8 @@ bool Window::open()
 		return false;
 	}
 
+	this->_nes = std::make_unique<Nes>(this->_renderer);
+
 	return true;
 }
 
@@ -80,8 +81,11 @@ void Window::run()
 	{
 		this->prepareScene();
 
-		this->_nes.produceFrame();
-		this->renderFrame(this->_nes.getFrame());
+		if (!this->_debugging)
+			this->_nes->cycle(255);
+
+		this->_nes->produceFrame();
+		this->renderFrame(this->_nes->getFrame());
 
 		while (SDL_PollEvent(&e) != 0)
 		{
@@ -92,6 +96,21 @@ void Window::run()
 				if (key == SDL_Scancode::SDL_SCANCODE_O && (mod & KMOD_CTRL) > 0)
 				{
 					this->openFileDialog();
+				}
+				else if (key == SDL_Scancode::SDL_SCANCODE_RIGHT)
+				{
+					this->step();
+				}
+				else if (key == SDL_Scancode::SDL_SCANCODE_DOWN)
+				{
+					if ((mod & KMOD_CTRL) > 0)
+						this->bound();
+					else
+						this->leap();
+				}
+				else if (key == SDL_Scancode::SDL_SCANCODE_SPACE)
+				{
+					this->_debugging = !this->_debugging;
 				}
 			}
 			if (e.type == SDL_EventType::SDL_QUIT)
@@ -120,28 +139,37 @@ void Window::renderFrame(NesFrame frame)
 
 	// left pattern table
 	SDL_LockTexture(this->_left_pattern_table_texture, nullptr, &pixels, &pitch);
-	auto left_pt_frame = this->_nes.getLeftPatternTableFrame();
+	auto left_pt_frame = this->_nes->getLeftPatternTableFrame();
 	memcpy(pixels, left_pt_frame.data(), sizeof(left_pt_frame));
 	pixels = nullptr;
 	SDL_UnlockTexture(this->_left_pattern_table_texture);
 
 	source_rect = {0, 0, this->_pattern_table_base_width, this->_pattern_table_base_height};
-	dest_rect = {this->_nes_width + 2, this->_height - this->_pattern_table_height,
+	dest_rect = {this->_nes_width + 1, this->_height - this->_pattern_table_height,
 		this->_pattern_table_width, this->_pattern_table_height};
 	SDL_RenderCopy(this->_renderer, this->_left_pattern_table_texture, &source_rect, &dest_rect);
 
 	// right pattern table
 	SDL_LockTexture(this->_right_pattern_table_texture, nullptr, &pixels, &pitch);
-	auto right_pt_frame = this->_nes.getRightPatternTableFrame();
+	auto right_pt_frame = this->_nes->getRightPatternTableFrame();
 	memcpy(pixels, right_pt_frame.data(), sizeof(right_pt_frame));
 	pixels = nullptr;
 	SDL_UnlockTexture(this->_right_pattern_table_texture);
 
 	source_rect = {0, 0, this->_pattern_table_base_width, this->_pattern_table_base_height};
-	dest_rect = {this->_nes_width + 3 + this->_pattern_table_width,
+	dest_rect = {this->_nes_width + 2 + this->_pattern_table_width,
 		this->_height - this->_pattern_table_height, this->_pattern_table_width,
 		this->_pattern_table_height};
 	SDL_RenderCopy(this->_renderer, this->_right_pattern_table_texture, &source_rect, &dest_rect);
+
+	// cpu debug
+	auto cpu_texture = this->_nes->getCpuDebugTexture();
+	int h, w;
+	SDL_QueryTexture(cpu_texture, nullptr, nullptr, &w, &h);
+	source_rect = {0, 0, w, h};
+	dest_rect = {this->_nes_width + 1, 0, w, h};
+	SDL_RenderCopy(this->_renderer, cpu_texture, &source_rect, &dest_rect);
+	cpu_texture = nullptr;
 }
 
 void Window::openFileDialog()
@@ -159,12 +187,30 @@ void Window::openFileDialog()
 	{
 		std::string filepath(out_path);
 		NFD_FreePathU8(out_path);
-		this->_nes.loadFile(filepath);
+		this->_nes->loadFile(filepath);
 	}
 	else if (result == nfdresult_t::NFD_ERROR)
 	{
 		printf("Error: %s\n", NFD_GetError());
 	}
+}
+
+void Window::step()
+{
+	if (this->_nes->isGameRunning() && this->_debugging)
+		this->_nes->step();
+}
+
+void Window::leap()
+{
+	if (this->_nes->isGameRunning() && this->_debugging)
+		this->_nes->leap();
+}
+
+void Window::bound()
+{
+	if (this->_nes->isGameRunning() && this->_debugging)
+		this->_nes->bound();
 }
 
 void Window::prepareScene()
