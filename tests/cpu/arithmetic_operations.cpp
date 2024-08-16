@@ -4407,11 +4407,11 @@ SCENARIO("Can perform sbc operation", "[cpu][arithmetic_ops]")
 					cpu.cycle(2);
 
 					THEN(
-						"accumulator has a value of 255, "
+						"accumulator has a value of -1, "
 						"c flag is not set, and "
 						"z flag is not set")
 					{
-						REQUIRE(cpu.accumulator() == 255);
+						REQUIRE(cpu.accumulator() == 0xff);
 						REQUIRE_FALSE(cpu.c_flag());
 						REQUIRE_FALSE(cpu.z_flag());
 					}
@@ -4429,11 +4429,11 @@ SCENARIO("Can perform sbc operation", "[cpu][arithmetic_ops]")
 					cpu.cycle(2);
 
 					THEN(
-						"accumulator has a value of 246, "
+						"accumulator has a value of -10, "
 						"c flag is not set, and "
 						"z flag is not set")
 					{
-						REQUIRE(cpu.accumulator() == 246);
+						REQUIRE(cpu.accumulator() == 0xf6);
 						REQUIRE_FALSE(cpu.c_flag());
 						REQUIRE_FALSE(cpu.z_flag());
 					}

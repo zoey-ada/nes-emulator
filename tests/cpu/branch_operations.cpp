@@ -6,62 +6,106 @@ SCENARIO("Can perform bcc operation", "[cpu][branch_ops]")
 {
 	SlowMemory mem;
 	Cpu cpu(&mem);
-	cpu.program_counter(0x0000);
 
-	GIVEN("operation is bcc [relative]")
+	GIVEN("program counter is 0x0000")
 	{
-		mem._data[0] = 0x90;
+		cpu.program_counter(0x0000);
 
-		AND_GIVEN("address value is 0x20")
+		GIVEN("operation is bcc [relative]")
 		{
-			mem._data[1] = 0x20;
+			mem._data[0] = 0x90;
 
-			AND_GIVEN("c flag is not set")
+			AND_GIVEN("address value is 0x20")
 			{
-				cpu.c_flag(false);
+				mem._data[1] = 0x20;
 
-				WHEN("operation is performed (3 cycles)")
+				AND_GIVEN("c flag is not set")
 				{
-					cpu.cycle(3);
+					cpu.c_flag(false);
 
-					THEN("program counter has a value of 0x0022")
+					WHEN("operation is performed (3 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0022);
+						cpu.cycle(3);
+
+						THEN("program counter has a value of 0x0022")
+						{
+							REQUIRE(cpu.program_counter() == 0x0022);
+						}
 					}
 				}
-			}
 
-			AND_GIVEN("c flag is set")
-			{
-				cpu.c_flag(true);
-
-				WHEN("operation is performed (2 cycles)")
+				AND_GIVEN("c flag is set")
 				{
-					cpu.cycle(2);
+					cpu.c_flag(true);
 
-					THEN("program counter has a value of 0x0002")
+					WHEN("operation is performed (2 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0002);
+						cpu.cycle(2);
+
+						THEN("program counter has a value of 0x0002")
+						{
+							REQUIRE(cpu.program_counter() == 0x0002);
+						}
 					}
 				}
 			}
 		}
+	}
 
-		AND_GIVEN("address value is 0xff")
+	GIVEN("program counter is 0x00fc")
+	{
+		cpu.program_counter(0x00fc);
+
+		AND_GIVEN("operation is bcc [relative]")
 		{
-			mem._data[1] = 0xff;
+			mem._data[0x00fc] = 0x90;
 
-			AND_GIVEN("c flag is not set")
+			AND_GIVEN("address value is 0x05")
 			{
-				cpu.c_flag(false);
+				mem._data[0x00fd] = 0x05;
 
-				WHEN("operation is performed with page cross (4 cycles)")
+				AND_GIVEN("c flag is not set")
 				{
-					cpu.cycle(4);
+					cpu.c_flag(false);
 
-					THEN("program counter has a value of 0x0101")
+					WHEN("operation is performed with page cross (4 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0101);
+						cpu.cycle(4);
+
+						THEN("program counter has a value of 0x0103")
+						{
+							REQUIRE(cpu.program_counter() == 0x0103);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	GIVEN("program counter is 0x00ff")
+	{
+		cpu.program_counter(0x00ff);
+
+		AND_GIVEN("operation is bcc [relative]")
+		{
+			mem._data[0x00ff] = 0x90;
+
+			AND_GIVEN("address value is 0xf0")
+			{
+				mem._data[0x0100] = 0xf0;
+
+				AND_GIVEN("c flag is not set")
+				{
+					cpu.c_flag(false);
+
+					WHEN("operation is performed with page cross (4 cycles)")
+					{
+						cpu.cycle(4);
+
+						THEN("program counter has a value of 0x00f1")
+						{
+							REQUIRE(cpu.program_counter() == 0x00f1);
+						}
 					}
 				}
 			}
@@ -73,62 +117,106 @@ SCENARIO("Can perform bcs operation", "[cpu][branch_ops]")
 {
 	SlowMemory mem;
 	Cpu cpu(&mem);
-	cpu.program_counter(0x0000);
 
-	GIVEN("operation is bcs [relative]")
+	GIVEN("program counter is 0x0000")
 	{
-		mem._data[0] = 0xb0;
+		cpu.program_counter(0x0000);
 
-		AND_GIVEN("address value is 0x20")
+		GIVEN("operation is bcs [relative]")
 		{
-			mem._data[1] = 0x20;
+			mem._data[0] = 0xb0;
 
-			AND_GIVEN("c flag is not set")
+			AND_GIVEN("address value is 0x20")
 			{
-				cpu.c_flag(false);
+				mem._data[1] = 0x20;
 
-				WHEN("operation is performed (2 cycles)")
+				AND_GIVEN("c flag is not set")
 				{
-					cpu.cycle(2);
+					cpu.c_flag(false);
 
-					THEN("program counter has a value of 0x0002")
+					WHEN("operation is performed (2 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0002);
+						cpu.cycle(2);
+
+						THEN("program counter has a value of 0x0002")
+						{
+							REQUIRE(cpu.program_counter() == 0x0002);
+						}
 					}
 				}
-			}
 
-			AND_GIVEN("c flag is set")
-			{
-				cpu.c_flag(true);
-
-				WHEN("operation is performed (3 cycles)")
+				AND_GIVEN("c flag is set")
 				{
-					cpu.cycle(3);
+					cpu.c_flag(true);
 
-					THEN("program counter has a value of 0x0022")
+					WHEN("operation is performed (3 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0022);
+						cpu.cycle(3);
+
+						THEN("program counter has a value of 0x0022")
+						{
+							REQUIRE(cpu.program_counter() == 0x0022);
+						}
 					}
 				}
 			}
 		}
+	}
 
-		AND_GIVEN("address value is 0xff")
+	GIVEN("program counter is 0x00fc")
+	{
+		cpu.program_counter(0x00fc);
+
+		GIVEN("operation is bcs [relative]")
 		{
-			mem._data[1] = 0xff;
+			mem._data[0x00fc] = 0xb0;
 
-			AND_GIVEN("c flag is set")
+			AND_GIVEN("address value is 0x05")
 			{
-				cpu.c_flag(true);
+				mem._data[0x00fd] = 0x05;
 
-				WHEN("operation is performed with page cross (4 cycles)")
+				AND_GIVEN("c flag is set")
 				{
-					cpu.cycle(4);
+					cpu.c_flag(true);
 
-					THEN("program counter has a value of 0x0101")
+					WHEN("operation is performed with page cross (4 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0101);
+						cpu.cycle(4);
+
+						THEN("program counter has a value of 0x0101")
+						{
+							REQUIRE(cpu.program_counter() == 0x0103);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	GIVEN("program counter is 0x00ff")
+	{
+		cpu.program_counter(0x00ff);
+
+		GIVEN("operation is bcs [relative]")
+		{
+			mem._data[0x00ff] = 0xb0;
+
+			AND_GIVEN("address value is 0xf0")
+			{
+				mem._data[0x0100] = 0xf0;
+
+				AND_GIVEN("c flag is set")
+				{
+					cpu.c_flag(true);
+
+					WHEN("operation is performed with page cross (4 cycles)")
+					{
+						cpu.cycle(4);
+
+						THEN("program counter has a value of 0x00f1")
+						{
+							REQUIRE(cpu.program_counter() == 0x00f1);
+						}
 					}
 				}
 			}
@@ -140,62 +228,106 @@ SCENARIO("Can perform beq operation", "[cpu][branch_ops]")
 {
 	SlowMemory mem;
 	Cpu cpu(&mem);
-	cpu.program_counter(0x0000);
 
-	GIVEN("operation is beq [relative]")
+	GIVEN("program counter is 0x0000")
 	{
-		mem._data[0] = 0xf0;
+		cpu.program_counter(0x0000);
 
-		AND_GIVEN("address value is 0x20")
+		GIVEN("operation is beq [relative]")
 		{
-			mem._data[1] = 0x20;
+			mem._data[0] = 0xf0;
 
-			AND_GIVEN("z flag is not set")
+			AND_GIVEN("address value is 0x20")
 			{
-				cpu.z_flag(false);
+				mem._data[1] = 0x20;
 
-				WHEN("operation is performed (2 cycles)")
+				AND_GIVEN("z flag is not set")
 				{
-					cpu.cycle(2);
+					cpu.z_flag(false);
 
-					THEN("program counter has a value of 0x0002")
+					WHEN("operation is performed (2 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0002);
+						cpu.cycle(2);
+
+						THEN("program counter has a value of 0x0002")
+						{
+							REQUIRE(cpu.program_counter() == 0x0002);
+						}
 					}
 				}
-			}
 
-			AND_GIVEN("z flag is set")
-			{
-				cpu.z_flag(true);
-
-				WHEN("operation is performed (3 cycles)")
+				AND_GIVEN("z flag is set")
 				{
-					cpu.cycle(3);
+					cpu.z_flag(true);
 
-					THEN("program counter has a value of 0x0022")
+					WHEN("operation is performed (3 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0022);
+						cpu.cycle(3);
+
+						THEN("program counter has a value of 0x0022")
+						{
+							REQUIRE(cpu.program_counter() == 0x0022);
+						}
 					}
 				}
 			}
 		}
+	}
 
-		AND_GIVEN("address value is 0xff")
+	GIVEN("program counter is 0x00fc")
+	{
+		cpu.program_counter(0x00fc);
+
+		GIVEN("operation is beq [relative]")
 		{
-			mem._data[1] = 0xff;
+			mem._data[0x00fc] = 0xf0;
 
-			AND_GIVEN("z flag is set")
+			AND_GIVEN("address value is 0x05")
 			{
-				cpu.z_flag(true);
+				mem._data[0x00fd] = 0x05;
 
-				WHEN("operation is performed with page cross (4 cycles)")
+				AND_GIVEN("z flag is set")
 				{
-					cpu.cycle(4);
+					cpu.z_flag(true);
 
-					THEN("program counter has a value of 0x0101")
+					WHEN("operation is performed with page cross (4 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0101);
+						cpu.cycle(4);
+
+						THEN("program counter has a value of 0x0103")
+						{
+							REQUIRE(cpu.program_counter() == 0x0103);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	GIVEN("program counter is 0x00ff")
+	{
+		cpu.program_counter(0x00ff);
+
+		GIVEN("operation is beq [relative]")
+		{
+			mem._data[0x00ff] = 0xf0;
+
+			AND_GIVEN("address value is 0xf0")
+			{
+				mem._data[0x0100] = 0xf0;
+
+				AND_GIVEN("z flag is set")
+				{
+					cpu.z_flag(true);
+
+					WHEN("operation is performed with page cross (4 cycles)")
+					{
+						cpu.cycle(4);
+
+						THEN("program counter has a value of 0x00f1")
+						{
+							REQUIRE(cpu.program_counter() == 0x00f1);
+						}
 					}
 				}
 			}
@@ -207,62 +339,106 @@ SCENARIO("Can perform bmi operation", "[cpu][branch_ops]")
 {
 	SlowMemory mem;
 	Cpu cpu(&mem);
-	cpu.program_counter(0x0000);
 
-	GIVEN("operation is bmi [relative]")
+	GIVEN("program counter is 0x0000")
 	{
-		mem._data[0] = 0x30;
+		cpu.program_counter(0x0000);
 
-		AND_GIVEN("address value is 0x20")
+		GIVEN("operation is bmi [relative]")
 		{
-			mem._data[1] = 0x20;
+			mem._data[0] = 0x30;
 
-			AND_GIVEN("n flag is not set")
+			AND_GIVEN("address value is 0x20")
 			{
-				cpu.n_flag(false);
+				mem._data[1] = 0x20;
 
-				WHEN("operation is performed (2 cycles)")
+				AND_GIVEN("n flag is not set")
 				{
-					cpu.cycle(2);
+					cpu.n_flag(false);
 
-					THEN("program counter has a value of 0x0002")
+					WHEN("operation is performed (2 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0002);
+						cpu.cycle(2);
+
+						THEN("program counter has a value of 0x0002")
+						{
+							REQUIRE(cpu.program_counter() == 0x0002);
+						}
 					}
 				}
-			}
 
-			AND_GIVEN("n flag is set")
-			{
-				cpu.n_flag(true);
-
-				WHEN("operation is performed (3 cycles)")
+				AND_GIVEN("n flag is set")
 				{
-					cpu.cycle(3);
+					cpu.n_flag(true);
 
-					THEN("program counter has a value of 0x0022")
+					WHEN("operation is performed (3 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0022);
+						cpu.cycle(3);
+
+						THEN("program counter has a value of 0x0022")
+						{
+							REQUIRE(cpu.program_counter() == 0x0022);
+						}
 					}
 				}
 			}
 		}
+	}
 
-		AND_GIVEN("address value is 0xff")
+	GIVEN("program counter is 0x00fc")
+	{
+		cpu.program_counter(0x00fc);
+
+		GIVEN("operation is bmi [relative]")
 		{
-			mem._data[1] = 0xff;
+			mem._data[0x00fc] = 0x30;
 
-			AND_GIVEN("n flag is set")
+			AND_GIVEN("address value is 0x05")
 			{
-				cpu.n_flag(true);
+				mem._data[0x00fd] = 0x05;
 
-				WHEN("operation is performed with page cross (4 cycles)")
+				AND_GIVEN("n flag is set")
 				{
-					cpu.cycle(4);
+					cpu.n_flag(true);
 
-					THEN("program counter has a value of 0x0101")
+					WHEN("operation is performed with page cross (4 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0101);
+						cpu.cycle(4);
+
+						THEN("program counter has a value of 0x0103")
+						{
+							REQUIRE(cpu.program_counter() == 0x0103);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	GIVEN("program counter is 0x00ff")
+	{
+		cpu.program_counter(0x00ff);
+
+		GIVEN("operation is bmi [relative]")
+		{
+			mem._data[0x00ff] = 0x30;
+
+			AND_GIVEN("address value is 0xf0")
+			{
+				mem._data[0x0100] = 0xf0;
+
+				AND_GIVEN("n flag is set")
+				{
+					cpu.n_flag(true);
+
+					WHEN("operation is performed with page cross (4 cycles)")
+					{
+						cpu.cycle(4);
+
+						THEN("program counter has a value of 0x00f1")
+						{
+							REQUIRE(cpu.program_counter() == 0x00f1);
+						}
 					}
 				}
 			}
@@ -274,62 +450,106 @@ SCENARIO("Can perform bne operation", "[cpu][branch_ops]")
 {
 	SlowMemory mem;
 	Cpu cpu(&mem);
-	cpu.program_counter(0x0000);
 
-	GIVEN("operation is bne [relative]")
+	GIVEN("program counter is 0x0000")
 	{
-		mem._data[0] = 0xd0;
+		cpu.program_counter(0x0000);
 
-		AND_GIVEN("address value is 0x20")
+		GIVEN("operation is bne [relative]")
 		{
-			mem._data[1] = 0x20;
+			mem._data[0] = 0xd0;
 
-			AND_GIVEN("z flag is set")
+			AND_GIVEN("address value is 0x20")
 			{
-				cpu.z_flag(true);
+				mem._data[1] = 0x20;
 
-				WHEN("operation is performed (2 cycles)")
+				AND_GIVEN("z flag is set")
 				{
-					cpu.cycle(2);
+					cpu.z_flag(true);
 
-					THEN("program counter has a value of 0x0002")
+					WHEN("operation is performed (2 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0002);
+						cpu.cycle(2);
+
+						THEN("program counter has a value of 0x0002")
+						{
+							REQUIRE(cpu.program_counter() == 0x0002);
+						}
 					}
 				}
-			}
 
-			AND_GIVEN("z flag is set")
-			{
-				cpu.z_flag(false);
-
-				WHEN("operation is performed (3 cycles)")
+				AND_GIVEN("z flag is not set")
 				{
-					cpu.cycle(3);
+					cpu.z_flag(false);
 
-					THEN("program counter has a value of 0x0022")
+					WHEN("operation is performed (3 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0022);
+						cpu.cycle(3);
+
+						THEN("program counter has a value of 0x0022")
+						{
+							REQUIRE(cpu.program_counter() == 0x0022);
+						}
 					}
 				}
 			}
 		}
+	}
 
-		AND_GIVEN("address value is 0xff")
+	GIVEN("program counter is 0x00fc")
+	{
+		cpu.program_counter(0x00fc);
+
+		GIVEN("operation is bne [relative]")
 		{
-			mem._data[1] = 0xff;
+			mem._data[0x00fc] = 0xd0;
 
-			AND_GIVEN("z flag is set")
+			AND_GIVEN("address value is 0x05")
 			{
-				cpu.z_flag(false);
+				mem._data[0x00fd] = 0x05;
 
-				WHEN("operation is performed with page cross (4 cycles)")
+				AND_GIVEN("z flag is not set")
 				{
-					cpu.cycle(4);
+					cpu.z_flag(false);
 
-					THEN("program counter has a value of 0x0101")
+					WHEN("operation is performed with page cross (4 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0101);
+						cpu.cycle(4);
+
+						THEN("program counter has a value of 0x0103")
+						{
+							REQUIRE(cpu.program_counter() == 0x0103);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	GIVEN("program counter is 0x00ff")
+	{
+		cpu.program_counter(0x00ff);
+
+		GIVEN("operation is bne [relative]")
+		{
+			mem._data[0x00ff] = 0xd0;
+
+			AND_GIVEN("address value is 0xf0")
+			{
+				mem._data[0x0100] = 0xf0;
+
+				AND_GIVEN("z flag is not set")
+				{
+					cpu.z_flag(false);
+
+					WHEN("operation is performed with page cross (4 cycles)")
+					{
+						cpu.cycle(4);
+
+						THEN("program counter has a value of 0x00f1")
+						{
+							REQUIRE(cpu.program_counter() == 0x00f1);
+						}
 					}
 				}
 			}
@@ -341,62 +561,106 @@ SCENARIO("Can perform bpl operation", "[cpu][branch_ops]")
 {
 	SlowMemory mem;
 	Cpu cpu(&mem);
-	cpu.program_counter(0x0000);
 
-	GIVEN("operation is bpl [relative]")
+	GIVEN("program counter is 0x0000")
 	{
-		mem._data[0] = 0x10;
+		cpu.program_counter(0x0000);
 
-		AND_GIVEN("address value is 0x20")
+		GIVEN("operation is bpl [relative]")
 		{
-			mem._data[1] = 0x20;
+			mem._data[0] = 0x10;
 
-			AND_GIVEN("n flag is set")
+			AND_GIVEN("address value is 0x20")
 			{
-				cpu.n_flag(true);
+				mem._data[1] = 0x20;
 
-				WHEN("operation is performed (2 cycles)")
+				AND_GIVEN("n flag is set")
 				{
-					cpu.cycle(2);
+					cpu.n_flag(true);
 
-					THEN("program counter has a value of 0x0002")
+					WHEN("operation is performed (2 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0002);
+						cpu.cycle(2);
+
+						THEN("program counter has a value of 0x0002")
+						{
+							REQUIRE(cpu.program_counter() == 0x0002);
+						}
 					}
 				}
-			}
 
-			AND_GIVEN("n flag is set")
-			{
-				cpu.n_flag(false);
-
-				WHEN("operation is performed (3 cycles)")
+				AND_GIVEN("n flag is not set")
 				{
-					cpu.cycle(3);
+					cpu.n_flag(false);
 
-					THEN("program counter has a value of 0x0022")
+					WHEN("operation is performed (3 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0022);
+						cpu.cycle(3);
+
+						THEN("program counter has a value of 0x0022")
+						{
+							REQUIRE(cpu.program_counter() == 0x0022);
+						}
 					}
 				}
 			}
 		}
+	}
 
-		AND_GIVEN("address value is 0xff")
+	GIVEN("program counter is 0x00fc")
+	{
+		cpu.program_counter(0x00fc);
+
+		GIVEN("operation is bpl [relative]")
 		{
-			mem._data[1] = 0xff;
+			mem._data[0x00fc] = 0x10;
 
-			AND_GIVEN("n flag is set")
+			AND_GIVEN("address value is 0x05")
 			{
-				cpu.n_flag(false);
+				mem._data[0x00fd] = 0x05;
 
-				WHEN("operation is performed with page cross (4 cycles)")
+				AND_GIVEN("n flag is not set")
 				{
-					cpu.cycle(4);
+					cpu.n_flag(false);
 
-					THEN("program counter has a value of 0x0101")
+					WHEN("operation is performed with page cross (4 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0101);
+						cpu.cycle(4);
+
+						THEN("program counter has a value of 0x0103")
+						{
+							REQUIRE(cpu.program_counter() == 0x0103);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	GIVEN("program counter is 0x00ff")
+	{
+		cpu.program_counter(0x00ff);
+
+		GIVEN("operation is bpl [relative]")
+		{
+			mem._data[0x00ff] = 0x10;
+
+			AND_GIVEN("address value is 0xf0")
+			{
+				mem._data[0x0100] = 0xf0;
+
+				AND_GIVEN("n flag is not set")
+				{
+					cpu.n_flag(false);
+
+					WHEN("operation is performed with page cross (4 cycles)")
+					{
+						cpu.cycle(4);
+
+						THEN("program counter has a value of 0x00f1")
+						{
+							REQUIRE(cpu.program_counter() == 0x00f1);
+						}
 					}
 				}
 			}
@@ -408,62 +672,106 @@ SCENARIO("Can perform bvc operation", "[cpu][branch_ops]")
 {
 	SlowMemory mem;
 	Cpu cpu(&mem);
-	cpu.program_counter(0x0000);
 
-	GIVEN("operation is bvc [relative]")
+	GIVEN("program counter is 0x0000")
 	{
-		mem._data[0] = 0x50;
+		cpu.program_counter(0x0000);
 
-		AND_GIVEN("address value is 0x20")
+		GIVEN("operation is bvc [relative]")
 		{
-			mem._data[1] = 0x20;
+			mem._data[0] = 0x50;
 
-			AND_GIVEN("v flag is not set")
+			AND_GIVEN("address value is 0x20")
 			{
-				cpu.v_flag(false);
+				mem._data[1] = 0x20;
 
-				WHEN("operation is performed (3 cycles)")
+				AND_GIVEN("v flag is not set")
 				{
-					cpu.cycle(3);
+					cpu.v_flag(false);
 
-					THEN("program counter has a value of 0x0022")
+					WHEN("operation is performed (3 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0022);
+						cpu.cycle(3);
+
+						THEN("program counter has a value of 0x0022")
+						{
+							REQUIRE(cpu.program_counter() == 0x0022);
+						}
 					}
 				}
-			}
 
-			AND_GIVEN("v flag is set")
-			{
-				cpu.v_flag(true);
-
-				WHEN("operation is performed (2 cycles)")
+				AND_GIVEN("v flag is set")
 				{
-					cpu.cycle(2);
+					cpu.v_flag(true);
 
-					THEN("program counter has a value of 0x0002")
+					WHEN("operation is performed (2 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0002);
+						cpu.cycle(2);
+
+						THEN("program counter has a value of 0x0002")
+						{
+							REQUIRE(cpu.program_counter() == 0x0002);
+						}
 					}
 				}
 			}
 		}
+	}
 
-		AND_GIVEN("address value is 0xff")
+	GIVEN("program counter is 0x00fc")
+	{
+		cpu.program_counter(0x00fc);
+
+		GIVEN("operation is bvc [relative]")
 		{
-			mem._data[1] = 0xff;
+			mem._data[0x00fc] = 0x50;
 
-			AND_GIVEN("v flag is not set")
+			AND_GIVEN("address value is 0x05")
 			{
-				cpu.v_flag(false);
+				mem._data[0x00fd] = 0x05;
 
-				WHEN("operation is performed with page cross (4 cycles)")
+				AND_GIVEN("v flag is not set")
 				{
-					cpu.cycle(4);
+					cpu.v_flag(false);
 
-					THEN("program counter has a value of 0x0101")
+					WHEN("operation is performed with page cross (4 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0101);
+						cpu.cycle(4);
+
+						THEN("program counter has a value of 0x0103")
+						{
+							REQUIRE(cpu.program_counter() == 0x0103);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	GIVEN("program counter is 0x00ff")
+	{
+		cpu.program_counter(0x00ff);
+
+		GIVEN("operation is bvc [relative]")
+		{
+			mem._data[0x00ff] = 0x50;
+
+			AND_GIVEN("address value is 0xf0")
+			{
+				mem._data[0x0100] = 0xf0;
+
+				AND_GIVEN("v flag is not set")
+				{
+					cpu.v_flag(false);
+
+					WHEN("operation is performed with page cross (4 cycles)")
+					{
+						cpu.cycle(4);
+
+						THEN("program counter has a value of 0x00f1")
+						{
+							REQUIRE(cpu.program_counter() == 0x00f1);
+						}
 					}
 				}
 			}
@@ -475,62 +783,106 @@ SCENARIO("Can perform bvs operation", "[cpu][branch_ops]")
 {
 	SlowMemory mem;
 	Cpu cpu(&mem);
-	cpu.program_counter(0x0000);
 
-	GIVEN("operation is bvs [relative]")
+	GIVEN("program counter is 0x0000")
 	{
-		mem._data[0] = 0x70;
+		cpu.program_counter(0x0000);
 
-		AND_GIVEN("address value is 0x20")
+		GIVEN("operation is bvs [relative]")
 		{
-			mem._data[1] = 0x20;
+			mem._data[0] = 0x70;
 
-			AND_GIVEN("v flag is not set")
+			AND_GIVEN("address value is 0x20")
 			{
-				cpu.v_flag(false);
+				mem._data[1] = 0x20;
 
-				WHEN("operation is performed (2 cycles)")
+				AND_GIVEN("v flag is not set")
 				{
-					cpu.cycle(2);
+					cpu.v_flag(false);
 
-					THEN("program counter has a value of 0x0002")
+					WHEN("operation is performed (2 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0002);
+						cpu.cycle(2);
+
+						THEN("program counter has a value of 0x0002")
+						{
+							REQUIRE(cpu.program_counter() == 0x0002);
+						}
 					}
 				}
-			}
 
-			AND_GIVEN("v flag is set")
-			{
-				cpu.v_flag(true);
-
-				WHEN("operation is performed (3 cycles)")
+				AND_GIVEN("v flag is set")
 				{
-					cpu.cycle(3);
+					cpu.v_flag(true);
 
-					THEN("program counter has a value of 0x0022")
+					WHEN("operation is performed (3 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0022);
+						cpu.cycle(3);
+
+						THEN("program counter has a value of 0x0022")
+						{
+							REQUIRE(cpu.program_counter() == 0x0022);
+						}
 					}
 				}
 			}
 		}
+	}
 
-		AND_GIVEN("address value is 0xff")
+	GIVEN("program counter is 0x00fc")
+	{
+		cpu.program_counter(0x00fc);
+
+		GIVEN("operation is bvs [relative]")
 		{
-			mem._data[1] = 0xff;
+			mem._data[0x00fc] = 0x70;
 
-			AND_GIVEN("v flag is set")
+			AND_GIVEN("address value is 0x05")
 			{
-				cpu.v_flag(true);
+				mem._data[0x00fd] = 0x05;
 
-				WHEN("operation is performed with page cross (4 cycles)")
+				AND_GIVEN("v flag is set")
 				{
-					cpu.cycle(4);
+					cpu.v_flag(true);
 
-					THEN("program counter has a value of 0x0101")
+					WHEN("operation is performed with page cross (4 cycles)")
 					{
-						REQUIRE(cpu.program_counter() == 0x0101);
+						cpu.cycle(4);
+
+						THEN("program counter has a value of 0x0103")
+						{
+							REQUIRE(cpu.program_counter() == 0x0103);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	GIVEN("program counter is 0x00ff")
+	{
+		cpu.program_counter(0x00ff);
+
+		GIVEN("operation is bvs [relative]")
+		{
+			mem._data[0x00ff] = 0x70;
+
+			AND_GIVEN("address value is 0xf0")
+			{
+				mem._data[0x0100] = 0xf0;
+
+				AND_GIVEN("v flag is set")
+				{
+					cpu.v_flag(true);
+
+					WHEN("operation is performed with page cross (4 cycles)")
+					{
+						cpu.cycle(4);
+
+						THEN("program counter has a value of 0x00f1")
+						{
+							REQUIRE(cpu.program_counter() == 0x00f1);
+						}
 					}
 				}
 			}
