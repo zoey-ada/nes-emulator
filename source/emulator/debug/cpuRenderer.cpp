@@ -36,6 +36,8 @@ CpuRenderer::~CpuRenderer()
 	this->_font = nullptr;
 
 	TTF_Quit();
+
+	this->_renderer = nullptr;
 }
 
 void CpuRenderer::produceFrame(const CpuStackFrame& cycle_data)

@@ -40,24 +40,6 @@ bool Window::open()
 		return false;
 	}
 
-	this->_left_pattern_table_texture =
-		SDL_CreateTexture(this->_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
-			this->_pattern_table_base_width, this->_pattern_table_base_height);
-	if (this->_left_pattern_table_texture == nullptr)
-	{
-		printf("left pattern table texture could not be created. SDL_Error: %s\n", SDL_GetError());
-		return false;
-	}
-
-	this->_right_pattern_table_texture =
-		SDL_CreateTexture(this->_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
-			this->_pattern_table_base_width, this->_pattern_table_base_height);
-	if (this->_right_pattern_table_texture == nullptr)
-	{
-		printf("right pattern table texture could not be created. SDL_Error: %s\n", SDL_GetError());
-		return false;
-	}
-
 	this->_nes = std::make_unique<Nes>(this->_renderer);
 
 	return true;
@@ -65,6 +47,16 @@ bool Window::open()
 
 void Window::close()
 {
+	this->_nes.reset();
+
+	if (this->_nes_texture)
+		SDL_DestroyTexture(this->_nes_texture);
+	this->_nes_texture = nullptr;
+
+	if (this->_renderer)
+		SDL_DestroyRenderer(this->_renderer);
+	this->_renderer = nullptr;
+
 	if (this->_window != nullptr)
 	{
 		SDL_DestroyWindow(this->_window);
@@ -112,33 +104,25 @@ void Window::renderFrame(NesFrame frame)
 	SDL_RenderCopy(this->_renderer, this->_nes_texture, &source_rect, &dest_rect);
 
 	// left pattern table
-	SDL_LockTexture(this->_left_pattern_table_texture, nullptr, &pixels, &pitch);
-	auto left_pt_frame = this->_nes->getLeftPatternTableFrame();
-	memcpy(pixels, left_pt_frame.data(), sizeof(left_pt_frame));
-	pixels = nullptr;
-	SDL_UnlockTexture(this->_left_pattern_table_texture);
-
-	source_rect = {0, 0, this->_pattern_table_base_width, this->_pattern_table_base_height};
+	auto left_pt_texture = this->_nes->getLeftPtTexture();
+	int h, w;
+	SDL_QueryTexture(left_pt_texture, nullptr, nullptr, &w, &h);
+	source_rect = {0, 0, w, h};
 	dest_rect = {this->_nes_width + 1, this->_height - this->_pattern_table_height,
 		this->_pattern_table_width, this->_pattern_table_height};
-	SDL_RenderCopy(this->_renderer, this->_left_pattern_table_texture, &source_rect, &dest_rect);
+	SDL_RenderCopy(this->_renderer, left_pt_texture, &source_rect, &dest_rect);
 
 	// right pattern table
-	SDL_LockTexture(this->_right_pattern_table_texture, nullptr, &pixels, &pitch);
-	auto right_pt_frame = this->_nes->getRightPatternTableFrame();
-	memcpy(pixels, right_pt_frame.data(), sizeof(right_pt_frame));
-	pixels = nullptr;
-	SDL_UnlockTexture(this->_right_pattern_table_texture);
-
-	source_rect = {0, 0, this->_pattern_table_base_width, this->_pattern_table_base_height};
+	auto right_pt_texture = this->_nes->getRightPtTexture();
+	SDL_QueryTexture(right_pt_texture, nullptr, nullptr, &w, &h);
+	source_rect = {0, 0, w, h};
 	dest_rect = {this->_nes_width + 2 + this->_pattern_table_width,
 		this->_height - this->_pattern_table_height, this->_pattern_table_width,
 		this->_pattern_table_height};
-	SDL_RenderCopy(this->_renderer, this->_right_pattern_table_texture, &source_rect, &dest_rect);
+	SDL_RenderCopy(this->_renderer, right_pt_texture, &source_rect, &dest_rect);
 
 	// cpu debug
 	auto cpu_texture = this->_nes->getCpuDebugTexture();
-	int h, w;
 	SDL_QueryTexture(cpu_texture, nullptr, nullptr, &w, &h);
 	source_rect = {0, 0, w, h};
 	dest_rect = {this->_nes_width + 1, 0, w, h};

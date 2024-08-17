@@ -1,5 +1,7 @@
 #include "nes.hpp"
 
+#include <SDL.h>
+
 Nes::Nes(SDL_Renderer* renderer)
 {
 	this->_cart_loader = std::make_unique<CartridgeLoader>();
@@ -7,20 +9,19 @@ Nes::Nes(SDL_Renderer* renderer)
 	// this->_cart = this->_cart_loader->load_cartridge(cart_name);
 
 	this->_ppu_memory = std::make_unique<PpuMemoryMapper>();
-	this->_ppu = std::make_unique<PictureProcessingUnit>(this->_ppu_memory.get());
+	// this->_ppu = std::make_unique<PictureProcessingUnit>(this->_ppu_memory.get());
+	this->_debug_ppu = std::make_unique<DebugPpu>(this->_ppu_memory.get(), renderer);
 
-	this->_memory = std::make_unique<MemoryMapper>(this->_ppu.get());
+	this->_memory = std::make_unique<MemoryMapper>(this->_debug_ppu.get());
 	// this->_cpu = std::make_unique<Cpu>(this->_memory.get());
 	// this->_ppu->init(this->_cpu.get());
 	this->_debug_cpu = std::make_unique<DebugCpu>(this->_memory.get());
-	this->_ppu->init(this->_debug_cpu.get());
+	this->_debug_ppu->init(this->_debug_cpu.get());
 
 	// this->_ppu->power_up();
 	// this->_cpu->power_up();
 	// this->_debug_cpu->power_up();
 
-	this->_left = std::make_unique<PatternTable>(false);
-	this->_right = std::make_unique<PatternTable>(true);
 	this->_cpu_renderer = std::make_unique<CpuRenderer>(renderer);
 
 	this->blankFrame();
@@ -94,10 +95,10 @@ void Nes::loadFile(const std::string& filepath)
 
 	this->_ppu_memory->load_cartridge(this->_cart.get());
 	this->_memory->load_cartridge(this->_cart.get());
-	this->_left->loadCartridge(this->_cart.get());
-	this->_right->loadCartridge(this->_cart.get());
+	this->_debug_ppu->loadCartridge(this->_cart.get());
 
-	this->_ppu->power_up();
+	// this->_ppu->power_up();
+	this->_debug_ppu->power_up();
 	// this->_cpu->power_up();
 	this->_debug_cpu->power_up();
 
@@ -146,10 +147,10 @@ void Nes::cycle()
 		this->resetCurrentCycle();
 	}
 
-	this->_ppu->cycle();
+	this->_debug_ppu->cycle();
 
 	auto pixel = ((Pixel*)&this->_frame[this->_current_cycle]);
-	*((uint32_t*)pixel) = this->_ppu->vout();
+	*((uint32_t*)pixel) = this->_debug_ppu->vout();
 
 	this->_current_cycle++;
 	this->_cpu_cycle_delay--;
@@ -169,8 +170,6 @@ void Nes::resetCurrentCycle()
 
 void Nes::renderDebugImages()
 {
-	this->_left->produceFrame();
-	this->_right->produceFrame();
 	auto cycle_data = this->_debug_cpu->getLastStackFrame();
 	this->_cpu_renderer->produceFrame(cycle_data);
 }

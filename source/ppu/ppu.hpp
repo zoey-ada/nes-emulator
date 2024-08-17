@@ -9,7 +9,7 @@
 #include <base/register.hpp>
 #include <cpu/cpu.hpp>
 
-#include "palette.hpp"
+#include "systemPalette.hpp"
 
 using Action = std::function<void()>;
 using Register = uint8_t;
@@ -76,7 +76,7 @@ private:
 
 	IMemory* _memory {nullptr};
 	Cpu* _cpu {nullptr};
-	std::unique_ptr<Palette> _palette {nullptr};
+	std::unique_ptr<SystemPalette> _palette {nullptr};
 
 	// argb format (a is ignored)
 	uint32_t _vout {0x00000000};

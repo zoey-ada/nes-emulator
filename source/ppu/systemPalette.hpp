@@ -3,11 +3,11 @@
 #include <cstdint>
 #include <map>
 
-class Palette
+class SystemPalette
 {
 public:
-	Palette();
-	virtual ~Palette() = default;
+	SystemPalette();
+	virtual ~SystemPalette() = default;
 
 	uint32_t getColor(uint8_t palette_index) const;
 

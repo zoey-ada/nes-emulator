@@ -3,19 +3,20 @@
 #include <array>
 #include <memory>
 
-#include <SDL.h>
 #include <base/pixel.hpp>
 #include <cpu/cpu.hpp>
 #include <cpu/debugCpu.hpp>
 #include <memory/cartridge/cartridgeLoader.hpp>
-#include <memory/debugging/patternTable.hpp>
 #include <memory/memoryMapper.hpp>
 #include <memory/ppuMemoryMapper.hpp>
 #include <ppu/ppu.hpp>
 
-#include "cpuRenderer.hpp"
+#include "debug/cpuRenderer.hpp"
+#include "debug/debugPpu.hpp"
 
 class Cartridge;
+struct SDL_Renderer;
+struct SDL_Texture;
 
 const uint64_t even_cycles = 89342;
 const uint64_t odd_cycles = 89341;
@@ -35,8 +36,8 @@ public:
 	void produceFrame();
 	void produceNesFrame();
 	NesFrame getFrame() { return this->_frame; }
-	PtFrame getLeftPatternTableFrame() { return this->_left->getFrame(); }
-	PtFrame getRightPatternTableFrame() { return this->_right->getFrame(); }
+	SDL_Texture* getLeftPtTexture() const { return this->_debug_ppu->leftPtTexture(); }
+	SDL_Texture* getRightPtTexture() const { return this->_debug_ppu->rightPtTexture(); }
 	SDL_Texture* getCpuDebugTexture() { return this->_cpu_renderer->getTexture(); }
 
 	void loadFile(const std::string& filepath);
@@ -60,6 +61,7 @@ private:
 	std::unique_ptr<Cpu> _cpu;
 	std::unique_ptr<DebugCpu> _debug_cpu;
 	std::unique_ptr<PictureProcessingUnit> _ppu;
+	std::unique_ptr<DebugPpu> _debug_ppu;
 	std::unique_ptr<Cartridge> _cart;
 
 	NesFrame _frame;
@@ -70,8 +72,6 @@ private:
 	bool _is_even_frame {false};
 
 	// debug
-	std::unique_ptr<PatternTable> _left;
-	std::unique_ptr<PatternTable> _right;
 	std::unique_ptr<CpuRenderer> _cpu_renderer;
 
 	void blankFrame();

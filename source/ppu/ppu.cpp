@@ -9,7 +9,7 @@ PictureProcessingUnit::PictureProcessingUnit(IMemory* memory): _memory(memory)
 {
 	assert(this->_memory);
 	this->_object_attribute_memory = new (std::nothrow) RandomAccessMemory(0x0100);
-	this->_palette = std::make_unique<Palette>();
+	this->_palette = std::make_unique<SystemPalette>();
 }
 
 PictureProcessingUnit::~PictureProcessingUnit()

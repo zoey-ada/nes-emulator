@@ -1,6 +1,6 @@
-#include "palette.hpp"
+#include "systemPalette.hpp"
 
-Palette::Palette()
+SystemPalette::SystemPalette()
 {
 	this->_palette_map = {
 		{0x00, 0x626262},
@@ -70,7 +70,7 @@ Palette::Palette()
 	};
 }
 
-uint32_t Palette::getColor(uint8_t palette_index) const
+uint32_t SystemPalette::getColor(uint8_t palette_index) const
 {
 	if (palette_index > 0x3f)
 		return 0x000000;

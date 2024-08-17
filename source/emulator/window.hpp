@@ -2,8 +2,6 @@
 
 #include <memory>
 
-#include <memory/debugging/patternTable.hpp>
-
 #include "nes.hpp"
 
 struct SDL_Renderer;
@@ -47,8 +45,6 @@ private:
 	int _pattern_table_scale {2};
 	int _pattern_table_height {_pattern_table_base_height * _pattern_table_scale};
 	int _pattern_table_width {_pattern_table_base_width * _pattern_table_scale};
-	SDL_Texture* _left_pattern_table_texture {nullptr};
-	SDL_Texture* _right_pattern_table_texture {nullptr};
 
 	int _height {_nes_height};
 	int _width {_nes_width + 1 + 2 * _pattern_table_width + 1};

@@ -1,20 +1,23 @@
-set(root_srcs
-	main.cpp
+add_executable(emulator)
 
-	cpuRenderer.hpp
-	cpuRenderer.cpp
-	nes.hpp
-	nes.cpp
-	window.hpp
-	window.cpp
-)
-source_group(source FILES ${root_srcs})
-
-set(all_srcs
-	${root_srcs}
+target_sources(emulator
+	PRIVATE
+		main.cpp
+		nes.cpp
+		window.cpp
 )
 
-add_executable(emulator ${all_srcs})
+target_sources(emulator
+	INTERFACE
+	FILE_SET HEADERS
+	BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/..
+	FILES
+		nes.hpp
+		window.hpp
+)
+
+add_subdirectory(debug)
+
 target_link_libraries(emulator
 	PUBLIC
 		base
