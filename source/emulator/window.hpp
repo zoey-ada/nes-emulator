@@ -10,6 +10,8 @@ struct SDL_Renderer;
 struct SDL_Texture;
 struct SDL_Window;
 
+using Milliseconds = uint64_t;
+
 class Window
 {
 public:
@@ -21,8 +23,6 @@ public:
 
 	void run();
 	void renderFrame(NesFrame frame);
-	void prepareScene();
-	void presentScene();
 
 	void openFileDialog();
 	void step();
@@ -56,5 +56,20 @@ private:
 	SDL_Window* _window {nullptr};
 	SDL_Renderer* _renderer {nullptr};
 
+	bool _run {true};
 	bool _debugging {true};
+
+	uint8_t _ppu_cycles_per_update {150};
+	Milliseconds _frametime {33};
+	Milliseconds _last_draw {0};
+	Milliseconds _prev_time {0};
+
+	Milliseconds getTime() const;
+	void update(Milliseconds now, Milliseconds delta_ms);
+	void render(Milliseconds now, Milliseconds delta_ms);
+
+	void prepareScene();
+	void presentScene();
+
+	void handleEvent(const SDL_Event& e);
 };

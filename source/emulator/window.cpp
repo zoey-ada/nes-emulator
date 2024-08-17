@@ -1,9 +1,12 @@
 #include "window.hpp"
 
+#include <chrono>
 #include <cstdio>
 
 #include <SDL.h>
 #include <nfd.h>
+
+namespace chrono = std::chrono;
 
 bool Window::open()
 {
@@ -73,53 +76,24 @@ void Window::close()
 
 void Window::run()
 {
-	bool quit = false;
-
-	SDL_Event e;
-
-	while (!quit)
+	while (this->_run)
 	{
-		this->prepareScene();
-
-		if (!this->_debugging)
-			this->_nes->cycle(255);
-
-		this->_nes->produceFrame();
-		this->renderFrame(this->_nes->getFrame());
-
-		while (SDL_PollEvent(&e) != 0)
+		SDL_Event e;
+		if (SDL_PollEvent(&e) != 0)
 		{
-			if (e.type == SDL_EventType::SDL_KEYDOWN)
-			{
-				auto key = e.key.keysym.scancode;
-				auto mod = e.key.keysym.mod;
-				if (key == SDL_Scancode::SDL_SCANCODE_O && (mod & KMOD_CTRL) > 0)
-				{
-					this->openFileDialog();
-				}
-				else if (key == SDL_Scancode::SDL_SCANCODE_RIGHT)
-				{
-					this->step();
-				}
-				else if (key == SDL_Scancode::SDL_SCANCODE_DOWN)
-				{
-					if ((mod & KMOD_CTRL) > 0)
-						this->bound();
-					else
-						this->leap();
-				}
-				else if (key == SDL_Scancode::SDL_SCANCODE_SPACE)
-				{
-					this->_debugging = !this->_debugging;
-				}
-			}
-			if (e.type == SDL_EventType::SDL_QUIT)
-			{
-				quit = true;
-			}
+			this->handleEvent(e);
 		}
+		else
+		{
+			auto now = this->getTime();
+			auto delta_ms = now - this->_prev_time;
+			if (delta_ms == 0)
+				continue;
 
-		presentScene();
+			this->_prev_time = now;
+			this->update(now, delta_ms);
+			this->render(now, delta_ms);
+		}
 	}
 }
 
@@ -213,6 +187,36 @@ void Window::bound()
 		this->_nes->bound();
 }
 
+uint64_t Window::getTime() const
+{
+	auto now = chrono::system_clock::now();
+	auto now_ms = chrono::time_point_cast<chrono::milliseconds>(now);
+
+	auto value = now_ms.time_since_epoch();
+	return static_cast<uint64_t>(value.count());
+}
+
+void Window::update(Milliseconds now, Milliseconds delta_ms)
+{
+	if (!this->_debugging)
+		this->_nes->cycle(this->_ppu_cycles_per_update);
+}
+
+void Window::render(Milliseconds now, Milliseconds delta_ms)
+{
+	if (now - this->_last_draw < this->_frametime)
+		return;
+
+	this->prepareScene();
+
+	this->_nes->produceFrame();
+	this->renderFrame(this->_nes->getFrame());
+
+	this->presentScene();
+
+	this->_last_draw = now;
+}
+
 void Window::prepareScene()
 {
 	SDL_SetRenderDrawColor(this->_renderer, 255, 0, 255, 255);
@@ -222,4 +226,36 @@ void Window::prepareScene()
 void Window::presentScene()
 {
 	SDL_RenderPresent(this->_renderer);
+}
+
+void Window::handleEvent(const SDL_Event& e)
+{
+	if (e.type == SDL_EventType::SDL_KEYDOWN)
+	{
+		auto key = e.key.keysym.scancode;
+		auto mod = e.key.keysym.mod;
+		if (key == SDL_Scancode::SDL_SCANCODE_O && (mod & KMOD_CTRL) > 0)
+		{
+			this->openFileDialog();
+		}
+		else if (key == SDL_Scancode::SDL_SCANCODE_RIGHT)
+		{
+			this->step();
+		}
+		else if (key == SDL_Scancode::SDL_SCANCODE_DOWN)
+		{
+			if ((mod & KMOD_CTRL) > 0)
+				this->bound();
+			else
+				this->leap();
+		}
+		else if (key == SDL_Scancode::SDL_SCANCODE_SPACE)
+		{
+			this->_debugging = !this->_debugging;
+		}
+	}
+	if (e.type == SDL_EventType::SDL_QUIT)
+	{
+		this->_run = false;
+	}
 }
