@@ -9,7 +9,7 @@ PictureProcessingUnit::PictureProcessingUnit(IMemory* memory): _memory(memory)
 {
 	assert(this->_memory);
 	this->_object_attribute_memory = new (std::nothrow) RandomAccessMemory(0x0100);
-	this->_palette = std::make_unique<SystemPalette>();
+	this->_sys_palette = std::make_unique<SystemPalette>();
 }
 
 PictureProcessingUnit::~PictureProcessingUnit()
@@ -176,10 +176,12 @@ void PictureProcessingUnit::ppu_addr(const uint8_t value)
 
 uint8_t PictureProcessingUnit::ppu_data()
 {
+	uint8_t return_data = this->_ppu_data_read_buffer();
 	this->_address_bus(this->_vram_address());
 	this->read_memory();
 	this->increment_vram_address();
-	return this->_data_bus();
+	this->_ppu_data_read_buffer(this->_data_bus());
+	return return_data;
 }
 
 void PictureProcessingUnit::ppu_data(const uint8_t value)
@@ -421,6 +423,22 @@ ChunkIndices PictureProcessingUnit::compile_pattern_table_bytes()
 
 ChunkPixels PictureProcessingUnit::apply_palette_colors(const ChunkIndices& indices)
 {
+	bool x = (this->_vram_address.lowByte() & 0b0000'0010) > 1;
+	bool y = (this->_vram_address.lowByte() & 0b0100'0000) > 1;
+
+	uint8_t palette_num = this->_attribute_table_latch;
+	if (x)
+		palette_num = palette_num >> 2;
+	if (y)
+		palette_num = palette_num >> 4;
+	palette_num = palette_num & 0b0000'0011;
+	uint16_t palette_offset = palette_num << 2;
+
+	uint8_t color0 = this->_memory->read(0x3f00);
+	uint8_t color1 = this->_memory->read(0x3f00 + palette_offset + 1);
+	uint8_t color2 = this->_memory->read(0x3f00 + palette_offset + 2);
+	uint8_t color3 = this->_memory->read(0x3f00 + palette_offset + 3);
+
 	ChunkPixels pixels;
 
 	for (uint8_t i = 0; i < 8; ++i)
@@ -429,19 +447,19 @@ ChunkPixels PictureProcessingUnit::apply_palette_colors(const ChunkIndices& indi
 		switch (indices[i])
 		{
 		case 0:
-			palette_color = 0x20;
+			palette_color = color0;
 			break;
 		case 1:
-			palette_color = 0x10;
+			palette_color = color1;
 			break;
 		case 2:
-			palette_color = 0x00;
+			palette_color = color2;
 			break;
 		case 3:
-			palette_color = 0x0f;
+			palette_color = color3;
 			break;
 		}
-		pixels[i] = _palette->getColor(palette_color);
+		pixels[i] = _sys_palette->getColor(palette_color);
 	}
 
 	return pixels;
@@ -635,5 +653,5 @@ uint16_t PictureProcessingUnit::get_attribute_table_address()
 	uint16_t coarse_y_offset = (this->_vram_address() & 0b0000'0011'1000'0000) >> 4;
 	uint16_t nametable_offset = (this->_vram_address() & 0b0000'1100'0000'0000) << 2;
 	uint16_t attribute_table_offset = 0b0011'1100'0000;
-	return nametable_offset | attribute_table_offset | coarse_y_offset | coarse_x_offset;
+	return 0x2000 | nametable_offset | attribute_table_offset | coarse_y_offset | coarse_x_offset;
 }

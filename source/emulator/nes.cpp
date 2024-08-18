@@ -109,30 +109,6 @@ void Nes::loadFile(const std::string& filepath)
 	this->_is_even_frame = false;
 }
 
-void Nes::step()
-{
-	if (!this->_cart)
-		return;
-
-	this->cycle(3);
-}
-
-void Nes::leap()
-{
-	if (!this->_cart)
-		return;
-
-	this->cycle(3 * 10);
-}
-
-void Nes::bound()
-{
-	if (!this->_cart)
-		return;
-
-	this->cycle(3 * 10 * 100);
-}
-
 void Nes::cycle()
 {
 	if (!this->_is_even_frame && this->_current_cycle == (odd_cycles))
@@ -162,16 +138,58 @@ void Nes::cycle()
 	}
 }
 
-void Nes::resetCurrentCycle()
+void Nes::step()
 {
-	this->_is_even_frame = !this->_is_even_frame;
-	this->_current_cycle = 0;
+	if (!this->_cart)
+		return;
+
+	this->cycle(3);
 }
 
-void Nes::renderDebugImages()
+void Nes::leap()
 {
-	auto cycle_data = this->_debug_cpu->getLastStackFrame();
-	this->_cpu_renderer->produceFrame(cycle_data);
+	if (!this->_cart)
+		return;
+
+	this->cycle(3 * 10);
+}
+
+void Nes::bound()
+{
+	if (!this->_cart)
+		return;
+
+	this->cycle(3 * 10 * 100);
+}
+
+void Nes::nextFrame()
+{
+	auto frame_cycles = this->_is_even_frame ? even_cycles : odd_cycles;
+	auto remaining_cycles = frame_cycles - this->_current_cycle;
+
+	if (remaining_cycles == 0)
+	{
+		this->cycle();
+		frame_cycles = this->_is_even_frame ? even_cycles : odd_cycles;
+		remaining_cycles = frame_cycles - this->_current_cycle;
+	}
+
+	this->cycle(remaining_cycles);
+}
+
+void Nes::nextPalette()
+{
+	this->_debug_ppu->nextPalette();
+}
+
+void Nes::prevPalette()
+{
+	this->_debug_ppu->prevPalette();
+}
+
+void Nes::dumpMemory()
+{
+	this->_debug_ppu->dumpMemory();
 }
 
 void Nes::blankFrame()
@@ -182,4 +200,16 @@ void Nes::blankFrame()
 		pixel.g = 0x00;
 		pixel.b = 0x00;
 	}
+}
+
+void Nes::resetCurrentCycle()
+{
+	this->_is_even_frame = !this->_is_even_frame;
+	this->_current_cycle = 0;
+}
+
+void Nes::renderDebugImages()
+{
+	auto cycle_data = this->_debug_cpu->getLastStackFrame();
+	this->_cpu_renderer->produceFrame(cycle_data);
 }

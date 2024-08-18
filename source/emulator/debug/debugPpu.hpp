@@ -23,6 +23,11 @@ public:
 
 	void loadCartridge(Cartridge* cart);
 
+	void nextPalette();
+	void prevPalette();
+
+	void dumpMemory();
+
 private:
 	PaletteType _current_palette {PaletteType::Grayscale};
 	PatternTable _left_pattern_table;
@@ -34,4 +39,6 @@ private:
 
 	void drawPatternTables();
 	void loadPalettes();
+
+	void write_memory() override;
 };

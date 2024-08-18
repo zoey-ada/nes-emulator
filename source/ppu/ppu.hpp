@@ -56,6 +56,12 @@ public:
 	void ppu_data(const uint8_t value);
 	inline void oam_dma(const uint8_t value) { this->_oamdma(value); }
 
+protected:
+	IMemory* _memory {nullptr};
+	std::unique_ptr<SystemPalette> _sys_palette {nullptr};
+
+	virtual void write_memory();
+
 private:
 	Register_8bit _ppuctrl;
 	Register_8bit _ppumask;
@@ -63,6 +69,7 @@ private:
 	Register_8bit _oamaddr;
 	Register_8bit _oamdata;
 	Register_8bit _oamdma;
+	Register_8bit _ppu_data_read_buffer;
 
 	Register_15bit _vram_address;
 	Register_15bit _temp_vram_address;
@@ -74,9 +81,7 @@ private:
 	Register _pattern_table_tile_low_latch {0x00};
 	Register _pattern_table_tile_high_latch {0x00};
 
-	IMemory* _memory {nullptr};
 	Cpu* _cpu {nullptr};
-	std::unique_ptr<SystemPalette> _palette {nullptr};
 
 	// argb format (a is ignored)
 	uint32_t _vout {0x00000000};
@@ -180,7 +185,6 @@ private:
 	//--------------------------------------------------------------------------
 	void load_next_operation();
 	void read_memory();
-	void write_memory();
 
 	void feed_vout();
 

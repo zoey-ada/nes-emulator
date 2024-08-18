@@ -53,6 +53,8 @@ uint8_t MemoryMapper::read(uint16_t address) const
 		case 0x2003:  // OAMADDR
 		case 0x2005:  // PPUSCROLL
 		case 0x2006:  // PPUADDR
+			// TODO: should return previous read data
+			return 0;
 			assert(false);
 			break;
 		}

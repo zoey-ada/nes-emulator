@@ -47,7 +47,7 @@ bool Window::open()
 
 void Window::close()
 {
-	this->_nes.reset();
+	// this->_nes.reset();
 
 	if (this->_nes_texture)
 		SDL_DestroyTexture(this->_nes_texture);
@@ -87,6 +87,10 @@ void Window::run()
 			this->render(now, delta_ms);
 		}
 	}
+
+	SDL_Event e;
+	while (SDL_PollEvent(&e) != 0)
+		;
 }
 
 void Window::renderFrame(NesFrame frame)
@@ -236,6 +240,22 @@ void Window::handleEvent(const SDL_Event& e)
 		else if (key == SDL_Scancode::SDL_SCANCODE_SPACE)
 		{
 			this->_debugging = !this->_debugging;
+		}
+		else if (key == SDL_Scancode::SDL_SCANCODE_P)
+		{
+			this->_nes->nextPalette();
+		}
+		else if (key == SDL_Scancode::SDL_SCANCODE_O)
+		{
+			this->_nes->prevPalette();
+		}
+		else if (key == SDL_Scancode::SDL_SCANCODE_PERIOD)
+		{
+			this->_nes->nextFrame();
+		}
+		else if (key == SDL_Scancode::SDL_SCANCODE_D)
+		{
+			this->_nes->dumpMemory();
 		}
 	}
 	if (e.type == SDL_EventType::SDL_QUIT)

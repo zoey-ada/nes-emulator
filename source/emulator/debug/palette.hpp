@@ -17,10 +17,10 @@ enum class PaletteType
 
 struct Palette
 {
-	Color index0;
-	Color index1;
-	Color index2;
-	Color index3;
+	Color index0 {0x00ff00ff};
+	Color index1 {0x00ff00ff};
+	Color index2 {0x00ff00ff};
+	Color index3 {0x00ff00ff};
 };
 
 extern Palette greyscale_palette;

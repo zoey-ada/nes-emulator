@@ -106,7 +106,7 @@ void PatternTable::loadCartridge(Cartridge* cart)
 
 void PatternTable::loadPalette(Palette palette)
 {
-	this->_palette = std::move(palette);
+	this->_palette = palette;
 	this->color();
 }
 
@@ -120,7 +120,7 @@ void PatternTable::updateTexture(const PatternTableImage& pixel_data)
 	SDL_UnlockTexture(this->_texture);
 }
 
-std::array<uint8_t, 8> PatternTable::compilePatternTableBytes(uint8_t high_byte, uint8_t low_byte)
+std::array<uint8_t, 8> PatternTable::compilePatternTableBytes(uint8_t low_byte, uint8_t high_byte)
 {
 	std::array<uint8_t, 8> indices;
 

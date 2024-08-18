@@ -18,6 +18,9 @@ public:
 	void load_cartridge(Cartridge* cartridge);
 	void unload_cartridge();
 
+	void dumpPaletteRam();
+	void dumpVideoRam();
+
 private:
 	std::unique_ptr<IMemory> _palette_ram {nullptr};
 	std::unique_ptr<IMemory> _video_ram {nullptr};

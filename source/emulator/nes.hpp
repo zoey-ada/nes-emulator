@@ -44,7 +44,7 @@ public:
 	inline bool isGameRunning() const { return this->_game_loaded; }
 
 	void cycle();
-	void cycle(uint8_t num)
+	void cycle(uint64_t num)
 	{
 		for (int i = 0; i < num; ++i)
 			this->cycle();
@@ -53,6 +53,13 @@ public:
 	void step();
 	void leap();
 	void bound();
+
+	void nextFrame();
+
+	void nextPalette();
+	void prevPalette();
+
+	void dumpMemory();
 
 private:
 	std::unique_ptr<MemoryMapper> _memory;

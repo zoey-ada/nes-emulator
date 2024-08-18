@@ -1,12 +1,15 @@
 #include "ppuMemoryMapper.hpp"
 
+#include <fstream>
+
 #include "cartridge/cartridge.hpp"
 #include "randomAccessMemory.hpp"
 #include "slowMemory.hpp"
 
 PpuMemoryMapper::PpuMemoryMapper()
 {
-	this->_palette_ram = std::make_unique<RandomAccessMemory>(0x0100);
+	// this->_palette_ram = std::make_unique<RandomAccessMemory>(0x0100);
+	this->_palette_ram = std::make_unique<SlowMemory>(0x0100);
 	// this->_video_ram = std::make_unique<RandomAccessMemory>(0x0800);
 	this->_video_ram = std::make_unique<SlowMemory>(0x0800);
 }
@@ -36,7 +39,10 @@ uint8_t PpuMemoryMapper::read(uint16_t address) const
 	}
 	else
 	{
-		auto ram_address = address % 0x0800;
+		if (address == 0x3f10 || address == 0x3f14 || address == 0x3f18 || address == 0x3f1c)
+			address -= 0x0010;
+
+		auto ram_address = address % 0x0020;
 		return this->_palette_ram->read(ram_address);
 	}
 }
@@ -49,7 +55,10 @@ void PpuMemoryMapper::write(uint16_t address, const uint8_t data)
 	}
 	else
 	{
-		auto ram_address = address % 0x0800;
+		if (address == 0x3f10 || address == 0x3f14 || address == 0x3f18 || address == 0x3f1c)
+			address -= 0x0010;
+
+		auto ram_address = address % 0x0020;
 		this->_palette_ram->write(ram_address, data);
 	}
 }
@@ -64,4 +73,18 @@ void PpuMemoryMapper::unload_cartridge()
 {
 	this->_cartridge->setConsoleVideoRam(nullptr);
 	this->_cartridge = nullptr;
+}
+
+void PpuMemoryMapper::dumpPaletteRam()
+{
+	std::fstream outfile("./ppu_palette.dump", std::ios::out | std::ios::trunc);
+	static_cast<SlowMemory*>(this->_palette_ram.get())->dumpMemory(outfile);
+	outfile.close();
+}
+
+void PpuMemoryMapper::dumpVideoRam()
+{
+	std::fstream outfile("./ppu_vram.dump", std::ios::out | std::ios::trunc);
+	static_cast<SlowMemory*>(this->_video_ram.get())->dumpMemory(outfile);
+	outfile.close();
 }
