@@ -1,7 +1,7 @@
 #include "patternTable.hpp"
 
 #include <SDL.h>
-#include <memory/cartridge/cartridge.hpp>
+#include <cartridge/cartridge.hpp>
 
 PatternTable::PatternTable(PatternTableType pt_type, SDL_Renderer* renderer)
 	: _pt_type(pt_type), _renderer(renderer)

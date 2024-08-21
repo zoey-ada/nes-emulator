@@ -2,16 +2,15 @@
 
 #include <memory>
 
-#include "iMemory.hpp"
+#include <base/iMemory.hpp>
 
 class Cartridge;
-class PictureProcessingUnit;
 
-class MemoryMapper: public IMemory
+class PpuMemoryMapper: public IMemory
 {
 public:
-	MemoryMapper(PictureProcessingUnit* ppu);
-	virtual ~MemoryMapper();
+	PpuMemoryMapper();
+	virtual ~PpuMemoryMapper();
 
 	uint8_t read(uint16_t address) const override;
 	void write(uint16_t address, const uint8_t data) override;
@@ -19,8 +18,11 @@ public:
 	void load_cartridge(Cartridge* cartridge);
 	void unload_cartridge();
 
+	void dumpPaletteRam();
+	void dumpVideoRam();
+
 private:
-	std::unique_ptr<IMemory> _ram {nullptr};
+	std::unique_ptr<IMemory> _palette_ram {nullptr};
+	std::unique_ptr<IMemory> _video_ram {nullptr};
 	Cartridge* _cartridge {nullptr};
-	PictureProcessingUnit* _ppu {nullptr};
 };

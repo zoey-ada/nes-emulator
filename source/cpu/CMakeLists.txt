@@ -1,26 +1,27 @@
-set(root_srcs
-	addressing_modes.hpp
-	alu.hpp
-	alu.cpp
-	cpu.hpp
-	cpu.cpp
-	debugCpu.hpp
-	debugCpu.cpp
-	operations.hpp
-	operations.cpp
-)
-source_group(source FILES ${root_srcs})
+add_library(cpu STATIC)
 
-set(all_srcs
-	${root_srcs}
+target_sources(cpu
+	PRIVATE
+		alu.cpp
+		cpu.cpp
+		memoryMapper.cpp
 )
 
-add_library(cpu STATIC ${all_srcs})
+target_sources(cpu
+	INTERFACE
+	FILE_SET HEADERS
+	BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/..
+	FILES
+		addressing_modes.hpp
+		alu.hpp
+		cpu.hpp
+		memoryMapper.hpp
+)
 
 target_link_libraries(cpu
-	base
-	ppu
-	memory
+	PUBLIC
+		base
+		cartridge
 )
 
 target_include_directories(cpu

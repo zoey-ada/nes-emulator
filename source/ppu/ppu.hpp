@@ -6,8 +6,8 @@
 #include <functional>
 #include <memory>
 
+#include <base/iPpu.hpp>
 #include <base/register.hpp>
-#include <cpu/cpu.hpp>
 
 #include "systemPalette.hpp"
 
@@ -16,49 +16,52 @@ using Register = uint8_t;
 using ChunkIndices = std::array<uint8_t, 8>;
 using ChunkPixels = std::array<uint32_t, 8>;
 
+class ICpu;
 class IMemory;
 
 const uint64_t ppu_startup_delay = 88974;
 
-class PictureProcessingUnit
+class PictureProcessingUnit: public IPpu
 {
 public:
 	explicit PictureProcessingUnit(IMemory* memory);
 	virtual ~PictureProcessingUnit();
 
-	void init(Cpu* cpu);
+	void init(ICpu* cpu) override;
 
-	void clear_registers();
-	void power_up();
+	void reset() override;
 
-	void cycle();
-	void cycle(uint8_t number_cycles);
+	void cycle() override;
+	void cycle(uint64_t number_of_cycles) override;
 
-	//--------------------------------------------------------------------------
-	// pins
-	//--------------------------------------------------------------------------
-	Register_14bit _address_bus;
-	// TODO: technically this is supposed to be the lower byte of the address bus
-	Register_8bit _data_bus;
+	inline uint16_t address_bus() const override { return this->_address_bus(); }
+	inline void address_bus(const uint16_t data) override { this->_address_bus(data); }
+	inline uint8_t data_bus() const override { return this->_data_bus(); }
+	inline void data_bus(const uint8_t data) override { this->_data_bus(data); }
 
-	inline uint32_t vout() const { return this->_vout; }
+	bool read_write() const override { return this->_read_write; }
+	inline uint32_t vout() const override { return this->_vout; }
 
 	// registers
-	void ppu_ctrl(const uint8_t value);
-	inline void ppu_mask(const uint8_t value) { this->_ppumask(value); }
-	uint8_t ppu_status();
-	inline void oam_addr(const uint8_t value) { this->_oamaddr(value); }
-	inline uint8_t oam_data() const { return this->_oamdata(); }
-	inline void oam_data(const uint8_t value) { this->_oamdata(value); }
-	void ppu_scroll(const uint8_t value);
-	void ppu_addr(const uint8_t value);
-	uint8_t ppu_data();
-	void ppu_data(const uint8_t value);
-	inline void oam_dma(const uint8_t value) { this->_oamdma(value); }
+	void ppu_ctrl(const uint8_t value) override;
+	inline void ppu_mask(const uint8_t value) override { this->_ppumask(value); }
+	uint8_t ppu_status() override;
+	inline void oam_addr(const uint8_t value) override { this->_oamaddr(value); }
+	inline uint8_t oam_data() const override { return this->_oamdata(); }
+	inline void oam_data(const uint8_t value) override { this->_oamdata(value); }
+	void ppu_scroll(const uint8_t value) override;
+	void ppu_addr(const uint8_t value) override;
+	uint8_t ppu_data() override;
+	void ppu_data(const uint8_t value) override;
+	inline void oam_dma(const uint8_t value) override { this->_oamdma(value); }
 
 protected:
 	IMemory* _memory {nullptr};
 	std::unique_ptr<SystemPalette> _sys_palette {nullptr};
+
+	Register_14bit _address_bus;
+	// TODO: technically this is supposed to be the lower byte of the address bus
+	Register_8bit _data_bus;
 
 	virtual void write_memory();
 
@@ -81,7 +84,9 @@ private:
 	Register _pattern_table_tile_low_latch {0x00};
 	Register _pattern_table_tile_high_latch {0x00};
 
-	Cpu* _cpu {nullptr};
+	bool _read_write {false};
+
+	ICpu* _cpu {nullptr};
 
 	// argb format (a is ignored)
 	uint32_t _vout {0x00000000};

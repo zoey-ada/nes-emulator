@@ -4,15 +4,8 @@
 #include <cstdint>
 #include <memory>
 
-#include <memory/cartridge/cartridgeLoader.hpp>
-
-struct Pixel
-{
-	uint8_t b;
-	uint8_t g;
-	uint8_t r;
-	uint8_t padding;
-};
+#include <base/pixel.hpp>
+#include <cartridge/cartridgeLoader.hpp>
 
 const uint16_t width_in_pixels = 128;
 const uint16_t height_in_pixels = 128;

@@ -4,14 +4,14 @@
 #include <memory>
 
 #include <base/pixel.hpp>
+#include <cartridge/cartridgeLoader.hpp>
 #include <cpu/cpu.hpp>
-#include <cpu/debugCpu.hpp>
-#include <memory/cartridge/cartridgeLoader.hpp>
-#include <memory/memoryMapper.hpp>
-#include <memory/ppuMemoryMapper.hpp>
+#include <cpu/memoryMapper.hpp>
 #include <ppu/ppu.hpp>
+#include <ppu/ppuMemoryMapper.hpp>
 
 #include "debug/cpuRenderer.hpp"
+#include "debug/debugCpu.hpp"
 #include "debug/debugPpu.hpp"
 
 class Cartridge;

@@ -97,10 +97,10 @@ void Nes::loadFile(const std::string& filepath)
 	this->_memory->load_cartridge(this->_cart.get());
 	this->_debug_ppu->loadCartridge(this->_cart.get());
 
-	// this->_ppu->power_up();
-	this->_debug_ppu->power_up();
-	// this->_cpu->power_up();
-	this->_debug_cpu->power_up();
+	// this->_ppu->reset();
+	this->_debug_ppu->reset();
+	// this->_cpu->reset();
+	this->_debug_cpu->reset();
 
 	this->_game_loaded = true;
 

@@ -1,6 +1,7 @@
 #include "cartridge.hpp"
 
-#include "../iMemory.hpp"
+#include <base/iMemory.hpp>
+
 #include "mappers/iMapper.hpp"
 
 Cartridge::Cartridge(CartridgeData_1_0 cart_data, std::unique_ptr<IMapper> mapper)

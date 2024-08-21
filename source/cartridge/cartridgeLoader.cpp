@@ -3,7 +3,8 @@
 #include <array>
 #include <fstream>
 
-#include "../iMemory.hpp"
+#include <base/iMemory.hpp>
+
 #include "inesHeader.hpp"
 #include "inesHeader_1_0.hpp"
 #include "inesHeader_2_0.hpp"

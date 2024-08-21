@@ -10,11 +10,6 @@ project(
 include(cmake/config.cmake)
 
 add_subdirectory(libraries)
-add_subdirectory(source/base)
-add_subdirectory(source/memory)
-add_subdirectory(source/cpu)
-add_subdirectory(source/ppu)
+add_subdirectory(source)
 add_subdirectory(tests)
 add_subdirectory(tools)
-
-add_subdirectory(source/emulator)

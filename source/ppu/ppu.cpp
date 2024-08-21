@@ -2,8 +2,9 @@
 
 #include <cassert>
 
-#include <memory/iMemory.hpp>
-#include <memory/randomAccessMemory.hpp>
+#include <base/iCpu.hpp>
+#include <base/iMemory.hpp>
+#include <base/randomAccessMemory.hpp>
 
 PictureProcessingUnit::PictureProcessingUnit(IMemory* memory): _memory(memory)
 {
@@ -22,7 +23,7 @@ PictureProcessingUnit::~PictureProcessingUnit()
 	this->_object_attribute_memory = nullptr;
 }
 
-void PictureProcessingUnit::init(Cpu* cpu)
+void PictureProcessingUnit::init(ICpu* cpu)
 {
 	this->_cpu = cpu;
 	assert(this->_cpu);
@@ -98,10 +99,7 @@ void PictureProcessingUnit::cycle()
 	}
 }
 
-void PictureProcessingUnit::clear_registers()
-{}
-
-void PictureProcessingUnit::power_up()
+void PictureProcessingUnit::reset()
 {
 	this->_actions.clear();
 	this->_row = 0;
@@ -111,9 +109,9 @@ void PictureProcessingUnit::power_up()
 	this->_temp_vram_address(0x0000);
 }
 
-void PictureProcessingUnit::cycle(uint8_t number_cycles)
+void PictureProcessingUnit::cycle(uint64_t number_of_cycles)
 {
-	for (auto i = 0; i < number_cycles; ++i)
+	for (auto i = 0; i < number_of_cycles; ++i)
 		this->cycle();
 }
 

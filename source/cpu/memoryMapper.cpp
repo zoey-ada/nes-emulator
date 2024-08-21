@@ -3,12 +3,12 @@
 #include <cassert>
 #include <iostream>
 
-#include <ppu/ppu.hpp>
+#include <base/iPpu.hpp>
+#include <base/randomAccessMemory.hpp>
+#include <cartridge/cartridge.hpp>
+#include <input/iInput.hpp>
 
-#include "cartridge/cartridge.hpp"
-#include "randomAccessMemory.hpp"
-
-MemoryMapper::MemoryMapper(PictureProcessingUnit* ppu): _ppu(ppu)
+MemoryMapper::MemoryMapper(IPpu* ppu): _ppu(ppu)
 {
 	assert(this->_ppu);
 	this->_ram = std::make_unique<RandomAccessMemory>(0x0800);
@@ -221,3 +221,9 @@ void MemoryMapper::unload_cartridge()
 {
 	this->_cartridge = nullptr;
 }
+
+void MemoryMapper::connect_controller(ControllerPort port, IInput* controller)
+{}
+
+void MemoryMapper::dicconnect_controller(ControllerPort port)
+{}

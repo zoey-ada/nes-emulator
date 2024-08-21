@@ -1,22 +1,25 @@
-set(root_srcs
-	main.cpp
+add_executable(pattern_table_viewer)
 
-	patternTable.hpp
-	patternTable.cpp
-
-	window.hpp
-	window.cpp
-)
-source_group(source FILES ${root_srcs})
-
-set(all_srcs
-	${root_srcs}
+target_sources(pattern_table_viewer
+	PRIVATE
+		main.cpp
+		patternTable.cpp
+		window.cpp
 )
 
-add_executable(pattern_table_viewer ${all_srcs})
+target_sources(pattern_table_viewer
+	INTERFACE
+	FILE_SET HEADERS
+	BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/..
+	FILES
+		patternTable.hpp
+		window.hpp
+)
+
 target_link_libraries(pattern_table_viewer
 	PUBLIC
-		memory
+		base
+		cartridge
 
 		nfd
 		SDL2main

@@ -21,8 +21,8 @@ add_subdirectory(debug)
 target_link_libraries(emulator
 	PUBLIC
 		base
+		cartridge
 		cpu
-		memory
 		ppu
 
 		nfd

@@ -2,7 +2,7 @@
 
 #include <format>
 
-#include <memory/iMemory.hpp>
+#include <base/iMemory.hpp>
 
 #include "operations.hpp"
 
@@ -34,12 +34,12 @@ DebugCpu::DebugCpu(IMemory* memory): Cpu(memory)
 	};
 }
 
-void DebugCpu::power_up()
+void DebugCpu::reset()
 {
 	this->_stack_frame_log.clear();
 	this->_cycle_number = UINT64_MAX;
 	this->_current_instruction = "RES";
-	Cpu::power_up();
+	Cpu::reset();
 }
 
 void DebugCpu::cycle()

@@ -2,9 +2,9 @@
 
 #include <fstream>
 
-#include "cartridge/cartridge.hpp"
-#include "randomAccessMemory.hpp"
-#include "slowMemory.hpp"
+#include <base/randomAccessMemory.hpp>
+#include <base/slowMemory.hpp>
+#include <cartridge/cartridge.hpp>
 
 PpuMemoryMapper::PpuMemoryMapper()
 {

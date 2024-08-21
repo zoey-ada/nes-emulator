@@ -4,7 +4,7 @@
 #include <map>
 #include <string>
 
-#include "addressing_modes.hpp"
+#include <cpu/addressing_modes.hpp>
 
 struct OperationInfo
 {

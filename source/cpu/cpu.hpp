@@ -5,11 +5,13 @@
 #include <functional>
 #include <map>
 
+#include <base/iCpu.hpp>
+#include <base/register.hpp>
+
 #include "addressing_modes.hpp"
 #include "alu.hpp"
 
 using Register = uint8_t;
-using WideRegister = uint16_t;  // TODO: turn this into a class and use it?
 
 class Cpu;
 class IMemory;
@@ -28,17 +30,26 @@ using AddressingModeMap = std::map<AddressingMode, void (Cpu::*)()>;
 
 using Action = std::function<void()>;
 
-class Cpu
+class Cpu: public ICpu
 {
 public:
 	explicit Cpu(IMemory* memory);
 	virtual ~Cpu();
 
-	void clear_registers();
-	void power_up();
+	void cycle() override;
+	void cycle(const uint64_t number_of_cycles) override;
 
-	void cycle();
-	void cycle(const uint8_t number_cycles);
+	uint16_t address_bus() const override { return this->_address_bus(); }
+	uint8_t data_bus() const override { return this->_data_bus(); }
+	void data_bus(const uint8_t data) override { this->_data_bus(data); }
+
+	inline bool audio_out_1() const override { return this->_audio_out_1; }
+	inline bool audio_out_2() const override { return this->_audio_out_2; }
+	inline bool read_write() const override { return this->_read_write; }
+
+	void irq() override;
+	void nmi() override;
+	void reset() override;
 
 	//--------------------------------------------------------------------------
 	// registers
@@ -106,22 +117,6 @@ public:
 		state ? this->_p |= 0b00000001 : this->_p &= 0b11111110;
 	};
 
-	//--------------------------------------------------------------------------
-	// pins
-	//--------------------------------------------------------------------------
-	inline uint16_t& address_bus() { return (uint16_t&)this->_address_bus[0]; }
-	// bytes are reversed so that reading the 16 bit values is correct
-	inline uint8_t& address_bus_high() { return this->_address_bus[1]; }
-	inline uint8_t& address_bus_low() { return this->_address_bus[0]; }
-
-	inline uint8_t& data_bus() { return this->_data_bus; }
-	inline bool audio_out_1() const { return this->_audio_out_1; }
-	inline bool audio_out_2() const { return this->_audio_out_2; }
-	inline bool read_write() const { return this->_read_write; }
-
-	void nmi();
-	void irq();
-
 protected:
 	IMemory* _memory;
 
@@ -142,8 +137,8 @@ private:
 	std::array<uint8_t, 2> _program_counter = {0x00, 0x00};
 
 	// pins
-	std::array<uint8_t, 2> _address_bus = {0x00, 0x00};
-	uint8_t _data_bus {0x00};
+	Register_16bit _address_bus;
+	Register_8bit _data_bus;
 	bool _audio_out_1 {false};
 	bool _audio_out_2 {false};
 	bool _read_write {false};  // false -> write; true -> read
@@ -153,6 +148,8 @@ private:
 	AddressingModeMap _addressing_modes;
 
 	std::deque<Action> _actions;
+
+	void clear_registers();
 
 	// read from the address the PC (program counter) is pointing to
 	void fetch();

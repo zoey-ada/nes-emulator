@@ -5,7 +5,8 @@
 #include <string>
 
 #include <SDL_ttf.h>
-#include <cpu/debugCpu.hpp>
+
+#include "debugCpu.hpp"
 
 // const uint16_t cpu_width_in_pixels = 257;
 // const uint16_t cpu_height_in_pixels = 50;

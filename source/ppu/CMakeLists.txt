@@ -2,8 +2,9 @@ add_library(ppu STATIC)
 
 target_sources(ppu
 	PRIVATE
-		systemPalette.cpp
 		ppu.cpp
+		ppuMemoryMapper.cpp
+		systemPalette.cpp
 )
 
 target_sources(ppu
@@ -11,13 +12,15 @@ target_sources(ppu
 	FILE_SET HEADERS
 	BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/..
 	FILES
-		systemPalette.hpp
 		ppu.hpp
+		ppuMemoryMapper.hpp
+		systemPalette.hpp
 )
 
 target_link_libraries(ppu
-	base
-	memory
+	PUBLIC
+		base
+		cartridge
 )
 
 target_include_directories(ppu

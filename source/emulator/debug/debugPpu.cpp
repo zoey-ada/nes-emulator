@@ -1,8 +1,8 @@
 #include "debugPpu.hpp"
 
 #include <SDL.h>
-#include <memory/iMemory.hpp>
-#include <memory/ppuMemoryMapper.hpp>
+#include <base/iMemory.hpp>
+#include <ppu/ppuMemoryMapper.hpp>
 
 DebugPpu::DebugPpu(IMemory* memory, SDL_Renderer* renderer)
 	: PictureProcessingUnit(memory),

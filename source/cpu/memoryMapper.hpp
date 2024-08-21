@@ -1,0 +1,31 @@
+#pragma once
+
+#include <memory>
+
+#include <base/iMemory.hpp>
+#include <input/controllerPort.hpp>
+
+class Cartridge;
+class IInput;
+class IPpu;
+
+class MemoryMapper: public IMemory
+{
+public:
+	MemoryMapper(IPpu* ppu);
+	virtual ~MemoryMapper();
+
+	uint8_t read(uint16_t address) const override;
+	void write(uint16_t address, const uint8_t data) override;
+
+	void load_cartridge(Cartridge* cartridge);
+	void unload_cartridge();
+
+	void connect_controller(ControllerPort port, IInput* controller);
+	void dicconnect_controller(ControllerPort port);
+
+private:
+	std::unique_ptr<IMemory> _ram {nullptr};
+	Cartridge* _cartridge {nullptr};
+	IPpu* _ppu {nullptr};
+};

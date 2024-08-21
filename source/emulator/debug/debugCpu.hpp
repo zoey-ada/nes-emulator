@@ -4,9 +4,8 @@
 #include <vector>
 
 #include <base/pixel.hpp>
-
-#include "addressing_modes.hpp"
-#include "cpu.hpp"
+#include <cpu/addressing_modes.hpp>
+#include <cpu/cpu.hpp>
 
 struct CpuStackFrame
 {
@@ -29,7 +28,7 @@ public:
 	explicit DebugCpu(IMemory* memory);
 	virtual ~DebugCpu() = default;
 
-	void power_up();
+	void reset();
 
 	void cycle();
 	void cycle(uint8_t number_cycles);

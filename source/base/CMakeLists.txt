@@ -1,4 +1,10 @@
-add_library(base INTERFACE ${all_srcs})
+add_library(base STATIC)
+
+target_sources(base
+	PRIVATE
+		randomAccessMemory.cpp
+		slowMemory.cpp
+)
 
 target_sources(base
 	INTERFACE
@@ -6,6 +12,11 @@ target_sources(base
 	BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/..
 	FILES
 		color.hpp
+		iCpu.hpp
+		iMemory.hpp
+		iPpu.hpp
 		pixel.hpp
+		randomAccessMemory.hpp
 		register.hpp
+		slowMemory.hpp
 )

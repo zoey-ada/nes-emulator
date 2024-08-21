@@ -1,7 +1,6 @@
 #include "patternTable.hpp"
 
-#include <memory/cartridge/cartridge.hpp>
-#include <memory/cartridge/cartridgeLoader.hpp>
+#include <cartridge/cartridge.hpp>
 
 PatternTable::PatternTable(bool right_table): _is_right_table(right_table)
 {

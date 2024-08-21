@@ -15,6 +15,9 @@ public:
 	inline void highByte(const uint8_t value) { this->_data[1] = std::move(value); }
 	inline void lowByte(const uint8_t value) { this->_data[0] = std::move(value); }
 
+	inline void operator++() { ((uint16_t&)this->_data[0])++; }
+	inline void operator--() { ((uint16_t&)this->_data[0])--; }
+
 private:
 	std::array<uint8_t, 2> _data {0x00, 0x00};
 };
