@@ -39,20 +39,27 @@ public:
 	inline uint8_t data_bus() const override { return this->_data_bus(); }
 	inline void data_bus(const uint8_t data) override { this->_data_bus(data); }
 
+	inline void cpu_address_bus(const uint8_t data) override { this->_cpu_address_bus(data); }
+	inline uint8_t cpu_data_bus() const override { return this->_cpu_data_bus(); }
+	inline void cpu_data_bus(const uint8_t data) override { this->_cpu_data_bus(data); }
+
+	void cpu_read() override;
+	void cpu_write() override;
+
 	bool read_write() const override { return this->_read_write; }
 	inline uint32_t vout() const override { return this->_vout; }
 
 	// registers
-	void ppu_ctrl(const uint8_t value) override;
-	inline void ppu_mask(const uint8_t value) override { this->_ppumask(value); }
-	uint8_t ppu_status() override;
-	inline void oam_addr(const uint8_t value) override { this->_oamaddr(value); }
-	inline uint8_t oam_data() const override { return this->_oamdata(); }
-	inline void oam_data(const uint8_t value) override { this->_oamdata(value); }
-	void ppu_scroll(const uint8_t value) override;
-	void ppu_addr(const uint8_t value) override;
-	uint8_t ppu_data() override;
-	void ppu_data(const uint8_t value) override;
+	void ppu_ctrl(const uint8_t value);
+	inline void ppu_mask(const uint8_t value) { this->_ppumask(value); }
+	uint8_t ppu_status();
+	inline void oam_addr(const uint8_t value) { this->_oamaddr(value); }
+	inline uint8_t oam_data() const { return this->_oamdata(); }
+	inline void oam_data(const uint8_t value) { this->_oamdata(value); }
+	void ppu_scroll(const uint8_t value);
+	void ppu_addr(const uint8_t value);
+	uint8_t ppu_data();
+	void ppu_data(const uint8_t value);
 	inline void oam_dma(const uint8_t value) override { this->_oamdma(value); }
 
 protected:
@@ -62,6 +69,9 @@ protected:
 	Register_14bit _address_bus;
 	// TODO: technically this is supposed to be the lower byte of the address bus
 	Register_8bit _data_bus;
+
+	Register_3bit _cpu_address_bus;
+	Register_8bit _cpu_data_bus;
 
 	virtual void write_memory();
 

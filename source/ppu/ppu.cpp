@@ -115,6 +115,62 @@ void PictureProcessingUnit::cycle(uint64_t number_of_cycles)
 		this->cycle();
 }
 
+void PictureProcessingUnit::cpu_read()
+{
+	switch (this->_cpu_address_bus())
+	{
+	case 0:  // PPUCTRL
+		break;
+	case 1:  // PPUMASK
+		break;
+	case 2:  // PPUSTATUS
+		this->_cpu_data_bus(this->ppu_status());
+		break;
+	case 3:  // OAMADDR
+		break;
+	case 4:  // OAMDATA
+		this->_cpu_data_bus(this->oam_data());
+		break;
+	case 5:  // PPUSCROLL
+		break;
+	case 6:  // PPUADDR
+		break;
+	case 7:  // PPUDATA
+		this->_cpu_data_bus(this->ppu_data());
+		break;
+	}
+}
+
+void PictureProcessingUnit::cpu_write()
+{
+	switch (this->_cpu_address_bus())
+	{
+	case 0:  // PPUCTRL
+		this->ppu_ctrl(this->_cpu_data_bus());
+		break;
+	case 1:  // PPUMASK
+		this->ppu_mask(this->_cpu_data_bus());
+		break;
+	case 2:  // PPUSTATUS
+		break;
+	case 3:  // OAMADDR
+		this->oam_addr(this->_cpu_data_bus());
+		break;
+	case 4:  // OAMDATA
+		this->oam_data(this->_cpu_data_bus());
+		break;
+	case 5:  // PPUSCROLL
+		this->ppu_scroll(this->_cpu_data_bus());
+		break;
+	case 6:  // PPUADDR
+		this->ppu_addr(this->_cpu_data_bus());
+		break;
+	case 7:  // PPUDATA
+		this->ppu_data(this->_cpu_data_bus());
+		break;
+	}
+}
+
 void PictureProcessingUnit::ppu_ctrl(const uint8_t value)
 {
 	this->_ppuctrl(value);

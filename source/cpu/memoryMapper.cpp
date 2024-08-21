@@ -39,26 +39,9 @@ uint8_t MemoryMapper::read(uint16_t address) const
 	}
 	else if (address < 0x4000)
 	{
-		auto ppu_register = ((address - 0x2000) % 8) + 0x2000;
-		switch (ppu_register)
-		{
-		case 0x2002:  // PPUSTATUS
-			return this->_ppu->ppu_status();
-		case 0x2004:  // OAMDATA
-			return this->_ppu->oam_data();
-		case 0x2007:  // PPUDATA
-			return this->_ppu->ppu_data();
-		case 0x2000:  // PPUCTRL
-		case 0x2001:  // PPUMASK
-		case 0x2003:  // OAMADDR
-		case 0x2005:  // PPUSCROLL
-		case 0x2006:  // PPUADDR
-			// TODO: should return previous read data
-			return 0;
-			assert(false);
-			break;
-		}
-		return 0;
+		this->_ppu->cpu_address_bus(static_cast<uint8_t>(address));
+		this->_ppu->cpu_read();
+		return this->_ppu->cpu_data_bus();
 	}
 	else if (address < 0x4018)
 	{
@@ -136,34 +119,9 @@ void MemoryMapper::write(uint16_t address, const uint8_t data)
 	}
 	else if (address < 0x4000)
 	{
-		auto ppu_register = ((address - 0x2000) % 8) + 0x2000;
-		switch (ppu_register)
-		{
-		case 0x2000:  // PPUCTRL
-			this->_ppu->ppu_ctrl(data);
-			break;
-		case 0x2001:  // PPUMASK
-			this->_ppu->ppu_mask(data);
-			break;
-		case 0x2002:  // PPUSTATUS
-			assert(false);
-			break;
-		case 0x2003:  // OAMADDR
-			this->_ppu->oam_addr(data);
-			break;
-		case 0x2004:  // OAMDATA
-			this->_ppu->oam_data(data);
-			break;
-		case 0x2005:  // PPUSCROLL
-			this->_ppu->ppu_scroll(data);
-			break;
-		case 0x2006:  // PPUADDR
-			this->_ppu->ppu_addr(data);
-			break;
-		case 0x2007:  // PPUDATA
-			this->_ppu->ppu_data(data);
-			break;
-		}
+		this->_ppu->cpu_address_bus(static_cast<uint8_t>(address));
+		this->_ppu->cpu_data_bus(data);
+		this->_ppu->cpu_write();
 	}
 	else if (address < 0x4018)
 	{
