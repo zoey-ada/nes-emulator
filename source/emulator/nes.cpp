@@ -24,6 +24,9 @@ Nes::Nes(SDL_Renderer* renderer)
 
 	this->_cpu_renderer = std::make_unique<CpuRenderer>(renderer);
 
+	this->_p1_controller = std::make_unique<SdlController>();
+	this->_memory->connect_controller(ControllerPort::Port1, this->_p1_controller.get());
+
 	this->blankFrame();
 }
 

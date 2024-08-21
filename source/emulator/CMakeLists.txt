@@ -4,6 +4,7 @@ target_sources(emulator
 	PRIVATE
 		main.cpp
 		nes.cpp
+		sdlController.cpp
 		window.cpp
 )
 
@@ -13,6 +14,7 @@ target_sources(emulator
 	BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/..
 	FILES
 		nes.hpp
+		sdlController.hpp
 		window.hpp
 )
 
@@ -23,6 +25,7 @@ target_link_libraries(emulator
 		base
 		cartridge
 		cpu
+		input
 		ppu
 
 		nfd

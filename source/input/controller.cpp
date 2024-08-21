@@ -22,18 +22,10 @@ bool Controller::read()
 void Controller::write(const bool data)
 {
 	if (!data && this->_read_inputs_latch)
+	{
 		this->readInputs();
+		this->_current_bit = 0;
+	}
 
 	this->_read_inputs_latch = data;
-}
-
-void Controller::readInputs()
-{
-	// A, B, Select, Start, Up, Down, Left, Right.
-	this->_data_latch = 0b1111'1111;
-}
-
-bool Controller::readAButtonInput()
-{
-	return true;
 }

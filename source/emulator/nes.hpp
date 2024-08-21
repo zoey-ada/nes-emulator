@@ -13,6 +13,7 @@
 #include "debug/cpuRenderer.hpp"
 #include "debug/debugCpu.hpp"
 #include "debug/debugPpu.hpp"
+#include "sdlController.hpp"
 
 class Cartridge;
 struct SDL_Renderer;
@@ -70,6 +71,7 @@ private:
 	std::unique_ptr<PictureProcessingUnit> _ppu;
 	std::unique_ptr<DebugPpu> _debug_ppu;
 	std::unique_ptr<Cartridge> _cart;
+	std::unique_ptr<SdlController> _p1_controller;
 
 	NesFrame _frame;
 	bool _game_loaded {false};

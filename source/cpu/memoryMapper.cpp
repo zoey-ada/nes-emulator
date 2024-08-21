@@ -92,8 +92,26 @@ uint8_t MemoryMapper::read(uint16_t address) const
 		case 0x4015:  // SND_CHN
 			break;
 		case 0x4016:  // JOY1
+			if (this->_controller_1)
+			{
+				auto data = this->_controller_1->read();
+				return 0x00 | static_cast<uint8_t>(data);
+			}
+			else
+			{
+				return 0x00;
+			}
 			break;
 		case 0x4017:  // JOY2
+			if (this->_controller_2)
+			{
+				auto data = this->_controller_2->read();
+				return 0x00 | static_cast<uint8_t>(data);
+			}
+			else
+			{
+				return 0x00;
+			}
 			break;
 		}
 		return 0;
@@ -197,8 +215,12 @@ void MemoryMapper::write(uint16_t address, const uint8_t data)
 		case 0x4015:  // SND_CHN
 			break;
 		case 0x4016:  // JOY1
+			if (this->_controller_1)
+				this->_controller_1->write((data & 0b0000'0001) > 0);
 			break;
 		case 0x4017:  // JOY2
+			if (this->_controller_2)
+				this->_controller_2->write((data & 0b0000'0001) > 0);
 			break;
 		}
 	}
@@ -223,7 +245,17 @@ void MemoryMapper::unload_cartridge()
 }
 
 void MemoryMapper::connect_controller(ControllerPort port, IInput* controller)
-{}
+{
+	if (port == ControllerPort::Port1)
+		this->_controller_1 = controller;
+	else if (port == ControllerPort::Port2)
+		this->_controller_2 = controller;
+}
 
-void MemoryMapper::dicconnect_controller(ControllerPort port)
-{}
+void MemoryMapper::disconnect_controller(ControllerPort port)
+{
+	if (port == ControllerPort::Port1)
+		this->_controller_1 = nullptr;
+	else if (port == ControllerPort::Port2)
+		this->_controller_2 = nullptr;
+}

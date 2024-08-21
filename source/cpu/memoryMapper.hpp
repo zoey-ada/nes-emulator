@@ -22,10 +22,12 @@ public:
 	void unload_cartridge();
 
 	void connect_controller(ControllerPort port, IInput* controller);
-	void dicconnect_controller(ControllerPort port);
+	void disconnect_controller(ControllerPort port);
 
 private:
 	std::unique_ptr<IMemory> _ram {nullptr};
 	Cartridge* _cartridge {nullptr};
 	IPpu* _ppu {nullptr};
+	IInput* _controller_1 {nullptr};
+	IInput* _controller_2 {nullptr};
 };

@@ -22,6 +22,7 @@ target_link_libraries(cpu
 	PUBLIC
 		base
 		cartridge
+		input
 )
 
 target_include_directories(cpu
