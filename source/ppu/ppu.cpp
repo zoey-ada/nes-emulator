@@ -49,6 +49,21 @@ void PictureProcessingUnit::cycle()
 	// this->_actions.pop_front();
 	// action();
 
+	if (this->_row < 240)
+	{
+		if (this->_column < 256)
+			if (this->show_background_flag() || this->show_sprites_flag())
+				this->feed_vout();
+			else
+				this->_vout = 0x000000;
+		else
+			this->_vout = 0xff0000;
+	}
+	else
+	{
+		this->_vout = 0x00ff00;
+	}
+
 	// 	prerender scanline (-1)
 	// 	visible scanlines (0-239)
 	//		nothing [0]
@@ -258,33 +273,42 @@ void PictureProcessingUnit::load_next_operation()
 
 		if (this->_column == 0)
 		{
-			this->_actions.push_back([this] { this->_vout = 0xFF'00'FF; });
+			this->_actions.push_back([] {});
 		}
 		else if (this->_column < 257)
 		{
-			this->render_chunk();
+			if (this->_column % 8 == 1)
+				this->render_chunk();
+			else
+				this->_actions.push_back([] {});
 		}
 		else if (this->_column < 321)
 		{
 			if (this->_column == 257)
-				this->_actions.push_back([this] {
-					this->increment_coarse_y_scroll();
-					this->_vout = 0xFF'00'00;
-				});
+				this->_actions.push_back([this] { this->increment_coarse_y_scroll(); });
 			else
-				this->_actions.push_back([this] { this->_vout = 0xFF'00'00; });
+				this->_actions.push_back([] {});
 			// this->fetch_sprite_data();
 		}
-		else if (this->_column < 340)
+		else if (this->_column < 337)
 		{
-			this->_actions.push_back([this] { this->_vout = 0xFF'00'00; });
-			this->_actions.push_back([this] { this->_vout = 0xFF'00'00; });
+			if (this->_column % 8 == 1)
+				this->render_chunk();
+			else
+				this->_actions.push_back([] {});
 		}
-		// else
-		// {
-		// 	this->_column = 0;
-		// 	++this->_row;
-		// }
+		else
+		{
+			if (this->show_background_flag())
+			{
+				this->nametable_read();
+			}
+			else
+			{
+				this->_actions.push_back([this] { this->_vout = 0x00'FF'00; });
+				this->_actions.push_back([this] { this->_vout = 0x00'FF'00; });
+			}
+		}
 	}
 	else if (this->_row == 241)
 	{
@@ -295,44 +319,63 @@ void PictureProcessingUnit::load_next_operation()
 
 				if (this->nmi_enable_flag())
 					this->_cpu->nmi();
-
-				this->_vout = 0x00'FF'00;
 			});
 		}
 		else
 		{
-			this->_actions.push_back([this] { this->_vout = 0x00'FF'00; });
+			this->_actions.push_back([] {});
 		}
 	}
 	else if (this->_row < 261)
 	{
-		this->_actions.push_back([this] { this->_vout = 0x00'FF'00; });
+		this->_actions.push_back([] {});
 	}
 	else
 	{
+		if (this->_column == 0)
+		{
+			this->_actions.push_back([] {});
+		}
 		if (this->_column == 1)
 		{
-			this->_actions.push_back([this] {
-				this->vertical_blank_flag(false);
-				this->_vout = 0x00'FF'00;
-			});
+			this->_actions.push_back([this] { this->vertical_blank_flag(false); });
 		}
 		else if (this->_column >= 280 && this->_column <= 304)
 		{
 			if (!this->show_background_flag() && !this->show_sprites_flag())
 			{
-				this->_actions.push_back([this] { this->_vout = 0x00'FF'00; });
+				this->_actions.push_back([] {});
 				return;
 			}
 
-			this->_actions.push_back([this] {
-				this->reset_coarse_y_scroll();
-				this->_vout = 0x00'FF'00;
-			});
+			this->_actions.push_back([this] { this->reset_coarse_y_scroll(); });
+		}
+		else if (this->_column < 321)
+		{
+			this->_actions.push_back([] {});
+		}
+		else if (this->_column < 337)
+		{
+			if (this->_column % 8 == 1)
+			{
+				this->render_chunk();
+			}
+			else
+			{
+				this->_actions.push_back([] {});
+			}
 		}
 		else
 		{
-			this->_actions.push_back([this] { this->_vout = 0x00'FF'00; });
+			if (this->show_background_flag())
+			{
+				this->nametable_read();
+			}
+			else
+			{
+				this->_actions.push_back([this] { this->_vout = 0x00'FF'00; });
+				this->_actions.push_back([this] { this->_vout = 0x00'FF'00; });
+			}
 		}
 	}
 }
@@ -352,56 +395,43 @@ void PictureProcessingUnit::write_memory()
 
 void PictureProcessingUnit::feed_vout()
 {
-	this->_vout = this->_vout_shift_register[this->_vout_shift_register_index];
+	this->_vout =
+		this->_vout_shift_register[this->_vout_shift_register_index + this->_fine_x_scroll()];
 	this->_vout_shift_register_index = (this->_vout_shift_register_index + 1) % 8;
 }
 
 void PictureProcessingUnit::nametable_read()
 {
-	this->_actions.push_back([this] {
-		this->_address_bus(this->get_nametable_address());
-		this->feed_vout();
-	});
+	this->_actions.push_back([this] { this->_address_bus(this->get_nametable_address()); });
 	this->_actions.push_back([this] {
 		this->read_memory();
 		this->_nametable_latch = this->_data_bus();
-		this->feed_vout();
 	});
 }
 
 void PictureProcessingUnit::attribute_table_read()
 {
-	this->_actions.push_back([this] {
-		this->_address_bus(this->get_attribute_table_address());
-		this->feed_vout();
-	});
+	this->_actions.push_back([this] { this->_address_bus(this->get_attribute_table_address()); });
 	this->_actions.push_back([this] {
 		this->read_memory();
 		this->_attribute_table_latch = this->_data_bus();
-		this->feed_vout();
 	});
 }
 
 void PictureProcessingUnit::process_visible_pixels()
 {
-	this->_actions.push_back([this] {
-		this->_address_bus(this->calculate_pattern_table_address(false));
-		this->feed_vout();
-	});
+	this->_actions.push_back(
+		[this] { this->_address_bus(this->calculate_pattern_table_address(false)); });
 	this->_actions.push_back([this] {
 		this->read_memory();
 		this->_pattern_table_tile_low_latch = this->_data_bus();
-		this->feed_vout();
 	});
 
-	this->_actions.push_back([this] {
-		this->_address_bus(this->calculate_pattern_table_address(true));
-		this->feed_vout();
-	});
+	this->_actions.push_back(
+		[this] { this->_address_bus(this->calculate_pattern_table_address(true)); });
 	this->_actions.push_back([this] {
 		this->read_memory();
 		this->_pattern_table_tile_high_latch = this->_data_bus();
-		this->feed_vout();
 
 		if (this->_column == 256)
 			this->reset_coarse_x_scroll();
@@ -410,7 +440,8 @@ void PictureProcessingUnit::process_visible_pixels()
 
 		auto indices = this->compile_pattern_table_bytes();
 		auto pixels = this->apply_palette_colors(indices);
-		this->_vout_shift_register = std::move(pixels);
+		this->_vout_latch = std::move(pixels);
+		this->update_vout_registers();
 		// this->determine_pixels();
 		// this->fill_shift_register();
 	});
@@ -605,8 +636,8 @@ void PictureProcessingUnit::increment_coarse_x_scroll()
 	x_scroll++;
 	if ((x_scroll & 0b0010'0000) > 1)
 	{
-		uint8_t scroll_clear = this->_vram_address() & 0b0111'1111'1110'0000;
-		uint8_t nt_toggled = scroll_clear ^ 0b0000'0100'0000'0000;
+		uint16_t scroll_clear = this->_vram_address() & 0b0111'1111'1110'0000;
+		uint16_t nt_toggled = scroll_clear ^ 0b0000'0100'0000'0000;
 		this->_vram_address(nt_toggled);
 	}
 	else
@@ -708,4 +739,13 @@ uint16_t PictureProcessingUnit::get_attribute_table_address()
 	uint16_t nametable_offset = (this->_vram_address() & 0b0000'1100'0000'0000) << 2;
 	uint16_t attribute_table_offset = 0b0011'1100'0000;
 	return 0x2000 | nametable_offset | attribute_table_offset | coarse_y_offset | coarse_x_offset;
+}
+
+void PictureProcessingUnit::update_vout_registers()
+{
+	uint32_t* front_eight = this->_vout_shift_register.data();
+	uint32_t* back_eight = front_eight + 8;
+	memcpy(front_eight, back_eight, 8 * sizeof(uint32_t));
+	memcpy(back_eight, this->_vout_latch.data(), 8 * sizeof(uint32_t));
+	this->_vout_shift_register_index = 0;
 }

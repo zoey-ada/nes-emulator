@@ -15,6 +15,7 @@ using Action = std::function<void()>;
 using Register = uint8_t;
 using ChunkIndices = std::array<uint8_t, 8>;
 using ChunkPixels = std::array<uint32_t, 8>;
+using DoubleChunkPixels = std::array<uint32_t, 16>;
 
 class ICpu;
 class IMemory;
@@ -100,7 +101,8 @@ private:
 
 	// argb format (a is ignored)
 	uint32_t _vout {0x00000000};
-	ChunkPixels _vout_shift_register;
+	ChunkPixels _vout_latch;
+	DoubleChunkPixels _vout_shift_register;
 	uint8_t _vout_shift_register_index = 0;
 
 	std::deque<Action> _actions;
@@ -241,4 +243,6 @@ private:
 	void increment_tile_offset();
 	uint16_t get_nametable_address();
 	uint16_t get_attribute_table_address();
+
+	void update_vout_registers();
 };
