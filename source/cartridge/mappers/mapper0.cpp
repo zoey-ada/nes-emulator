@@ -58,7 +58,7 @@ MemoryLocation Mapper0::translate_character_address(uint16_t address) const
 		}
 		else if (address < 0x3000)
 		{
-			uint16_t mapped_addr = ((address - 0x2000) % 0x0400) + 0x0800;
+			uint16_t mapped_addr = ((address - 0x2000) % 0x0400) + 0x0400;
 			return {MemoryDevice::ConsoleRam, mapped_addr};
 		}
 		if (address < 0x3800)
@@ -68,7 +68,7 @@ MemoryLocation Mapper0::translate_character_address(uint16_t address) const
 		}
 		else
 		{
-			uint16_t mapped_addr = ((address - 0x3000) % 0x0400) + 0x0800;
+			uint16_t mapped_addr = ((address - 0x3000) % 0x0400) + 0x0400;
 			return {MemoryDevice::ConsoleRam, mapped_addr};
 		}
 	}
