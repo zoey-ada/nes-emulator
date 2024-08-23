@@ -8,7 +8,9 @@ Cartridge::Cartridge(CartridgeData_1_0 cart_data, std::unique_ptr<IMapper> mappe
 	: _program_rom(std::move(cart_data.program_rom_data)),
 	  _character_rom(std::move(cart_data.character_rom_data)),
 	  _mapper(std::move(mapper))
-{}
+{
+	this->_program_ram.resize(0x2000);
+}
 
 Cartridge::Cartridge(CartridgeData_2_0 cart_data, std::unique_ptr<IMapper> mapper)
 	: _program_rom(std::move(cart_data.program_rom_data)),
@@ -30,7 +32,7 @@ uint8_t Cartridge::read_program(uint16_t address) const
 	case MemoryDevice::CartridgeRom:
 		return this->_program_rom[location.address];
 	case MemoryDevice::CartridgeRam:
-		throw std::exception("Cartridge RAM not yet implemented");
+		return this->_program_ram[location.address];
 	case MemoryDevice::ConsoleRam:
 		throw std::exception("Console RAM not accessible for program reads");
 	default:
@@ -47,7 +49,8 @@ void Cartridge::write_program(uint16_t address, const uint8_t data)
 		// ROM cannot be written to
 		break;
 	case MemoryDevice::CartridgeRam:
-		throw std::exception("Cartridge RAM not yet implemented");
+		this->_program_ram[location.address] = data;
+		break;
 	case MemoryDevice::ConsoleRam:
 		throw std::exception("Console RAM not accessible for program writes");
 	default:
