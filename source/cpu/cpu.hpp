@@ -250,4 +250,7 @@ private:
 	void nmi(AddressingMode mode);
 	void irq(AddressingMode mode);
 	void res(AddressingMode mode);
+
+	// unofficial operations
+	void jam(AddressingMode mode);
 };

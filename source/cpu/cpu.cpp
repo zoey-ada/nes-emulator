@@ -125,260 +125,260 @@ void Cpu::populate_operations()
 	this->_operations = {
 		{0x00, {&Cpu::brk, AddressingMode::implicit}},
 		{0x01, {&Cpu::ora, AddressingMode::indirect_x_read}},
-		// {0x02, {&Cpu::stp, AddressingMode::implicit}},
-		// {0x03, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x04, {&Cpu::nop, AddressingMode::implicit}},
+		{0x02, {&Cpu::jam, AddressingMode::implicit}},  // unofficial
+		// {0x03, {&Cpu::slo, AddressingMode::indirect_x}},  // unofficial
+		{0x04, {&Cpu::nop, AddressingMode::zero_page}},  // unofficial
 		{0x05, {&Cpu::ora, AddressingMode::zero_page}},
 		{0x06, {&Cpu::asl, AddressingMode::zero_page}},
-		// {0x07, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x07, {&Cpu::slo, AddressingMode::zero_page}},  // unofficial
 		{0x08, {&Cpu::php, AddressingMode::implicit}},
 		{0x09, {&Cpu::ora, AddressingMode::immediate}},
 		{0x0a, {&Cpu::asl, AddressingMode::accumulator}},
-		// {0x0b, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x0c, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x0b, {&Cpu::anc, AddressingMode::immediate}},  // unofficial
+		{0x0c, {&Cpu::nop, AddressingMode::absolute}},  // unofficial
 		{0x0d, {&Cpu::ora, AddressingMode::absolute}},
 		{0x0e, {&Cpu::asl, AddressingMode::absolute}},
-		// {0x0f, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x0f, {&Cpu::slo, AddressingMode::absolute}},  // unofficial
 		{0x10, {&Cpu::bpl, AddressingMode::relative}},
 		{0x11, {&Cpu::ora, AddressingMode::indirect_y_read}},
-		// {0x12, {&Cpu::stp, AddressingMode::implicit}},
-		// {0x13, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x14, {&Cpu::nop, AddressingMode::implicit}},
+		{0x12, {&Cpu::jam, AddressingMode::implicit}},  // unofficial
+		// {0x13, {&Cpu::slo, AddressingMode::indirect_y}},  // unofficial
+		{0x14, {&Cpu::nop, AddressingMode::zero_page_x_read}},  // unofficial
 		{0x15, {&Cpu::ora, AddressingMode::zero_page_x_read}},
 		{0x16, {&Cpu::asl, AddressingMode::zero_page_x_read}},
-		// {0x17, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x17, {&Cpu::slo, AddressingMode::zero_page}},  // unofficial
 		{0x18, {&Cpu::clc, AddressingMode::implicit}},
 		{0x19, {&Cpu::ora, AddressingMode::absolute_y_read}},
 		{0x1a, {&Cpu::nop, AddressingMode::implicit}},  // unofficial
-		// {0x1b, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x1c, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x1b, {&Cpu::slo, AddressingMode::absoolute_y}},  // unofficial
+		{0x1c, {&Cpu::nop, AddressingMode::absolute_x_read}},  // unofficial
 		{0x1d, {&Cpu::ora, AddressingMode::absolute_x_read}},
 		{0x1e, {&Cpu::asl, AddressingMode::absolute_x_write}},
-		// {0x1f, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x1f, {&Cpu::slo, AddressingMode::absolute_x}},  // unofficial
 		{0x20, {&Cpu::jsr, AddressingMode::absolute}},
 		{0x21, {&Cpu::and_, AddressingMode::indirect_x_read}},
-		// {0x22, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x23, {&Cpu::nop, AddressingMode::implicit}},
+		{0x22, {&Cpu::jam, AddressingMode::implicit}},  // unofficial
+		// {0x23, {&Cpu::rla, AddressingMode::indirect_x}},  // unofficial
 		{0x24, {&Cpu::bit, AddressingMode::zero_page}},
 		{0x25, {&Cpu::and_, AddressingMode::zero_page}},
 		{0x26, {&Cpu::rol, AddressingMode::zero_page}},
-		// {0x27, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x27, {&Cpu::rla, AddressingMode::zero_page}},  // unofficial
 		{0x28, {&Cpu::plp, AddressingMode::implicit}},
 		{0x29, {&Cpu::and_, AddressingMode::immediate}},
 		{0x2a, {&Cpu::rol, AddressingMode::accumulator}},
-		// {0x2b, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x2b, {&Cpu::anc, AddressingMode::immediate}},  // unofficial
 		{0x2c, {&Cpu::bit, AddressingMode::absolute}},
 		{0x2d, {&Cpu::and_, AddressingMode::absolute}},
 		{0x2e, {&Cpu::rol, AddressingMode::absolute}},
-		// {0x2f, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x2f, {&Cpu::rla, AddressingMode::absolute}},  // unofficial
 		{0x30, {&Cpu::bmi, AddressingMode::relative}},
 		{0x31, {&Cpu::and_, AddressingMode::indirect_y_read}},
-		// {0x32, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x33, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x34, {&Cpu::nop, AddressingMode::implicit}},
+		{0x32, {&Cpu::jam, AddressingMode::implicit}},  // unofficial
+		// {0x33, {&Cpu::rla, AddressingMode::indirect_y}},  // unofficial
+		{0x34, {&Cpu::nop, AddressingMode::zero_page_x_read}},  // unofficial
 		{0x35, {&Cpu::and_, AddressingMode::zero_page_x_read}},
 		{0x36, {&Cpu::rol, AddressingMode::zero_page_x_read}},
-		// {0x37, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x37, {&Cpu::rla, AddressingMode::zero_page_x}},  // unofficial
 		{0x38, {&Cpu::sec, AddressingMode::implicit}},
 		{0x39, {&Cpu::and_, AddressingMode::absolute_y_read}},
 		{0x3a, {&Cpu::nop, AddressingMode::implicit}},  // unofficial
-		// {0x3b, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x3c, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x3b, {&Cpu::rla, AddressingMode::absolute_y}},
+		{0x3c, {&Cpu::nop, AddressingMode::absolute_x_read}},  // unofficial
 		{0x3d, {&Cpu::and_, AddressingMode::absolute_x_read}},
 		{0x3e, {&Cpu::rol, AddressingMode::absolute_x_write}},
-		// {0x3f, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x3f, {&Cpu::rla, AddressingMode::absolute_x}},  // unofficial
 		{0x40, {&Cpu::rti, AddressingMode::implicit}},
 		{0x41, {&Cpu::eor, AddressingMode::indirect_x_read}},
-		// {0x42, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x43, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x44, {&Cpu::nop, AddressingMode::implicit}},
+		{0x42, {&Cpu::jam, AddressingMode::implicit}},  // unofficial
+		// {0x43, {&Cpu::sre, AddressingMode::indirect_x}},  // unofficial
+		{0x44, {&Cpu::nop, AddressingMode::zero_page}},  // unofficial
 		{0x45, {&Cpu::eor, AddressingMode::zero_page}},
 		{0x46, {&Cpu::lsr, AddressingMode::zero_page}},
-		// {0x47, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x47, {&Cpu::sre, AddressingMode::zero_page}},  // unofficial
 		{0x48, {&Cpu::pha, AddressingMode::implicit}},
 		{0x49, {&Cpu::eor, AddressingMode::immediate}},
 		{0x4a, {&Cpu::lsr, AddressingMode::accumulator}},
-		// {0x4b, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x4b, {&Cpu::alr, AddressingMode::immediate}},  // unofficial
 		{0x4c, {&Cpu::jmp, AddressingMode::absolute}},
 		{0x4d, {&Cpu::eor, AddressingMode::absolute}},
 		{0x4e, {&Cpu::lsr, AddressingMode::absolute}},
-		// {0x4f, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x4f, {&Cpu::sre, AddressingMode::absolute}},  // unofficial
 		{0x50, {&Cpu::bvc, AddressingMode::relative}},
 		{0x51, {&Cpu::eor, AddressingMode::indirect_y_read}},
-		// {0x52, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x53, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x54, {&Cpu::nop, AddressingMode::implicit}},
+		{0x52, {&Cpu::jam, AddressingMode::implicit}},  // unofficial
+		// {0x53, {&Cpu::sre, AddressingMode::indirect_y}},  // unofficial
+		{0x54, {&Cpu::nop, AddressingMode::zero_page_x_read}},  // unofficial
 		{0x55, {&Cpu::eor, AddressingMode::zero_page_x_read}},
 		{0x56, {&Cpu::lsr, AddressingMode::zero_page_x_read}},
-		// {0x57, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x57, {&Cpu::sre, AddressingMode::zero_page_x}},  // unofficial
 		{0x58, {&Cpu::cli, AddressingMode::implicit}},
 		{0x59, {&Cpu::eor, AddressingMode::absolute_y_read}},
 		{0x5a, {&Cpu::nop, AddressingMode::implicit}},  // unofficial
-		// {0x5b, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x5c, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x5b, {&Cpu::sre, AddressingMode::absolute_y}},  // unofficial
+		{0x5c, {&Cpu::nop, AddressingMode::absolute_x_read}},  // unofficial
 		{0x5d, {&Cpu::eor, AddressingMode::absolute_x_read}},
 		{0x5e, {&Cpu::lsr, AddressingMode::absolute_x_write}},
-		// {0x5f, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x5f, {&Cpu::sre, AddressingMode::absolute_x}},  // unofficial
 		{0x60, {&Cpu::rts, AddressingMode::implicit}},
 		{0x61, {&Cpu::adc, AddressingMode::indirect_x_read}},
-		// {0x62, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x63, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x64, {&Cpu::nop, AddressingMode::implicit}},
+		{0x62, {&Cpu::jam, AddressingMode::implicit}},  // unofficial
+		// {0x63, {&Cpu::rra, AddressingMode::indirect_x}},  // unofficial
+		{0x64, {&Cpu::nop, AddressingMode::zero_page}},  // unofficial
 		{0x65, {&Cpu::adc, AddressingMode::zero_page}},
 		{0x66, {&Cpu::ror, AddressingMode::zero_page}},
-		// {0x67, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x67, {&Cpu::rra, AddressingMode::zero_page}},  // unofficial
 		{0x68, {&Cpu::pla, AddressingMode::implicit}},
 		{0x69, {&Cpu::adc, AddressingMode::immediate}},
 		{0x6a, {&Cpu::ror, AddressingMode::accumulator}},
-		// {0x6b, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x6b, {&Cpu::arr, AddressingMode::immediate}},  // unofficial
 		{0x6c, {&Cpu::jmp, AddressingMode::indirect}},
 		{0x6d, {&Cpu::adc, AddressingMode::absolute}},
 		{0x6e, {&Cpu::ror, AddressingMode::absolute}},
-		// {0x6f, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x6f, {&Cpu::rra, AddressingMode::absolute}},  // unofficial
 		{0x70, {&Cpu::bvs, AddressingMode::relative}},
 		{0x71, {&Cpu::adc, AddressingMode::indirect_y_read}},
-		// {0x72, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x73, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x74, {&Cpu::nop, AddressingMode::implicit}},
+		{0x72, {&Cpu::jam, AddressingMode::implicit}},  // unofficial
+		// {0x73, {&Cpu::rra, AddressingMode::indirect_y}},  // unofficial
+		{0x74, {&Cpu::nop, AddressingMode::zero_page_x_read}},  // unofficial
 		{0x75, {&Cpu::adc, AddressingMode::zero_page_x_read}},
 		{0x76, {&Cpu::ror, AddressingMode::zero_page_x_read}},
-		// {0x77, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x77, {&Cpu::rra, AddressingMode::zero_page_x}},  // unofficial
 		{0x78, {&Cpu::sei, AddressingMode::implicit}},
 		{0x79, {&Cpu::adc, AddressingMode::absolute_y_read}},
 		{0x7a, {&Cpu::nop, AddressingMode::implicit}},  // unofficial
-		// {0x7b, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x7c, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x7b, {&Cpu::rra, AddressingMode::absolute_y}},  // unofficial
+		{0x7c, {&Cpu::nop, AddressingMode::absolute_x_read}},  // unofficial
 		{0x7d, {&Cpu::adc, AddressingMode::absolute_x_read}},
 		{0x7e, {&Cpu::ror, AddressingMode::absolute_x_write}},
-		// {0x7f, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x80, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x7f, {&Cpu::rra, AddressingMode::absolute_x}},  // unofficial
+		{0x80, {&Cpu::nop, AddressingMode::immediate}},  // unofficial
 		{0x81, {&Cpu::sta, AddressingMode::indirect_x_write}},
-		// {0x82, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x83, {&Cpu::nop, AddressingMode::implicit}},
+		{0x82, {&Cpu::nop, AddressingMode::immediate}},  // unofficial
+		// {0x83, {&Cpu::sax, AddressingMode::indirect_x}},  // unofficial
 		{0x84, {&Cpu::sty, AddressingMode::zero_page}},
 		{0x85, {&Cpu::sta, AddressingMode::zero_page}},
 		{0x86, {&Cpu::stx, AddressingMode::zero_page}},
-		// {0x87, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x87, {&Cpu::sax, AddressingMode::zero_page}},  // unofficial
 		{0x88, {&Cpu::dey, AddressingMode::implicit}},
-		// {0x89, {&Cpu::nop, AddressingMode::implicit}},
+		{0x89, {&Cpu::nop, AddressingMode::immediate}},  // unofficial
 		{0x8a, {&Cpu::txa, AddressingMode::implicit}},
-		// {0x8b, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x8b, {&Cpu::ane, AddressingMode::immediate}},  // unofficial
 		{0x8c, {&Cpu::sty, AddressingMode::absolute}},
 		{0x8d, {&Cpu::sta, AddressingMode::absolute}},
 		{0x8e, {&Cpu::stx, AddressingMode::absolute}},
-		// {0x8f, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x8f, {&Cpu::sax, AddressingMode::absolute}},  // unofficial
 		{0x90, {&Cpu::bcc, AddressingMode::relative}},
 		{0x91, {&Cpu::sta, AddressingMode::indirect_y_write}},
-		// {0x92, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x93, {&Cpu::nop, AddressingMode::implicit}},
+		{0x92, {&Cpu::jam, AddressingMode::implicit}},  // unofficial
+		// {0x93, {&Cpu::sha, AddressingMode::indirect_y}},  // unofficial
 		{0x94, {&Cpu::sty, AddressingMode::zero_page_x_write}},
 		{0x95, {&Cpu::sta, AddressingMode::zero_page_x_write}},
 		{0x96, {&Cpu::stx, AddressingMode::zero_page_y_write}},
-		// {0x97, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x97, {&Cpu::sax, AddressingMode::zero_page_y}},  // unofficial
 		{0x98, {&Cpu::tya, AddressingMode::implicit}},
 		{0x99, {&Cpu::sta, AddressingMode::absolute_y_write}},
 		{0x9a, {&Cpu::txs, AddressingMode::implicit}},
-		// {0x9b, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x9c, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x9b, {&Cpu::tas, AddressingMode::absolute_y}},  // unofficial
+		// {0x9c, {&Cpu::shy, AddressingMode::absolute_x}},  // unofficial
 		{0x9d, {&Cpu::sta, AddressingMode::absolute_x_write}},
-		// {0x9e, {&Cpu::nop, AddressingMode::implicit}},
-		// {0x9f, {&Cpu::nop, AddressingMode::implicit}},
+		// {0x9e, {&Cpu::shx, AddressingMode::absolute_y}},  // unofficial
+		// {0x9f, {&Cpu::sha, AddressingMode::absolute_y}},  // unofficial
 		{0xa0, {&Cpu::ldy, AddressingMode::immediate}},
 		{0xa1, {&Cpu::lda, AddressingMode::indirect_x_read}},
 		{0xa2, {&Cpu::ldx, AddressingMode::immediate}},
-		// {0xa3, {&Cpu::nop, AddressingMode::implicit}},
+		// {0xa3, {&Cpu::lax, AddressingMode::indirect_x}},  // unofficial
 		{0xa4, {&Cpu::ldy, AddressingMode::zero_page}},
 		{0xa5, {&Cpu::lda, AddressingMode::zero_page}},
 		{0xa6, {&Cpu::ldx, AddressingMode::zero_page}},
-		// {0xa7, {&Cpu::nop, AddressingMode::implicit}},
+		// {0xa7, {&Cpu::lax, AddressingMode::zero_page}},  // unofficial
 		{0xa8, {&Cpu::tay, AddressingMode::implicit}},
 		{0xa9, {&Cpu::lda, AddressingMode::immediate}},
 		{0xaa, {&Cpu::tax, AddressingMode::implicit}},
-		// {0xab, {&Cpu::nop, AddressingMode::implicit}},
+		// {0xab, {&Cpu::lxa, AddressingMode::immediate}},  // unofficial
 		{0xac, {&Cpu::ldy, AddressingMode::absolute}},
 		{0xad, {&Cpu::lda, AddressingMode::absolute}},
 		{0xae, {&Cpu::ldx, AddressingMode::absolute}},
-		// {0xaf, {&Cpu::nop, AddressingMode::implicit}},
+		// {0xaf, {&Cpu::lax, AddressingMode::absolute}},  // unofficial
 		{0xb0, {&Cpu::bcs, AddressingMode::relative}},
 		{0xb1, {&Cpu::lda, AddressingMode::indirect_y_read}},
-		// {0xb2, {&Cpu::nop, AddressingMode::implicit}},
-		// {0xb3, {&Cpu::nop, AddressingMode::implicit}},
+		{0xb2, {&Cpu::jam, AddressingMode::implicit}},  // unofficial
+		// {0xb3, {&Cpu::lax, AddressingMode::indirect_y}},  // unofficial
 		{0xb4, {&Cpu::ldy, AddressingMode::zero_page_x_read}},
 		{0xb5, {&Cpu::lda, AddressingMode::zero_page_x_read}},
 		{0xb6, {&Cpu::ldx, AddressingMode::zero_page_y_read}},
-		// {0xb7, {&Cpu::nop, AddressingMode::implicit}},
+		// {0xb7, {&Cpu::lax, AddressingMode::zero_page_y}},  // unofficial
 		{0xb8, {&Cpu::clv, AddressingMode::implicit}},
 		{0xb9, {&Cpu::lda, AddressingMode::absolute_y_read}},
 		{0xba, {&Cpu::tsx, AddressingMode::implicit}},
-		// {0xbb, {&Cpu::nop, AddressingMode::implicit}},
+		// {0xbb, {&Cpu::las, AddressingMode::absolute_y}},  // unofficial
 		{0xbc, {&Cpu::ldy, AddressingMode::absolute_x_read}},
 		{0xbd, {&Cpu::lda, AddressingMode::absolute_x_read}},
 		{0xbe, {&Cpu::ldx, AddressingMode::absolute_y_read}},
-		// {0xbf, {&Cpu::nop, AddressingMode::implicit}},
+		// {0xbf, {&Cpu::lax, AddressingMode::absolute_y}},  // unofficial
 		{0xc0, {&Cpu::cpy, AddressingMode::immediate}},
 		{0xc1, {&Cpu::cmp, AddressingMode::indirect_x_read}},
-		// {0xc2, {&Cpu::nop, AddressingMode::implicit}},
-		// {0xc3, {&Cpu::nop, AddressingMode::implicit}},
+		{0xc2, {&Cpu::nop, AddressingMode::immediate}},  // unofficial
+		// {0xc3, {&Cpu::dcp, AddressingMode::indirect_x}},  // unofficial
 		{0xc4, {&Cpu::cpy, AddressingMode::zero_page}},
 		{0xc5, {&Cpu::cmp, AddressingMode::zero_page}},
 		{0xc6, {&Cpu::dec, AddressingMode::zero_page}},
-		// {0xc7, {&Cpu::nop, AddressingMode::implicit}},
+		// {0xc7, {&Cpu::dcp, AddressingMode::zero_page}},  // unofficial
 		{0xc8, {&Cpu::iny, AddressingMode::implicit}},
 		{0xc9, {&Cpu::cmp, AddressingMode::immediate}},
 		{0xca, {&Cpu::dex, AddressingMode::implicit}},
-		// {0xcb, {&Cpu::nop, AddressingMode::implicit}},
+		// {0xcb, {&Cpu::sbx, AddressingMode::immediate}},  // unofficial
 		{0xcc, {&Cpu::cpy, AddressingMode::absolute}},
 		{0xcd, {&Cpu::cmp, AddressingMode::absolute}},
 		{0xce, {&Cpu::dec, AddressingMode::absolute}},
-		// {0xcf, {&Cpu::nop, AddressingMode::implicit}},
+		// {0xcf, {&Cpu::dcp, AddressingMode::absolute}},  // unofficial
 		{0xd0, {&Cpu::bne, AddressingMode::relative}},
 		{0xd1, {&Cpu::cmp, AddressingMode::indirect_y_read}},
-		// {0xd2, {&Cpu::nop, AddressingMode::implicit}},
-		// {0xd3, {&Cpu::nop, AddressingMode::implicit}},
-		// {0xd4, {&Cpu::nop, AddressingMode::implicit}},
+		{0xd2, {&Cpu::jam, AddressingMode::implicit}},  // unofficial
+		// {0xd3, {&Cpu::dcp, AddressingMode::indirect_y}},  // unofficial
+		{0xd4, {&Cpu::nop, AddressingMode::zero_page_x_read}},  // unofficial
 		{0xd5, {&Cpu::cmp, AddressingMode::zero_page_x_read}},
 		{0xd6, {&Cpu::dec, AddressingMode::zero_page_x_read}},
-		// {0xd7, {&Cpu::nop, AddressingMode::implicit}},
+		// {0xd7, {&Cpu::dcp, AddressingMode::zero_page_x}},  // unofficial
 		{0xd8, {&Cpu::cld, AddressingMode::implicit}},
 		{0xd9, {&Cpu::cmp, AddressingMode::absolute_y_read}},
 		{0xda, {&Cpu::nop, AddressingMode::implicit}},  // unofficial
-		// {0xdb, {&Cpu::nop, AddressingMode::implicit}},
-		// {0xdc, {&Cpu::nop, AddressingMode::implicit}},
+		// {0xdb, {&Cpu::dcp, AddressingMode::absolute_y}},  // unofficial
+		{0xdc, {&Cpu::nop, AddressingMode::absolute_x_read}},  // unofficial
 		{0xdd, {&Cpu::cmp, AddressingMode::absolute_x_read}},
 		{0xde, {&Cpu::dec, AddressingMode::absolute_x_write}},
-		// {0xdf, {&Cpu::nop, AddressingMode::implicit}},
+		// {0xdf, {&Cpu::dcp, AddressingMode::absolute_x}},  // unofficial
 		{0xe0, {&Cpu::cpx, AddressingMode::immediate}},
 		{0xe1, {&Cpu::sbc, AddressingMode::indirect_x_read}},
-		// {0xe2, {&Cpu::nop, AddressingMode::implicit}},
-		// {0xe3, {&Cpu::nop, AddressingMode::implicit}},
+		{0xe2, {&Cpu::nop, AddressingMode::immediate}},  // unofficial
+		// {0xe3, {&Cpu::isc, AddressingMode::indirect_x}},  // unofficial
 		{0xe4, {&Cpu::cpx, AddressingMode::zero_page}},
 		{0xe5, {&Cpu::sbc, AddressingMode::zero_page}},
 		{0xe6, {&Cpu::inc, AddressingMode::zero_page}},
-		// {0xe7, {&Cpu::nop, AddressingMode::implicit}},
+		// {0xe7, {&Cpu::isc, AddressingMode::zero_page}},  // unofficial
 		{0xe8, {&Cpu::inx, AddressingMode::implicit}},
 		{0xe9, {&Cpu::sbc, AddressingMode::immediate}},
 		{0xea, {&Cpu::nop, AddressingMode::implicit}},
-		// {0xeb, {&Cpu::nop, AddressingMode::implicit}},
+		// {0xeb, {&Cpu::usbc, AddressingMode::immediate}},  // unofficial
 		{0xec, {&Cpu::cpx, AddressingMode::absolute}},
 		{0xed, {&Cpu::sbc, AddressingMode::absolute}},
 		{0xee, {&Cpu::inc, AddressingMode::absolute}},
-		// {0xef, {&Cpu::nop, AddressingMode::implicit}},
+		// {0xef, {&Cpu::isc, AddressingMode::absolute}},  // unofficial
 		{0xf0, {&Cpu::beq, AddressingMode::relative}},
 		{0xf1, {&Cpu::sbc, AddressingMode::indirect_y_read}},
-		// {0xf2, {&Cpu::nop, AddressingMode::implicit}},
-		// {0xf3, {&Cpu::nop, AddressingMode::implicit}},
-		// {0xf4, {&Cpu::nop, AddressingMode::implicit}},
+		{0xf2, {&Cpu::jam, AddressingMode::implicit}},  // unofficial
+		// {0xf3, {&Cpu::isc, AddressingMode::indirect_y}},  // unofficial
+		{0xf4, {&Cpu::nop, AddressingMode::zero_page_x_read}},  // unofficial
 		{0xf5, {&Cpu::sbc, AddressingMode::zero_page_x_read}},
 		{0xf6, {&Cpu::inc, AddressingMode::zero_page_x_write}},
-		// {0xf7, {&Cpu::nop, AddressingMode::implicit}},
+		// {0xf7, {&Cpu::isc, AddressingMode::zero_page_x}},  // unofficial
 		{0xf8, {&Cpu::sed, AddressingMode::implicit}},
 		{0xf9, {&Cpu::sbc, AddressingMode::absolute_y_read}},
 		{0xfa, {&Cpu::nop, AddressingMode::implicit}},  // unofficial
-		// {0xfb, {&Cpu::nop, AddressingMode::implicit}},
-		// {0xfc, {&Cpu::nop, AddressingMode::implicit}},
+		// {0xfb, {&Cpu::isc, AddressingMode::absolute_y}},  // unofficial
+		{0xfc, {&Cpu::nop, AddressingMode::absolute_x_read}},  // unofficial
 		{0xfd, {&Cpu::sbc, AddressingMode::absolute_x_read}},
 		{0xfe, {&Cpu::inc, AddressingMode::absolute_x_write}},
-		// {0xff, {&Cpu::nop, AddressingMode::implicit}},
+		// {0xff, {&Cpu::isc, AddressingMode::absolute_x}},  // unofficial
 	};
 }
 
@@ -1870,4 +1870,11 @@ void Cpu::res(AddressingMode mode)
 		this->program_counter_low() = this->_input_data_latch;
 		this->program_counter_high() = this->_data_bus();
 	});
+}
+
+/// @brief jam the CPU
+/// @param mode unused
+void Cpu::jam(AddressingMode mode)
+{
+	throw std::exception("jam operation called. CPU is now broken.");
 }
