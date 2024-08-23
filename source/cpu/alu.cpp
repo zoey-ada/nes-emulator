@@ -29,31 +29,19 @@ uint8_t Alu::add(uint8_t a, uint8_t b, bool carry)
 
 uint8_t Alu::subtract(uint8_t a, uint8_t b)
 {
-	uint8_t twos_comp = ~b + 1;
-	uint8_t difference = this->add(a, twos_comp);
-
-	// bool terms_same_sign = (((a ^ twos_comp) & 0x80) == 0);
-	// bool sum_sign_match_a = (((a ^ difference) & 0x80) == 0);
-	// this->_overflow = terms_same_sign && !sum_sign_match_a;
-
-	return difference;
+	// To do subtraction, we want to add the twos comp of b. To accomplish the
+	// twos comp, we invert all of the bits of b and use the carry input to add
+	// the 1.
+	uint8_t inverted_b = ~b;
+	return this->add(a, inverted_b, 1);
 }
 
-// A = A - b - (1 - C) -> A = A + (-b) + (c - 1)
 uint8_t Alu::subtract(uint8_t a, uint8_t b, bool borrow)
 {
-	uint8_t twos_comp = ~b + 1;
-	uint8_t difference = this->add(a, twos_comp);
-
-	if (borrow)
-	{
-		auto carry = this->_carry;
-		difference = this->add(difference, 0xff);
-		this->_carry = this->_carry && carry;
-	}
-
-	if (((a ^ b) == 0) && !borrow)
-		this->_carry = true;
+	// If we need to borrow 1, we just remove the 1 that is normally used in the
+	// carry for the twos comp. (effectively the carry becomes !borrow)
+	uint8_t inverted_b = ~b;
+	uint8_t difference = this->add(a, inverted_b, !borrow);
 
 	// bool terms_same_sign = (((a ^ twos_comp) & 0x80) == 0);
 	// bool sum_sign_match_a = (((a ^ difference) & 0x80) == 0);

@@ -149,7 +149,7 @@ void Cpu::populate_operations()
 		// {0x17, {&Cpu::nop, AddressingMode::implicit}},
 		{0x18, {&Cpu::clc, AddressingMode::implicit}},
 		{0x19, {&Cpu::ora, AddressingMode::absolute_y_read}},
-		// {0x1a, {&Cpu::nop, AddressingMode::implicit}},
+		{0x1a, {&Cpu::nop, AddressingMode::implicit}},  // unofficial
 		// {0x1b, {&Cpu::nop, AddressingMode::implicit}},
 		// {0x1c, {&Cpu::nop, AddressingMode::implicit}},
 		{0x1d, {&Cpu::ora, AddressingMode::absolute_x_read}},
@@ -181,7 +181,7 @@ void Cpu::populate_operations()
 		// {0x37, {&Cpu::nop, AddressingMode::implicit}},
 		{0x38, {&Cpu::sec, AddressingMode::implicit}},
 		{0x39, {&Cpu::and_, AddressingMode::absolute_y_read}},
-		// {0x3a, {&Cpu::nop, AddressingMode::implicit}},
+		{0x3a, {&Cpu::nop, AddressingMode::implicit}},  // unofficial
 		// {0x3b, {&Cpu::nop, AddressingMode::implicit}},
 		// {0x3c, {&Cpu::nop, AddressingMode::implicit}},
 		{0x3d, {&Cpu::and_, AddressingMode::absolute_x_read}},
@@ -213,7 +213,7 @@ void Cpu::populate_operations()
 		// {0x57, {&Cpu::nop, AddressingMode::implicit}},
 		{0x58, {&Cpu::cli, AddressingMode::implicit}},
 		{0x59, {&Cpu::eor, AddressingMode::absolute_y_read}},
-		// {0x5a, {&Cpu::nop, AddressingMode::implicit}},
+		{0x5a, {&Cpu::nop, AddressingMode::implicit}},  // unofficial
 		// {0x5b, {&Cpu::nop, AddressingMode::implicit}},
 		// {0x5c, {&Cpu::nop, AddressingMode::implicit}},
 		{0x5d, {&Cpu::eor, AddressingMode::absolute_x_read}},
@@ -245,7 +245,7 @@ void Cpu::populate_operations()
 		// {0x77, {&Cpu::nop, AddressingMode::implicit}},
 		{0x78, {&Cpu::sei, AddressingMode::implicit}},
 		{0x79, {&Cpu::adc, AddressingMode::absolute_y_read}},
-		// {0x7a, {&Cpu::nop, AddressingMode::implicit}},
+		{0x7a, {&Cpu::nop, AddressingMode::implicit}},  // unofficial
 		// {0x7b, {&Cpu::nop, AddressingMode::implicit}},
 		// {0x7c, {&Cpu::nop, AddressingMode::implicit}},
 		{0x7d, {&Cpu::adc, AddressingMode::absolute_x_read}},
@@ -341,7 +341,7 @@ void Cpu::populate_operations()
 		// {0xd7, {&Cpu::nop, AddressingMode::implicit}},
 		{0xd8, {&Cpu::cld, AddressingMode::implicit}},
 		{0xd9, {&Cpu::cmp, AddressingMode::absolute_y_read}},
-		// {0xda, {&Cpu::nop, AddressingMode::implicit}},
+		{0xda, {&Cpu::nop, AddressingMode::implicit}},  // unofficial
 		// {0xdb, {&Cpu::nop, AddressingMode::implicit}},
 		// {0xdc, {&Cpu::nop, AddressingMode::implicit}},
 		{0xdd, {&Cpu::cmp, AddressingMode::absolute_x_read}},
@@ -373,7 +373,7 @@ void Cpu::populate_operations()
 		// {0xf7, {&Cpu::nop, AddressingMode::implicit}},
 		{0xf8, {&Cpu::sed, AddressingMode::implicit}},
 		{0xf9, {&Cpu::sbc, AddressingMode::absolute_y_read}},
-		// {0xfa, {&Cpu::nop, AddressingMode::implicit}},
+		{0xfa, {&Cpu::nop, AddressingMode::implicit}},  // unofficial
 		// {0xfb, {&Cpu::nop, AddressingMode::implicit}},
 		// {0xfc, {&Cpu::nop, AddressingMode::implicit}},
 		{0xfd, {&Cpu::sbc, AddressingMode::absolute_x_read}},
@@ -683,7 +683,7 @@ void Cpu::adc(AddressingMode mode)
 		this->c_flag(this->_alu.carry());
 		this->v_flag(this->_alu.overflow());
 		this->z_flag(this->_a == 0);
-		this->n_flag((this->_a & 0b10000000) > 0);
+		this->n_flag((this->_a & 0b1000'0000) > 0);
 	});
 }
 
@@ -708,7 +708,7 @@ void Cpu::and_(AddressingMode mode)
 
 		this->_a &= this->_data_bus();
 		this->z_flag(this->_a == 0);
-		this->n_flag((this->_a & 0b10000000) > 0);
+		this->n_flag((this->_a & 0b1000'0000) > 0);
 	});
 }
 
@@ -726,7 +726,7 @@ void Cpu::asl(AddressingMode mode)
 			this->_a = this->_alu.shift_left(this->_a);
 			this->c_flag(this->_alu.carry());
 			this->z_flag(this->_a == 0);
-			this->n_flag((this->_a & 0b10000000) > 0);
+			this->n_flag((this->_a & 0b1000'0000) > 0);
 		});
 		return;
 	}
@@ -739,7 +739,7 @@ void Cpu::asl(AddressingMode mode)
 		this->_data_bus(this->_alu.shift_left(this->_data_bus()));
 		this->c_flag(this->_alu.carry());
 		this->z_flag(this->_data_bus() == 0);
-		this->n_flag((this->_data_bus() & 0b10000000) > 0);
+		this->n_flag((this->_data_bus() & 0b1000'0000) > 0);
 	});
 
 	this->_actions.push_back([this, &mode]() { this->write_memory(); });
@@ -796,8 +796,8 @@ void Cpu::bit(AddressingMode mode)
 
 	this->_actions.push_back([this, &mode]() {
 		this->read_memory();
-		this->n_flag((this->_data_bus() & 0b10000000) > 0);
-		this->v_flag((this->_data_bus() & 0b01000000) > 0);
+		this->n_flag((this->_data_bus() & 0b1000'0000) > 0);
+		this->v_flag((this->_data_bus() & 0b0100'0000) > 0);
 
 		this->_data_bus(this->_data_bus() & this->_a);
 		this->z_flag(this->_data_bus() == 0);
@@ -974,7 +974,7 @@ void Cpu::cmp(AddressingMode mode)
 		this->c_flag(this->_a >= this->_data_bus());
 		this->_data_bus(this->_alu.subtract(this->_a, this->_data_bus(), false));
 		this->z_flag(this->_data_bus() == 0);
-		this->n_flag((this->_data_bus() & 0b10000000) > 0);
+		this->n_flag((this->_data_bus() & 0b1000'0000) > 0);
 	});
 }
 
@@ -995,7 +995,7 @@ void Cpu::cpx(AddressingMode mode)
 		this->c_flag(this->_x >= this->_data_bus());
 		this->_data_bus(this->_alu.subtract(this->_x, this->_data_bus(), false));
 		this->z_flag(this->_data_bus() == 0);
-		this->n_flag((this->_data_bus() & 0b10000000) > 0);
+		this->n_flag((this->_data_bus() & 0b1000'0000) > 0);
 	});
 }
 
@@ -1016,7 +1016,7 @@ void Cpu::cpy(AddressingMode mode)
 		this->c_flag(this->_y >= this->_data_bus());
 		this->_data_bus(this->_alu.subtract(this->_y, this->_data_bus(), false));
 		this->z_flag(this->_data_bus() == 0);
-		this->n_flag((this->_data_bus() & 0b10000000) > 0);
+		this->n_flag((this->_data_bus() & 0b1000'0000) > 0);
 	});
 }
 
@@ -1034,7 +1034,7 @@ void Cpu::dec(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() {
 		this->_data_bus(this->_alu.decrement(this->_data_bus()));
 		this->z_flag(this->_data_bus() == 0);
-		this->n_flag((this->_data_bus() & 0b10000000) > 0);
+		this->n_flag((this->_data_bus() & 0b1000'0000) > 0);
 	});
 
 	this->_actions.push_back([this, &mode]() { this->write_memory(); });
@@ -1047,7 +1047,7 @@ void Cpu::dex(AddressingMode mode)
 	this->_actions.push_back([this]() {
 		this->_x--;
 		this->z_flag(this->_x == 0);
-		this->n_flag((this->_x & 0b10000000) > 0);
+		this->n_flag((this->_x & 0b1000'0000) > 0);
 	});
 }
 
@@ -1058,7 +1058,7 @@ void Cpu::dey(AddressingMode mode)
 	this->_actions.push_back([this]() {
 		this->_y--;
 		this->z_flag(this->_y == 0);
-		this->n_flag((this->_y & 0b10000000) > 0);
+		this->n_flag((this->_y & 0b1000'0000) > 0);
 	});
 }
 
@@ -1083,7 +1083,7 @@ void Cpu::eor(AddressingMode mode)
 
 		this->_a ^= this->_data_bus();
 		this->z_flag(this->_a == 0);
-		this->n_flag((this->_a & 0b10000000) > 0);
+		this->n_flag((this->_a & 0b1000'0000) > 0);
 	});
 }
 
@@ -1101,7 +1101,7 @@ void Cpu::inc(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() {
 		this->_data_bus(this->_alu.increment(this->_data_bus()));
 		this->z_flag(this->_data_bus() == 0);
-		this->n_flag((this->_data_bus() & 0b10000000) > 0);
+		this->n_flag((this->_data_bus() & 0b1000'0000) > 0);
 	});
 
 	this->_actions.push_back([this, &mode]() { this->write_memory(); });
@@ -1114,7 +1114,7 @@ void Cpu::inx(AddressingMode mode)
 	this->_actions.push_back([this]() {
 		this->_x = this->_alu.increment(this->_x);
 		this->z_flag(this->_x == 0);
-		this->n_flag((this->_x & 0b10000000) > 0);
+		this->n_flag((this->_x & 0b1000'0000) > 0);
 	});
 }
 
@@ -1125,7 +1125,7 @@ void Cpu::iny(AddressingMode mode)
 	this->_actions.push_back([this]() {
 		this->_y = this->_alu.increment(this->_y);
 		this->z_flag(this->_y == 0);
-		this->n_flag((this->_y & 0b10000000) > 0);
+		this->n_flag((this->_y & 0b1000'0000) > 0);
 	});
 }
 
@@ -1214,7 +1214,7 @@ void Cpu::lda(AddressingMode mode)
 
 		this->_a = this->_data_bus();
 		this->z_flag(this->_a == 0);
-		this->n_flag((this->_a & 0b10000000) > 0);
+		this->n_flag((this->_a & 0b1000'0000) > 0);
 	});
 }
 
@@ -1236,7 +1236,7 @@ void Cpu::ldx(AddressingMode mode)
 
 		this->_x = this->_data_bus();
 		this->z_flag(this->_x == 0);
-		this->n_flag((this->_x & 0b10000000) > 0);
+		this->n_flag((this->_x & 0b1000'0000) > 0);
 	});
 }
 
@@ -1258,7 +1258,7 @@ void Cpu::ldy(AddressingMode mode)
 
 		this->_y = this->_data_bus();
 		this->z_flag(this->_y == 0);
-		this->n_flag((this->_y & 0b10000000) > 0);
+		this->n_flag((this->_y & 0b1000'0000) > 0);
 	});
 }
 
@@ -1325,7 +1325,7 @@ void Cpu::ora(AddressingMode mode)
 
 		this->_a |= this->_data_bus();
 		this->z_flag(this->_a == 0);
-		this->n_flag((this->_a & 0b10000000) > 0);
+		this->n_flag((this->_a & 0b1000'0000) > 0);
 	});
 }
 
@@ -1354,7 +1354,8 @@ void Cpu::php(AddressingMode mode)
 		this->read_memory();
 		this->_address_bus.highByte(0x01);
 		this->_address_bus.lowByte(this->_s);
-		this->_data_bus(this->_p);
+		// b flag and bit 5 are set to 1
+		this->_data_bus(this->_p | 0b0011'0000);
 	});
 
 	this->_actions.push_back([this, &mode]() {
@@ -1383,7 +1384,7 @@ void Cpu::pla(AddressingMode mode)
 		this->read_memory();
 		this->_a = this->_data_bus();
 		this->z_flag(this->_a == 0);
-		this->n_flag((this->_a & 0b10000000) > 0);
+		this->n_flag((this->_a & 0b1000'0000) > 0);
 	});
 }
 
@@ -1405,7 +1406,9 @@ void Cpu::plp(AddressingMode mode)
 
 	this->_actions.push_back([this, &mode]() {
 		this->read_memory();
-		this->_p = this->_data_bus();
+		// b flag and bit 5 should not be changed
+		uint8_t b_and_bit_5 = this->_p & 0b0011'0000;
+		this->_p = this->_data_bus() | b_and_bit_5;
 	});
 }
 
@@ -1423,7 +1426,7 @@ void Cpu::rol(AddressingMode mode)
 			this->_a = this->_alu.rotate_left(this->_a, this->c_flag());
 			this->c_flag(this->_alu.carry());
 			this->z_flag(this->_a == 0);
-			this->n_flag((this->_a & 0b10000000) > 0);
+			this->n_flag((this->_a & 0b1000'0000) > 0);
 		});
 		return;
 	}
@@ -1436,7 +1439,7 @@ void Cpu::rol(AddressingMode mode)
 		this->_data_bus(this->_alu.rotate_left(this->_data_bus(), this->c_flag()));
 		this->c_flag(this->_alu.carry());
 		this->z_flag(this->_data_bus() == 0);
-		this->n_flag((this->_data_bus() & 0b10000000) > 0);
+		this->n_flag((this->_data_bus() & 0b1000'0000) > 0);
 	});
 
 	this->_actions.push_back([this, &mode]() { this->write_memory(); });
@@ -1456,7 +1459,7 @@ void Cpu::ror(AddressingMode mode)
 			this->_a = this->_alu.rotate_right(this->_a, this->c_flag());
 			this->c_flag(this->_alu.carry());
 			this->z_flag(this->_a == 0);
-			this->n_flag((this->_a & 0b10000000) > 0);
+			this->n_flag((this->_a & 0b1000'0000) > 0);
 		});
 		return;
 	}
@@ -1469,7 +1472,7 @@ void Cpu::ror(AddressingMode mode)
 		this->_data_bus(this->_alu.rotate_right(this->_data_bus(), this->c_flag()));
 		this->c_flag(this->_alu.carry());
 		this->z_flag(this->_data_bus() == 0);
-		this->n_flag((this->_data_bus() & 0b10000000) > 0);
+		this->n_flag((this->_data_bus() & 0b1000'0000) > 0);
 	});
 
 	this->_actions.push_back([this, &mode]() { this->write_memory(); });
@@ -1572,7 +1575,7 @@ void Cpu::sbc(AddressingMode mode)
 		this->c_flag(this->_alu.carry());
 		this->v_flag(this->_alu.overflow());
 		this->z_flag(this->_a == 0);
-		this->n_flag((this->_a & 0b10000000) > 0);
+		this->n_flag((this->_a & 0b1000'0000) > 0);
 	});
 }
 
@@ -1648,7 +1651,7 @@ void Cpu::tax(AddressingMode mode)
 	this->_actions.push_back([this]() {
 		this->_x = this->_a;
 		this->z_flag(this->_x == 0);
-		this->n_flag((this->_x & 0b10000000) > 0);
+		this->n_flag((this->_x & 0b1000'0000) > 0);
 	});
 }
 
@@ -1659,7 +1662,7 @@ void Cpu::tay(AddressingMode mode)
 	this->_actions.push_back([this]() {
 		this->_y = this->_a;
 		this->z_flag(this->_y == 0);
-		this->n_flag((this->_y & 0b10000000) > 0);
+		this->n_flag((this->_y & 0b1000'0000) > 0);
 	});
 }
 
@@ -1670,7 +1673,7 @@ void Cpu::tsx(AddressingMode mode)
 	this->_actions.push_back([this]() {
 		this->_x = this->_s;
 		this->z_flag(this->_x == 0);
-		this->n_flag((this->_x & 0b10000000) > 0);
+		this->n_flag((this->_x & 0b1000'0000) > 0);
 	});
 }
 
@@ -1681,7 +1684,7 @@ void Cpu::txa(AddressingMode mode)
 	this->_actions.push_back([this]() {
 		this->_a = this->_x;
 		this->z_flag(this->_a == 0);
-		this->n_flag((this->_a & 0b10000000) > 0);
+		this->n_flag((this->_a & 0b1000'0000) > 0);
 	});
 }
 
@@ -1699,10 +1702,12 @@ void Cpu::tya(AddressingMode mode)
 	this->_actions.push_back([this]() {
 		this->_a = this->_y;
 		this->z_flag(this->_a == 0);
-		this->n_flag((this->_a & 0b10000000) > 0);
+		this->n_flag((this->_a & 0b1000'0000) > 0);
 	});
 }
 
+/// @brief nmi interrupt
+/// @param mode unused
 void Cpu::nmi(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
@@ -1719,7 +1724,7 @@ void Cpu::nmi(AddressingMode mode)
 		this->_data_bus(this->program_counter_high());
 	});
 
-	this->_actions.push_back([this, &mode]() {
+	this->_actions.push_back([this]() {
 		this->write_memory();
 		this->_s--;
 		this->_address_bus.highByte(0x01);
@@ -1727,7 +1732,7 @@ void Cpu::nmi(AddressingMode mode)
 		this->_data_bus(this->program_counter_low());
 	});
 
-	this->_actions.push_back([this, &mode]() {
+	this->_actions.push_back([this]() {
 		this->write_memory();
 		this->_s--;
 		this->_address_bus.highByte(0x01);
@@ -1736,7 +1741,7 @@ void Cpu::nmi(AddressingMode mode)
 		this->_data_bus(this->_p);
 	});
 
-	this->_actions.push_back([this, &mode]() {
+	this->_actions.push_back([this]() {
 		this->write_memory();
 		this->_s--;
 		this->_address_bus.highByte(0xff);
@@ -1757,6 +1762,8 @@ void Cpu::nmi(AddressingMode mode)
 	});
 }
 
+/// @brief irq interrupt
+/// @param mode unused
 void Cpu::irq(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
@@ -1773,7 +1780,7 @@ void Cpu::irq(AddressingMode mode)
 		this->_data_bus(this->program_counter_high());
 	});
 
-	this->_actions.push_back([this, &mode]() {
+	this->_actions.push_back([this]() {
 		this->write_memory();
 		this->_s--;
 		this->_address_bus.highByte(0x01);
@@ -1781,7 +1788,7 @@ void Cpu::irq(AddressingMode mode)
 		this->_data_bus(this->program_counter_low());
 	});
 
-	this->_actions.push_back([this, &mode]() {
+	this->_actions.push_back([this]() {
 		this->write_memory();
 		this->_s--;
 		this->_address_bus.highByte(0x01);
@@ -1790,7 +1797,7 @@ void Cpu::irq(AddressingMode mode)
 		this->_data_bus(this->_p);
 	});
 
-	this->_actions.push_back([this, &mode]() {
+	this->_actions.push_back([this]() {
 		this->write_memory();
 		this->_s--;
 		this->_address_bus.highByte(0xff);
@@ -1811,8 +1818,11 @@ void Cpu::irq(AddressingMode mode)
 	});
 }
 
+/// @brief res interrupt
+/// @param mode unused
 void Cpu::res(AddressingMode mode)
 {
+	// writes are disabled durring reset
 	this->_actions.push_back([this]() {
 		this->_address_bus(this->program_counter());
 		this->read_memory();
@@ -1827,16 +1837,14 @@ void Cpu::res(AddressingMode mode)
 		this->_data_bus(this->program_counter_high());
 	});
 
-	this->_actions.push_back([this, &mode]() {
-		// this->write_memory();
+	this->_actions.push_back([this]() {
 		this->_s--;
 		this->_address_bus.highByte(0x01);
 		this->_address_bus.lowByte(this->_s);
 		this->_data_bus(this->program_counter_low());
 	});
 
-	this->_actions.push_back([this, &mode]() {
-		// this->write_memory();
+	this->_actions.push_back([this]() {
 		this->_s--;
 		this->_address_bus.highByte(0x01);
 		this->_address_bus.lowByte(this->_s);
@@ -1844,8 +1852,7 @@ void Cpu::res(AddressingMode mode)
 		this->_data_bus(this->_p);
 	});
 
-	this->_actions.push_back([this, &mode]() {
-		// this->write_memory();
+	this->_actions.push_back([this]() {
 		this->_s--;
 		this->_address_bus.highByte(0xff);
 		this->_address_bus.lowByte(0xfc);
