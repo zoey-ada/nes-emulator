@@ -10,6 +10,9 @@ Cartridge::Cartridge(CartridgeData_1_0 cart_data, std::unique_ptr<IMapper> mappe
 	  _mapper(std::move(mapper))
 {
 	this->_program_ram.resize(0x2000);
+
+	if (this->_character_rom.size() == 0)
+		this->_character_ram.resize(0x2000);
 }
 
 Cartridge::Cartridge(CartridgeData_2_0 cart_data, std::unique_ptr<IMapper> mapper)
@@ -66,7 +69,7 @@ uint8_t Cartridge::read_character(uint16_t address) const
 	case MemoryDevice::CartridgeRom:
 		return this->_character_rom[location.address];
 	case MemoryDevice::CartridgeRam:
-		throw std::exception("Cartridge RAM not yet implemented");
+		return this->_character_ram[location.address];
 	case MemoryDevice::ConsoleRam:
 		return this->_console_video_ram->read(location.address);
 	default:
@@ -83,7 +86,8 @@ void Cartridge::write_character(uint16_t address, const uint8_t data)
 		// ROM cannot be written to
 		break;
 	case MemoryDevice::CartridgeRam:
-		throw std::exception("Cartridge RAM not yet implemented");
+		this->_character_ram[location.address] = data;
+		break;
 	case MemoryDevice::ConsoleRam:
 		this->_console_video_ram->write(location.address, data);
 		break;

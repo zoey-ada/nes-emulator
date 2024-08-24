@@ -37,9 +37,9 @@ public:
 	void produceFrame();
 	void produceNesFrame();
 	NesFrame getFrame() { return this->_frame; }
-	SDL_Texture* getLeftPtTexture() const { return this->_debug_ppu->leftPtTexture(); }
-	SDL_Texture* getRightPtTexture() const { return this->_debug_ppu->rightPtTexture(); }
-	SDL_Texture* getCpuDebugTexture() { return this->_cpu_renderer->getTexture(); }
+	SDL_Texture* getLeftPtTexture() const;
+	SDL_Texture* getRightPtTexture() const;
+	SDL_Texture* getCpuDebugTexture();
 
 	void loadFile(const std::string& filepath);
 	inline bool isGameRunning() const { return this->_game_loaded; }
@@ -80,10 +80,15 @@ private:
 	uint64_t _current_cycle {0};
 	bool _is_even_frame {false};
 
+	bool _debug_mode {true};
+
 	// debug
 	std::unique_ptr<CpuRenderer> _cpu_renderer;
 
 	void blankFrame();
 	void resetCurrentCycle();
 	void renderDebugImages();
+
+	void setupDebugNes(SDL_Renderer* renderer);
+	void setupNes();
 };

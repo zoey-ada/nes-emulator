@@ -62,6 +62,8 @@ void PatternTable::draw()
 			}
 		}
 	}
+
+	this->color();
 }
 
 void PatternTable::color()

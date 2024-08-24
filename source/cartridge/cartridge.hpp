@@ -40,12 +40,15 @@ public:
 
 	inline void setConsoleVideoRam(IMemory* video_ram) { this->_console_video_ram = video_ram; }
 
+	inline bool usesCharacterRam() const { return this->_character_ram.size() > 0; }
+
 private:
 	std::vector<uint8_t> _program_rom;
 	std::vector<uint8_t> _character_rom;
 	std::vector<uint8_t> _misc_rom;
 
 	std::vector<uint8_t> _program_ram;
+	std::vector<uint8_t> _character_ram;
 
 	std::unique_ptr<IMapper> _mapper {nullptr};
 	IMemory* _console_video_ram {nullptr};

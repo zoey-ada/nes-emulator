@@ -299,15 +299,7 @@ void PictureProcessingUnit::load_next_operation()
 		}
 		else
 		{
-			if (this->show_background_flag())
-			{
-				this->nametable_read();
-			}
-			else
-			{
-				this->_actions.push_back([this] { this->_vout = 0x00'FF'00; });
-				this->_actions.push_back([this] { this->_vout = 0x00'FF'00; });
-			}
+			this->nametable_read();
 		}
 	}
 	else if (this->_row == 241)
@@ -340,14 +332,13 @@ void PictureProcessingUnit::load_next_operation()
 		{
 			this->_actions.push_back([this] { this->vertical_blank_flag(false); });
 		}
+		else if (!this->show_background_flag() && !this->show_sprites_flag())
+		{
+			this->_actions.push_back([this] { this->_vout = 0x00'FF'00; });
+			return;
+		}
 		else if (this->_column >= 280 && this->_column <= 304)
 		{
-			if (!this->show_background_flag() && !this->show_sprites_flag())
-			{
-				this->_actions.push_back([] {});
-				return;
-			}
-
 			this->_actions.push_back([this] { this->reset_coarse_y_scroll(); });
 		}
 		else if (this->_column < 321)
@@ -367,15 +358,7 @@ void PictureProcessingUnit::load_next_operation()
 		}
 		else
 		{
-			if (this->show_background_flag())
-			{
-				this->nametable_read();
-			}
-			else
-			{
-				this->_actions.push_back([this] { this->_vout = 0x00'FF'00; });
-				this->_actions.push_back([this] { this->_vout = 0x00'FF'00; });
-			}
+			this->nametable_read();
 		}
 	}
 }
@@ -440,28 +423,16 @@ void PictureProcessingUnit::process_visible_pixels()
 
 		auto indices = this->compile_pattern_table_bytes();
 		auto pixels = this->apply_palette_colors(indices);
-		this->_vout_latch = std::move(pixels);
-		this->update_vout_registers();
 		// this->determine_pixels();
 		// this->fill_shift_register();
+		if (this->show_background_flag())
+			this->_vout_latch = std::move(pixels);
+		this->update_vout_registers();
 	});
 }
 
 void PictureProcessingUnit::render_chunk()
 {
-	if (!this->show_background_flag())
-	{
-		this->_actions.push_back([this] { this->_vout = 0x00'FF'00; });
-		this->_actions.push_back([this] { this->_vout = 0x00'FF'00; });
-		this->_actions.push_back([this] { this->_vout = 0x00'FF'00; });
-		this->_actions.push_back([this] { this->_vout = 0x00'FF'00; });
-		this->_actions.push_back([this] { this->_vout = 0x00'FF'00; });
-		this->_actions.push_back([this] { this->_vout = 0x00'FF'00; });
-		this->_actions.push_back([this] { this->_vout = 0x00'FF'00; });
-		this->_actions.push_back([this] { this->_vout = 0x00'FF'00; });
-		return;
-	}
-
 	this->nametable_read();  // run every (_column % 8) == 1 and then the last 4 cycles
 	this->attribute_table_read();
 	this->process_visible_pixels();

@@ -2,6 +2,7 @@
 
 #include <SDL.h>
 #include <base/iMemory.hpp>
+#include <cartridge/cartridge.hpp>
 #include <ppu/ppuMemoryMapper.hpp>
 
 DebugPpu::DebugPpu(IMemory* memory, SDL_Renderer* renderer)
@@ -20,6 +21,7 @@ DebugPpu::~DebugPpu()
 
 void DebugPpu::loadCartridge(Cartridge* cart)
 {
+	this->_cart = cart;
 	this->_left_pattern_table.loadCartridge(cart);
 	this->_right_pattern_table.loadCartridge(cart);
 }
@@ -121,16 +123,20 @@ void DebugPpu::write_memory()
 {
 	PictureProcessingUnit::write_memory();
 
-	if (this->_address_bus() >= 0x3f00)
+	if (this->_cart->usesCharacterRam() && this->_address_bus() < 0x2000)
+	{
+		this->drawPatternTables();
+	}
+	else if (this->_address_bus() >= 0x3f00)
 	{
 		this->loadPalettes();
 		this->_left_pattern_table.loadPalette(this->_palettes[this->_current_palette]);
 		this->_right_pattern_table.loadPalette(this->_palettes[this->_current_palette]);
 	}
-	else if (this->_address_bus() >= 0x23c0 and this->_address_bus() < 0x2400)
-	{
-		auto address = this->_address_bus();
-		auto value = this->_data_bus();
-		auto var = false;
-	}
+	// else if (this->_address_bus() >= 0x23c0 and this->_address_bus() < 0x2400)
+	// {
+	// 	auto address = this->_address_bus();
+	// 	auto value = this->_data_bus();
+	// 	auto var = false;
+	// }
 }

@@ -36,6 +36,7 @@ private:
 	std::map<PaletteType, Palette> _palettes;
 
 	SDL_Renderer* _renderer;
+	Cartridge* _cart;
 
 	void drawPatternTables();
 	void loadPalettes();

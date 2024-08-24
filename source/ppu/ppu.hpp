@@ -187,17 +187,17 @@ private:
 	//--------------------------------------------------------------------------
 	// PPUMASK
 	//--------------------------------------------------------------------------
-	inline bool emphasize_blue_flag() const { return (this->_ppumask() & 0b10000000) > 0; };
-	inline bool emphasize_green_flag() const { return (this->_ppumask() & 0b10000000) > 0; };
-	inline bool emphasize_red_flag() const { return (this->_ppumask() & 0b00100000) > 0; };
-	inline bool show_sprites_flag() const { return (this->_ppumask() & 0b00100000) > 0; };
-	inline bool show_background_flag() const { return (this->_ppumask() & 0b00001000) > 0; };
-	inline bool show_leftmost_sprites_flag() const { return (this->_ppumask() & 0b00000100) > 0; };
+	inline bool emphasize_blue_flag() const { return (this->_ppumask() & 0b1000'0000) > 0; };
+	inline bool emphasize_green_flag() const { return (this->_ppumask() & 0b1000'0000) > 0; };
+	inline bool emphasize_red_flag() const { return (this->_ppumask() & 0b0010'0000) > 0; };
+	inline bool show_sprites_flag() const { return (this->_ppumask() & 0b0001'0000) > 0; };
+	inline bool show_background_flag() const { return (this->_ppumask() & 0b0000'1000) > 0; };
+	inline bool show_leftmost_sprites_flag() const { return (this->_ppumask() & 0b0000'0100) > 0; };
 	inline bool show_leftmost_background_flag() const
 	{
-		return (this->_ppumask() & 0b00000010) > 0;
+		return (this->_ppumask() & 0b0000'0010) > 0;
 	};
-	inline bool greyscale_flag() const { return (this->_ppumask() & 0b00000001) > 0; };
+	inline bool greyscale_flag() const { return (this->_ppumask() & 0b0000'0001) > 0; };
 
 	//--------------------------------------------------------------------------
 	void load_next_operation();

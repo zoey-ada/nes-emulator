@@ -4,92 +4,48 @@
 
 Nes::Nes(SDL_Renderer* renderer)
 {
-	this->_cart_loader = std::make_unique<CartridgeLoader>();
+	if (this->_debug_mode)
+		this->setupDebugNes(renderer);
+	else
+		this->setupNes();
+
 	// std::string cart_name = "c:/Users/zoeya/Downloads/Super Mario Bros (E).nes";
 	// this->_cart = this->_cart_loader->load_cartridge(cart_name);
-
-	this->_ppu_memory = std::make_unique<PpuMemoryMapper>();
-	// this->_ppu = std::make_unique<PictureProcessingUnit>(this->_ppu_memory.get());
-	this->_debug_ppu = std::make_unique<DebugPpu>(this->_ppu_memory.get(), renderer);
-
-	this->_memory = std::make_unique<MemoryMapper>(this->_debug_ppu.get());
-	// this->_cpu = std::make_unique<Cpu>(this->_memory.get());
-	// this->_ppu->init(this->_cpu.get());
-	this->_debug_cpu = std::make_unique<DebugCpu>(this->_memory.get());
-	this->_debug_ppu->init(this->_debug_cpu.get());
-
-	// this->_ppu->power_up();
-	// this->_cpu->power_up();
-	// this->_debug_cpu->power_up();
-
-	this->_cpu_renderer = std::make_unique<CpuRenderer>(renderer);
-
-	this->_p1_controller = std::make_unique<SdlController>();
-	this->_memory->connect_controller(ControllerPort::Port1, this->_p1_controller.get());
 
 	this->blankFrame();
 }
 
 void Nes::produceFrame()
 {
-	this->renderDebugImages();
-	// this->produceNesFrame();
-	// this->_left->produceFrame();
-	// this->_right->produceFrame();
-	// auto cycle_data = this->_debug_cpu->getLastStackFrame();
-	// this->_cpu_renderer->produceFrame(cycle_data);
+	if (this->_debug_mode)
+		this->renderDebugImages();
 }
 
 void Nes::produceNesFrame()
+{}
+
+SDL_Texture* Nes::getLeftPtTexture() const
 {
-	// if (!this->_cart)
-	// {
-	// 	for (auto& pixel : this->_frame)
-	// 	{
-	// 		pixel.r = 0x00;
-	// 		pixel.g = 0x00;
-	// 		pixel.b = 0x00;
-	// 	}
+	if (this->_debug_mode)
+		return this->_debug_ppu->leftPtTexture();
+	else
+		return nullptr;
+}
 
-	// 	return;
-	// }
+SDL_Texture* Nes::getRightPtTexture() const
+{
+	if (this->_debug_mode)
+		return this->_debug_ppu->rightPtTexture();
+	else
+		return nullptr;
+}
 
-	// static uint32_t even_cycles = 89342;
-	// static uint64_t odd_cycles = 89341;
-	// static bool is_even_frame = false;
-
-	// if (is_even_frame)
-	// {
-	// 	for (auto i = 0; i < even_cycles; ++i)
-	// 	{
-	// 		this->_ppu->cycle();
-
-	// 		auto pixel = ((Pixel*)&this->_frame[i]);
-	// 		*((uint32_t*)pixel) = this->_ppu->vout();
-
-	// 		// if (i % 3 == 2)
-	// 		// 	// this->_cpu->cycle();
-	// 		// 	this->_debug_cpu->cycle();
-	// 	}
-	// }
-	// else
-	// {
-	// 	for (auto i = 0; i < odd_cycles; ++i)
-	// 	{
-	// 		this->_ppu->cycle();
-
-	// 		auto pixel = ((Pixel*)&this->_frame[i]);
-	// 		*((uint32_t*)pixel) = this->_ppu->vout();
-
-	// 		// if (i % 3 == 2)
-	// 		// 	// this->_cpu->cycle();
-	// 		// 	this->_debug_cpu->cycle();
-	// 	}
-	// 	auto last_pixel = ((Pixel*)&this->_frame[nes_total_pixels - 1]);
-	// 	*((uint32_t*)last_pixel) = 0x00000000;
-	// }
-
-	// is_even_frame = !is_even_frame;
+SDL_Texture* Nes::getCpuDebugTexture()
+{
+	if (this->_debug_mode)
+		return this->_cpu_renderer->getTexture();
+	else
+		return nullptr;
 }
 
 void Nes::loadFile(const std::string& filepath)
@@ -98,12 +54,18 @@ void Nes::loadFile(const std::string& filepath)
 
 	this->_ppu_memory->load_cartridge(this->_cart.get());
 	this->_memory->load_cartridge(this->_cart.get());
-	this->_debug_ppu->loadCartridge(this->_cart.get());
 
-	// this->_ppu->reset();
-	this->_debug_ppu->reset();
-	// this->_cpu->reset();
-	this->_debug_cpu->reset();
+	if (this->_debug_mode)
+	{
+		this->_debug_ppu->loadCartridge(this->_cart.get());
+		this->_debug_ppu->reset();
+		this->_debug_cpu->reset();
+	}
+	else
+	{
+		this->_ppu->reset();
+		this->_cpu->reset();
+	}
 
 	this->_game_loaded = true;
 
@@ -126,17 +88,29 @@ void Nes::cycle()
 		this->resetCurrentCycle();
 	}
 
-	this->_debug_ppu->cycle();
-
-	auto pixel = ((Pixel*)&this->_frame[this->_current_cycle]);
-	*((uint32_t*)pixel) = this->_debug_ppu->vout();
+	if (this->_debug_mode)
+	{
+		this->_debug_ppu->cycle();
+		auto pixel = ((Pixel*)&this->_frame[this->_current_cycle]);
+		*((uint32_t*)pixel) = this->_debug_ppu->vout();
+	}
+	else
+	{
+		this->_ppu->cycle();
+		auto pixel = ((Pixel*)&this->_frame[this->_current_cycle]);
+		*((uint32_t*)pixel) = this->_ppu->vout();
+	}
 
 	this->_current_cycle++;
 	this->_cpu_cycle_delay--;
 
 	if (this->_cpu_cycle_delay == 0)
 	{
-		this->_debug_cpu->cycle();
+		if (this->_debug_mode)
+			this->_debug_cpu->cycle();
+		else
+			this->_cpu->cycle();
+
 		this->_cpu_cycle_delay = cpu_cycle_delay;
 	}
 }
@@ -182,17 +156,20 @@ void Nes::nextFrame()
 
 void Nes::nextPalette()
 {
-	this->_debug_ppu->nextPalette();
+	if (this->_debug_mode)
+		this->_debug_ppu->nextPalette();
 }
 
 void Nes::prevPalette()
 {
-	this->_debug_ppu->prevPalette();
+	if (this->_debug_mode)
+		this->_debug_ppu->prevPalette();
 }
 
 void Nes::dumpMemory()
 {
-	this->_debug_ppu->dumpMemory();
+	if (this->_debug_mode)
+		this->_debug_ppu->dumpMemory();
 }
 
 void Nes::blankFrame()
@@ -215,4 +192,33 @@ void Nes::renderDebugImages()
 {
 	auto cycle_data = this->_debug_cpu->getLastStackFrame();
 	this->_cpu_renderer->produceFrame(cycle_data);
+}
+
+void Nes::setupDebugNes(SDL_Renderer* renderer)
+{
+	this->_cart_loader = std::make_unique<CartridgeLoader>();
+
+	this->_ppu_memory = std::make_unique<PpuMemoryMapper>();
+	this->_debug_ppu = std::make_unique<DebugPpu>(this->_ppu_memory.get(), renderer);
+	this->_memory = std::make_unique<MemoryMapper>(this->_debug_ppu.get());
+	this->_debug_cpu = std::make_unique<DebugCpu>(this->_memory.get());
+	this->_debug_ppu->init(this->_debug_cpu.get());
+	this->_cpu_renderer = std::make_unique<CpuRenderer>(renderer);
+
+	this->_p1_controller = std::make_unique<SdlController>();
+	this->_memory->connect_controller(ControllerPort::Port1, this->_p1_controller.get());
+}
+
+void Nes::setupNes()
+{
+	this->_cart_loader = std::make_unique<CartridgeLoader>();
+
+	this->_ppu_memory = std::make_unique<PpuMemoryMapper>();
+	this->_ppu = std::make_unique<PictureProcessingUnit>(this->_ppu_memory.get());
+	this->_memory = std::make_unique<MemoryMapper>(this->_ppu.get());
+	this->_cpu = std::make_unique<Cpu>(this->_memory.get());
+	this->_ppu->init(this->_cpu.get());
+
+	this->_p1_controller = std::make_unique<SdlController>();
+	this->_memory->connect_controller(ControllerPort::Port1, this->_p1_controller.get());
 }
