@@ -21,4 +21,7 @@ public:
 	virtual void irq() = 0;
 	virtual void nmi() = 0;
 	virtual void reset() = 0;
+
+	virtual void suspend() = 0;
+	virtual void activate() = 0;
 };

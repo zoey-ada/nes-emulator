@@ -7,6 +7,7 @@
 #include <cartridge/cartridgeLoader.hpp>
 #include <cpu/cpu.hpp>
 #include <cpu/memoryMapper.hpp>
+#include <dma/dma.hpp>
 #include <ppu/ppu.hpp>
 #include <ppu/ppuMemoryMapper.hpp>
 
@@ -34,12 +35,11 @@ class Nes
 public:
 	Nes(SDL_Renderer* renderer);
 
-	void produceFrame();
 	void produceNesFrame();
 	NesFrame getFrame() { return this->_frame; }
 	SDL_Texture* getLeftPtTexture() const;
 	SDL_Texture* getRightPtTexture() const;
-	SDL_Texture* getCpuDebugTexture();
+	SDL_Texture* getCpuDebugTexture() const;
 
 	void loadFile(const std::string& filepath);
 	inline bool isGameRunning() const { return this->_game_loaded; }
@@ -63,14 +63,20 @@ public:
 	void dumpMemory();
 
 private:
-	std::unique_ptr<MemoryMapper> _memory;
+	std::unique_ptr<MemoryMapper> _cpu_memory;
 	std::unique_ptr<PpuMemoryMapper> _ppu_memory;
-	std::unique_ptr<CartridgeLoader> _cart_loader;
+	std::unique_ptr<IMemory> _oam;
+	std::unique_ptr<DirectMemoryAccess> _dma;
+
 	std::unique_ptr<Cpu> _cpu;
 	std::unique_ptr<DebugCpu> _debug_cpu;
+
 	std::unique_ptr<PictureProcessingUnit> _ppu;
 	std::unique_ptr<DebugPpu> _debug_ppu;
+
+	std::unique_ptr<CartridgeLoader> _cart_loader;
 	std::unique_ptr<Cartridge> _cart;
+
 	std::unique_ptr<SdlController> _p1_controller;
 
 	NesFrame _frame;
@@ -82,12 +88,8 @@ private:
 
 	bool _debug_mode {true};
 
-	// debug
-	std::unique_ptr<CpuRenderer> _cpu_renderer;
-
 	void blankFrame();
 	void resetCurrentCycle();
-	void renderDebugImages();
 
 	void setupDebugNes(SDL_Renderer* renderer);
 	void setupNes();

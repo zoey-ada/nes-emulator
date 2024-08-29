@@ -29,6 +29,4 @@ public:
 
 	virtual bool read_write() const = 0;
 	virtual uint32_t vout() const = 0;
-
-	virtual void oam_dma(const uint8_t data) = 0;
 };

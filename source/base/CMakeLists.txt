@@ -13,6 +13,7 @@ target_sources(base
 	FILES
 		color.hpp
 		iCpu.hpp
+		iDma.hpp
 		iMemory.hpp
 		iPpu.hpp
 		pixel.hpp

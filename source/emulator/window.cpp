@@ -197,7 +197,6 @@ void Window::render(Milliseconds now, Milliseconds delta_ms)
 
 	this->prepareScene();
 
-	this->_nes->produceFrame();
 	this->renderFrame(this->_nes->getFrame());
 
 	this->presentScene();

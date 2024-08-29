@@ -3,13 +3,15 @@
 #include <cassert>
 #include <iostream>
 
+#include <base/iDma.hpp>
 #include <base/iPpu.hpp>
 #include <base/randomAccessMemory.hpp>
 #include <cartridge/cartridge.hpp>
 #include <input/iInput.hpp>
 
-MemoryMapper::MemoryMapper(IPpu* ppu): _ppu(ppu)
+MemoryMapper::MemoryMapper(IPpu* ppu, IDma* dma): _ppu(ppu), _dma(dma)
 {
+	assert(this->_dma);
 	assert(this->_ppu);
 	this->_ram = std::make_unique<RandomAccessMemory>(0x0800);
 }
@@ -168,8 +170,11 @@ void MemoryMapper::write(uint16_t address, const uint8_t data)
 		case 0x4013:  // DMC_LEN
 			break;
 		case 0x4014:  // OAMDMA
-			this->_ppu->oam_dma(data);
+		{
+			uint16_t start_address = static_cast<uint16_t>(data) << 8;
+			this->_dma->copyToOam(start_address);
 			break;
+		}
 		case 0x4015:  // SND_CHN
 			break;
 		case 0x4016:  // JOY1

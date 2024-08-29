@@ -6,13 +6,14 @@
 #include <input/controllerPort.hpp>
 
 class Cartridge;
+class IDma;
 class IInput;
 class IPpu;
 
 class MemoryMapper: public IMemory
 {
 public:
-	MemoryMapper(IPpu* ppu);
+	MemoryMapper(IPpu* ppu, IDma* dma);
 	virtual ~MemoryMapper();
 
 	uint8_t read(uint16_t address) const override;
@@ -28,6 +29,7 @@ private:
 	std::unique_ptr<IMemory> _ram {nullptr};
 	Cartridge* _cartridge {nullptr};
 	IPpu* _ppu {nullptr};
+	IDma* _dma {nullptr};
 	IInput* _controller_1 {nullptr};
 	IInput* _controller_2 {nullptr};
 };

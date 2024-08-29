@@ -11,8 +11,8 @@ void SdlController::readInputs()
 	uint8_t right_state = state[SDL_Scancode::SDL_SCANCODE_S] << 5;  // down
 	uint8_t down_state = state[SDL_Scancode::SDL_SCANCODE_D] << 7;   // right
 
-	uint8_t start_state = state[SDL_Scancode::SDL_SCANCODE_F] << 3;   // start
-	uint8_t select_state = state[SDL_Scancode::SDL_SCANCODE_H] << 2;  // select
+	uint8_t start_state = state[SDL_Scancode::SDL_SCANCODE_H] << 3;   // start
+	uint8_t select_state = state[SDL_Scancode::SDL_SCANCODE_F] << 2;  // select
 	uint8_t a_state = state[SDL_Scancode::SDL_SCANCODE_J] << 0;       // A
 	uint8_t b_state = state[SDL_Scancode::SDL_SCANCODE_K] << 1;       // B
 

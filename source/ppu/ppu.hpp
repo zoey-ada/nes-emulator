@@ -25,7 +25,7 @@ const uint64_t ppu_startup_delay = 88974;
 class PictureProcessingUnit: public IPpu
 {
 public:
-	explicit PictureProcessingUnit(IMemory* memory);
+	explicit PictureProcessingUnit(IMemory* memory, IMemory* oam);
 	virtual ~PictureProcessingUnit();
 
 	void init(ICpu* cpu) override;
@@ -54,14 +54,13 @@ public:
 	void ppu_ctrl(const uint8_t value);
 	inline void ppu_mask(const uint8_t value) { this->_ppumask(value); }
 	uint8_t ppu_status();
-	inline void oam_addr(const uint8_t value) { this->_oamaddr(value); }
-	inline uint8_t oam_data() const { return this->_oamdata(); }
-	inline void oam_data(const uint8_t value) { this->_oamdata(value); }
+	inline void oam_addr(const uint8_t value) { this->_oam_address(value); }
+	uint8_t oam_data() const;
+	void oam_data(const uint8_t value);
 	void ppu_scroll(const uint8_t value);
 	void ppu_addr(const uint8_t value);
 	uint8_t ppu_data();
 	void ppu_data(const uint8_t value);
-	inline void oam_dma(const uint8_t value) override { this->_oamdma(value); }
 
 protected:
 	IMemory* _memory {nullptr};
@@ -80,9 +79,6 @@ private:
 	Register_8bit _ppuctrl;
 	Register_8bit _ppumask;
 	Register_8bit _ppustatus;
-	Register_8bit _oamaddr;
-	Register_8bit _oamdata;
-	Register_8bit _oamdma;
 	Register_8bit _ppu_data_read_buffer;
 
 	Register_15bit _vram_address;
@@ -101,42 +97,31 @@ private:
 
 	// argb format (a is ignored)
 	uint32_t _vout {0x00000000};
-	ChunkPixels _vout_latch;
 	DoubleChunkPixels _vout_shift_register;
 	uint8_t _vout_shift_register_index = 0;
+	ChunkIndices _background_index_latch;
+	std::array<ChunkIndices, 8> _sprite_index_latches;
 
 	std::deque<Action> _actions;
+	std::deque<Action> _background_actions;
+	std::deque<Action> _sprite_actions;
 
 	// sprites
-	IMemory* _object_attribute_memory {nullptr};            // 64 (sprites) * 4 (sprite size) bytes
-	IMemory* _secondary_object_attribute_memory {nullptr};  // 8 * 4 bytes
+	IMemory* _object_attribute_memory {nullptr};                            // 64 sprites * 4 bytes
+	std::unique_ptr<IMemory> _secondary_object_attribute_memory {nullptr};  // 8 sprite cache
+	Register_8bit _oam_address;
+	Register_5bit _secondary_oam_address;
+	bool _oam_force_ff_read {false};
+	bool _secondary_oam_readonly {false};
+	uint8_t _sprite_data_latch {0x00};
 
-	uint8_t sprite_0_pattern_table_data {0x00};
-	uint8_t sprite_1_pattern_table_data {0x00};
-	uint8_t sprite_2_pattern_table_data {0x00};
-	uint8_t sprite_3_pattern_table_data {0x00};
-	uint8_t sprite_4_pattern_table_data {0x00};
-	uint8_t sprite_5_pattern_table_data {0x00};
-	uint8_t sprite_6_pattern_table_data {0x00};
-	uint8_t sprite_7_pattern_table_data {0x00};
-
-	uint8_t sprite_0_attributes {0x00};
-	uint8_t sprite_1_attributes {0x00};
-	uint8_t sprite_2_attributes {0x00};
-	uint8_t sprite_3_attributes {0x00};
-	uint8_t sprite_4_attributes {0x00};
-	uint8_t sprite_5_attributes {0x00};
-	uint8_t sprite_6_attributes {0x00};
-	uint8_t sprite_7_attributes {0x00};
-
-	uint8_t sprite_0_x_position {0x00};
-	uint8_t sprite_1_x_position {0x00};
-	uint8_t sprite_2_x_position {0x00};
-	uint8_t sprite_3_x_position {0x00};
-	uint8_t sprite_4_x_position {0x00};
-	uint8_t sprite_5_x_position {0x00};
-	uint8_t sprite_6_x_position {0x00};
-	uint8_t sprite_7_x_position {0x00};
+	std::array<uint8_t, 8> _sprite_attribute_latches;
+	std::array<uint8_t, 8> _sprite_x_pos_latches;
+	uint8_t _sprite_y_pos_latch;
+	uint8_t _sprite_pt_index_latch;
+	uint8_t _sprite_pt_high_latch;
+	uint8_t _sprite_pt_low_latch;
+	bool _sprite_0_hit {false};
 
 	uint16_t _row {0};
 	uint16_t _column {0};
@@ -155,9 +140,12 @@ private:
 	{
 		return (this->_ppuctrl() & 0b0001'0000) > 0;
 	}
-	inline bool sprite_tile_select_flag() const { return (this->_ppuctrl() & 0b0000'1000) > 0; }
+	inline bool sprite_pattern_table_select_flag() const
+	{
+		return (this->_ppuctrl() & 0b0000'1000) > 0;
+	}
 	inline bool increment_mode_flag() const { return (this->_ppuctrl() & 0b0000'0100) > 0; }
-	inline uint8_t nametable_select() const { return this->_ppuctrl() & 0b0000'0011; };
+	inline uint8_t nametable_select() const { return this->_ppuctrl() & 0b0000'0011; }
 
 	//--------------------------------------------------------------------------
 	// PPUSTATUS
@@ -168,40 +156,48 @@ private:
 			this->_ppustatus(this->_ppustatus() | 0b1000'0000);
 		else
 			this->_ppustatus(this->_ppustatus() & 0b0111'1111);
-	};
+	}
 	inline void sprite_zero_hit_flag(const bool value)
 	{
 		if (value)
 			this->_ppustatus(this->_ppustatus() | 0b0100'0000);
 		else
 			this->_ppustatus(this->_ppustatus() & 0b1011'1111);
-	};
+	}
 	inline void sprite_overflow_flag(const bool value)
 	{
 		if (value)
 			this->_ppustatus(this->_ppustatus() | 0b0010'0000);
 		else
 			this->_ppustatus(this->_ppustatus() & 0b1101'1111);
-	};
+	}
 
 	//--------------------------------------------------------------------------
 	// PPUMASK
 	//--------------------------------------------------------------------------
-	inline bool emphasize_blue_flag() const { return (this->_ppumask() & 0b1000'0000) > 0; };
-	inline bool emphasize_green_flag() const { return (this->_ppumask() & 0b1000'0000) > 0; };
-	inline bool emphasize_red_flag() const { return (this->_ppumask() & 0b0010'0000) > 0; };
-	inline bool show_sprites_flag() const { return (this->_ppumask() & 0b0001'0000) > 0; };
-	inline bool show_background_flag() const { return (this->_ppumask() & 0b0000'1000) > 0; };
-	inline bool show_leftmost_sprites_flag() const { return (this->_ppumask() & 0b0000'0100) > 0; };
+	inline bool emphasize_blue_flag() const { return (this->_ppumask() & 0b1000'0000) > 0; }
+	inline bool emphasize_green_flag() const { return (this->_ppumask() & 0b1000'0000) > 0; }
+	inline bool emphasize_red_flag() const { return (this->_ppumask() & 0b0010'0000) > 0; }
+	inline bool show_sprites_flag() const { return (this->_ppumask() & 0b0001'0000) > 0; }
+	inline bool show_background_flag() const { return (this->_ppumask() & 0b0000'1000) > 0; }
+	inline bool show_leftmost_sprites_flag() const { return (this->_ppumask() & 0b0000'0100) > 0; }
 	inline bool show_leftmost_background_flag() const
 	{
 		return (this->_ppumask() & 0b0000'0010) > 0;
 	};
-	inline bool greyscale_flag() const { return (this->_ppumask() & 0b0000'0001) > 0; };
+	inline bool greyscale_flag() const { return (this->_ppumask() & 0b0000'0001) > 0; }
+
+	inline bool rendering_enabled() const { return (this->_ppumask() & 0b0001'1000) > 0; }
 
 	//--------------------------------------------------------------------------
 	void load_next_operation();
+	void load_next_background_operation();
+	void load_next_sprite_operation();
+
 	void read_memory();
+	uint8_t read_oam() const;
+	uint8_t read_secondary_oam() const;
+	void write_secondary_oam(const uint8_t data);
 
 	void feed_vout();
 
@@ -209,17 +205,32 @@ private:
 	void attribute_table_read();
 	void process_visible_pixels();
 	void render_chunk();
-	void render_visible_scanline();
-	void render_visible_scanlines();
-	void render_vblank_scanline();
-	void render_vblank_scanlines();
-	void render_initial_scanline();
 
-	ChunkIndices compile_pattern_table_bytes();
-	ChunkPixels apply_palette_colors(const ChunkIndices& indices);
+	void clear_secondary_oam();
+	void evaluate_sprites();
+	void copy_sprite_data();
+	void load_sprite();
+	inline uint8_t get_sprite_index() const
+	{
+		return (this->_secondary_oam_address() & 0b0001'1100) >> 2;
+	}
+	inline uint8_t get_prev_sprite_index() const
+	{
+		auto sprite_index = this->get_sprite_index();
+		return sprite_index == 0 ? 7 : sprite_index - 1;
+	}
+
+	ChunkIndices compile_pattern_table_bytes() const;
+	ChunkIndices compile_sprite_pt_bytes() const;
+	uint8_t parse_background_palette_number() const;
+	uint8_t parse_sprite_palette_number() const;
+	uint32_t apply_palette_color(const uint8_t& index, const uint8_t palette_number) const;
+	ChunkPixels apply_palette_colors(const ChunkIndices& indices,
+		const uint8_t palette_number) const;
 	void fetch_sprite_data();
 
 	uint16_t calculate_pattern_table_address(bool bit_plane);
+	uint16_t calclutate_sprite_pt_address(bool bit_plane);
 	void fetch_sprite_tile_data();
 
 	void set_fine_x_scroll(const uint8_t pos);
@@ -244,5 +255,6 @@ private:
 	uint16_t get_nametable_address();
 	uint16_t get_attribute_table_address();
 
+	ChunkPixels determine_output_pixels();
 	void update_vout_registers();
 };

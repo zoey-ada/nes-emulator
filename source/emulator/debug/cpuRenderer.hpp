@@ -6,7 +6,7 @@
 
 #include <SDL_ttf.h>
 
-#include "debugCpu.hpp"
+#include "cpuStackFrame.hpp"
 
 // const uint16_t cpu_width_in_pixels = 257;
 // const uint16_t cpu_height_in_pixels = 50;
@@ -52,7 +52,7 @@ public:
 	virtual ~CpuRenderer();
 
 	void produceFrame(const CpuStackFrame& cycle_data);
-	SDL_Texture* getTexture() { return this->_texture; }
+	SDL_Texture* getTexture() const { return this->_texture; }
 	// CpuFrame getFrame() { return this->_frame; }
 
 private:

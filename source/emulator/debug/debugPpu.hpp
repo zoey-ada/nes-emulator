@@ -15,7 +15,7 @@ struct SDL_Texture;
 class DebugPpu: public PictureProcessingUnit
 {
 public:
-	DebugPpu(IMemory* memory, SDL_Renderer* renderer);
+	DebugPpu(IMemory* memory, IMemory* oam, SDL_Renderer* renderer);
 	virtual ~DebugPpu();
 
 	SDL_Texture* leftPtTexture() const { return this->_left_pattern_table.getTexture(); }

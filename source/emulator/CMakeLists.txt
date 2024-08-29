@@ -25,6 +25,7 @@ target_link_libraries(emulator
 		base
 		cartridge
 		cpu
+		dma
 		input
 		ppu
 

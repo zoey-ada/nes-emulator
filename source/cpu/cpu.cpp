@@ -33,15 +33,11 @@ void Cpu::clear_registers()
 	n_flag(0);
 }
 
-void Cpu::reset()
-{
-	this->clear_registers();
-	this->_actions.clear();
-	this->res(AddressingMode::implicit);
-}
-
 void Cpu::cycle()
 {
+	if (this->_is_suspended)
+		return;
+
 	if (this->_actions.empty())
 		this->queue_next_instruction();
 
@@ -77,16 +73,38 @@ void Cpu::write_memory()
 
 void Cpu::nmi()
 {
-	this->nmi(AddressingMode::implicit);
+	if (!this->_executing_interrupt)
+	{
+		this->_is_interrupt_queued = true;
+		this->_queued_interrupt_func = &Cpu::nmi_impl;
+	}
 }
 
 void Cpu::irq()
 {
-	this->irq(AddressingMode::implicit);
+	if (!this->i_flag() && !this->_executing_interrupt && !this->_is_interrupt_queued)
+	{
+		this->_is_interrupt_queued = true;
+		this->_queued_interrupt_func = &Cpu::irq_impl;
+	}
+}
+
+void Cpu::reset()
+{
+	this->clear_registers();
+	this->_actions.clear();
+	this->res();
 }
 
 void Cpu::queue_next_instruction()
 {
+	if (this->_is_interrupt_queued)
+	{
+		this->_is_interrupt_queued = false;
+		(this->*_queued_interrupt_func)();
+		return;
+	}
+
 	this->_actions.push_back([this]() {
 		this->fetch();
 		this->_instruction = this->_data_bus();
@@ -1707,10 +1725,10 @@ void Cpu::tya(AddressingMode mode)
 }
 
 /// @brief nmi interrupt
-/// @param mode unused
-void Cpu::nmi(AddressingMode mode)
+void Cpu::nmi_impl()
 {
 	this->_actions.push_back([this]() {
+		this->_executing_interrupt = true;
 		this->_address_bus(this->program_counter());
 		this->read_memory();
 		this->_instruction = 0x00;
@@ -1759,14 +1777,16 @@ void Cpu::nmi(AddressingMode mode)
 		this->read_memory();
 		this->program_counter_low() = this->_input_data_latch;
 		this->program_counter_high() = this->_data_bus();
+		this->_executing_interrupt = false;
 	});
 }
 
 /// @brief irq interrupt
 /// @param mode unused
-void Cpu::irq(AddressingMode mode)
+void Cpu::irq_impl()
 {
 	this->_actions.push_back([this]() {
+		this->_executing_interrupt = true;
 		this->_address_bus(this->program_counter());
 		this->read_memory();
 		this->_instruction = 0x00;
@@ -1815,15 +1835,16 @@ void Cpu::irq(AddressingMode mode)
 		this->read_memory();
 		this->program_counter_low() = this->_input_data_latch;
 		this->program_counter_high() = this->_data_bus();
+		this->_executing_interrupt = false;
 	});
 }
 
 /// @brief res interrupt
-/// @param mode unused
-void Cpu::res(AddressingMode mode)
+void Cpu::res()
 {
 	// writes are disabled durring reset
 	this->_actions.push_back([this]() {
+		this->_executing_interrupt = true;
 		this->_address_bus(this->program_counter());
 		this->read_memory();
 		this->_instruction = 0x00;
@@ -1869,6 +1890,7 @@ void Cpu::res(AddressingMode mode)
 		this->read_memory();
 		this->program_counter_low() = this->_input_data_latch;
 		this->program_counter_high() = this->_data_bus();
+		this->_executing_interrupt = false;
 	});
 }
 

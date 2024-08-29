@@ -5,8 +5,8 @@
 #include <cartridge/cartridge.hpp>
 #include <ppu/ppuMemoryMapper.hpp>
 
-DebugPpu::DebugPpu(IMemory* memory, SDL_Renderer* renderer)
-	: PictureProcessingUnit(memory),
+DebugPpu::DebugPpu(IMemory* memory, IMemory* oam, SDL_Renderer* renderer)
+	: PictureProcessingUnit(memory, oam),
 	  _renderer(renderer),
 	  _left_pattern_table(PatternTableType::Left, renderer),
 	  _right_pattern_table(PatternTableType::Right, renderer)

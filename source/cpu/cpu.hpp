@@ -25,8 +25,12 @@ struct Operation
 using OperationMapping = std::pair<uint8_t, Operation>;
 using OperationMap = std::map<uint8_t, Operation>;
 
-using AddressingModeMapping = std::pair<AddressingMode, void (Cpu::*)()>;
-using AddressingModeMap = std::map<AddressingMode, void (Cpu::*)()>;
+class Cpu;
+using InterruptDelegate = void (Cpu::*)();
+using AddressingFuncDelegate = void (Cpu::*)();
+
+using AddressingModeMapping = std::pair<AddressingMode, AddressingFuncDelegate>;
+using AddressingModeMap = std::map<AddressingMode, AddressingFuncDelegate>;
 
 using Action = std::function<void()>;
 
@@ -50,6 +54,9 @@ public:
 	void irq() override;
 	void nmi() override;
 	void reset() override;
+
+	inline void suspend() { this->_is_suspended = true; }
+	inline void activate() { this->_is_suspended = false; }
 
 	//--------------------------------------------------------------------------
 	// registers
@@ -119,11 +126,18 @@ public:
 
 protected:
 	IMemory* _memory;
+	std::deque<Action> _actions;
+	bool _executing_interrupt {false};
+	bool _is_interrupt_queued {false};
+	InterruptDelegate _queued_interrupt_func {nullptr};
 
 	inline Register instruction_register() { return this->_instruction; }
 	inline Register input_data_latch() { return this->_input_data_latch; }
 
 	virtual void queue_next_instruction();
+
+	virtual void nmi_impl();
+	virtual void irq_impl();
 
 private:
 	// registers
@@ -147,7 +161,7 @@ private:
 	OperationMap _operations;
 	AddressingModeMap _addressing_modes;
 
-	std::deque<Action> _actions;
+	bool _is_suspended {false};
 
 	void clear_registers();
 
@@ -247,9 +261,7 @@ private:
 	void txs(AddressingMode mode);
 	void tya(AddressingMode mode);
 
-	void nmi(AddressingMode mode);
-	void irq(AddressingMode mode);
-	void res(AddressingMode mode);
+	void res();
 
 	// unofficial operations
 	void jam(AddressingMode mode);

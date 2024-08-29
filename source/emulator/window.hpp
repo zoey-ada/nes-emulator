@@ -55,7 +55,7 @@ private:
 	bool _run {true};
 	bool _debugging {true};
 
-	uint8_t _ppu_cycles_per_update {150};
+	uint64_t _ppu_cycles_per_update {512};
 	Milliseconds _frametime {33};
 	Milliseconds _last_draw {0};
 	Milliseconds _prev_time {0};

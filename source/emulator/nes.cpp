@@ -1,6 +1,7 @@
 #include "nes.hpp"
 
 #include <SDL.h>
+#include <base/slowMemory.hpp>
 
 Nes::Nes(SDL_Renderer* renderer)
 {
@@ -13,12 +14,6 @@ Nes::Nes(SDL_Renderer* renderer)
 	// this->_cart = this->_cart_loader->load_cartridge(cart_name);
 
 	this->blankFrame();
-}
-
-void Nes::produceFrame()
-{
-	if (this->_debug_mode)
-		this->renderDebugImages();
 }
 
 void Nes::produceNesFrame()
@@ -40,10 +35,10 @@ SDL_Texture* Nes::getRightPtTexture() const
 		return nullptr;
 }
 
-SDL_Texture* Nes::getCpuDebugTexture()
+SDL_Texture* Nes::getCpuDebugTexture() const
 {
 	if (this->_debug_mode)
-		return this->_cpu_renderer->getTexture();
+		return this->_debug_cpu->getTexture();
 	else
 		return nullptr;
 }
@@ -53,7 +48,7 @@ void Nes::loadFile(const std::string& filepath)
 	this->_cart = this->_cart_loader->load_cartridge(filepath);
 
 	this->_ppu_memory->load_cartridge(this->_cart.get());
-	this->_memory->load_cartridge(this->_cart.get());
+	this->_cpu_memory->load_cartridge(this->_cart.get());
 
 	if (this->_debug_mode)
 	{
@@ -110,6 +105,8 @@ void Nes::cycle()
 			this->_debug_cpu->cycle();
 		else
 			this->_cpu->cycle();
+
+		this->_dma->cycle();
 
 		this->_cpu_cycle_delay = cpu_cycle_delay;
 	}
@@ -188,37 +185,37 @@ void Nes::resetCurrentCycle()
 	this->_current_cycle = 0;
 }
 
-void Nes::renderDebugImages()
-{
-	auto cycle_data = this->_debug_cpu->getLastStackFrame();
-	this->_cpu_renderer->produceFrame(cycle_data);
-}
-
 void Nes::setupDebugNes(SDL_Renderer* renderer)
 {
 	this->_cart_loader = std::make_unique<CartridgeLoader>();
 
+	this->_oam = std::make_unique<SlowMemory>(0x0100);
+	this->_dma = std::make_unique<DirectMemoryAccess>();
 	this->_ppu_memory = std::make_unique<PpuMemoryMapper>();
-	this->_debug_ppu = std::make_unique<DebugPpu>(this->_ppu_memory.get(), renderer);
-	this->_memory = std::make_unique<MemoryMapper>(this->_debug_ppu.get());
-	this->_debug_cpu = std::make_unique<DebugCpu>(this->_memory.get());
+	this->_debug_ppu =
+		std::make_unique<DebugPpu>(this->_ppu_memory.get(), this->_oam.get(), renderer);
+	this->_cpu_memory = std::make_unique<MemoryMapper>(this->_debug_ppu.get(), this->_dma.get());
+	this->_debug_cpu = std::make_unique<DebugCpu>(this->_cpu_memory.get(), renderer);
 	this->_debug_ppu->init(this->_debug_cpu.get());
-	this->_cpu_renderer = std::make_unique<CpuRenderer>(renderer);
+	this->_dma->initialize(this->_debug_cpu.get(), this->_cpu_memory.get(), this->_oam.get());
 
 	this->_p1_controller = std::make_unique<SdlController>();
-	this->_memory->connect_controller(ControllerPort::Port1, this->_p1_controller.get());
+	this->_cpu_memory->connect_controller(ControllerPort::Port1, this->_p1_controller.get());
 }
 
 void Nes::setupNes()
 {
 	this->_cart_loader = std::make_unique<CartridgeLoader>();
 
+	this->_oam = std::make_unique<SlowMemory>(0x0100);
+	this->_dma = std::make_unique<DirectMemoryAccess>();
 	this->_ppu_memory = std::make_unique<PpuMemoryMapper>();
-	this->_ppu = std::make_unique<PictureProcessingUnit>(this->_ppu_memory.get());
-	this->_memory = std::make_unique<MemoryMapper>(this->_ppu.get());
-	this->_cpu = std::make_unique<Cpu>(this->_memory.get());
+	this->_ppu = std::make_unique<PictureProcessingUnit>(this->_ppu_memory.get(), this->_oam.get());
+	this->_cpu_memory = std::make_unique<MemoryMapper>(this->_ppu.get(), this->_dma.get());
+	this->_cpu = std::make_unique<Cpu>(this->_cpu_memory.get());
 	this->_ppu->init(this->_cpu.get());
+	this->_dma->initialize(this->_cpu.get(), this->_cpu_memory.get(), this->_oam.get());
 
 	this->_p1_controller = std::make_unique<SdlController>();
-	this->_memory->connect_controller(ControllerPort::Port1, this->_p1_controller.get());
+	this->_cpu_memory->connect_controller(ControllerPort::Port1, this->_p1_controller.get());
 }
