@@ -38,9 +38,12 @@ public:
 	uint8_t read_character(uint16_t address) const;
 	void write_character(uint16_t address, const uint8_t data);
 
-	inline void setConsoleVideoRam(IMemory* video_ram) { this->_console_video_ram = video_ram; }
+	void setConsoleVideoRam(IMemory* video_ram) { this->_console_video_ram = video_ram; }
 
-	inline bool usesCharacterRam() const { return this->_character_ram.size() > 0; }
+	bool usesCharacterRam() const { return this->_character_ram.size() > 0; }
+
+	std::vector<uint8_t> getProgramRom() const { return this->_program_rom; }
+	std::vector<uint8_t> getCharacterRom() const { return this->_character_rom; }
 
 private:
 	std::vector<uint8_t> _program_rom;

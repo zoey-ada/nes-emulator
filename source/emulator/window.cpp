@@ -10,6 +10,12 @@ namespace chrono = std::chrono;
 
 bool Window::open()
 {
+	if (NFD_Init() != nfdresult_t::NFD_OKAY)
+	{
+		printf("NFD could not initialize. NFD Error: %s\n", NFD_GetError());
+		return false;
+	}
+
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
 		printf("SDL could not initialize. SDL_Error: %s\n", SDL_GetError());
@@ -64,6 +70,8 @@ void Window::close()
 
 		SDL_Quit();
 	}
+
+	NFD_Quit();
 }
 
 void Window::run()

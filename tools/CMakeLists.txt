@@ -1,1 +1,2 @@
+add_subdirectory(decompiler)
 add_subdirectory(pattern_table_viewer)
