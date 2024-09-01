@@ -2,10 +2,11 @@
 
 #include <SDL.h>
 
-CodeViewer::CodeViewer(std::shared_ptr<IRenderer> renderer): _renderer(renderer)
+CodeViewer::CodeViewer(std::shared_ptr<IRenderer> renderer, uint8_t num_lines)
+	: _renderer(renderer), _num_lines(num_lines), _height(this->_num_lines * this->_line_height)
 {
 	this->_font = this->_renderer->createFont(this->_font_name, this->_font_size);
-	this->_texture = this->_renderer->createTexture(this->_width, this->_height);
+	this->_texture = this->_renderer->createTexture(this->_width, this->_height, false);
 }
 
 CodeViewer::~CodeViewer()
@@ -82,7 +83,7 @@ void CodeViewer::updateMainTexture()
 	for (int i = 0; i < this->_num_lines; ++i)
 	{
 		auto dest = this->_renderer->measureTexture(this->_line_textures[i]);
-		dest.y = (this->_line_height + this->_vertical_padding) * i;
+		dest.y = this->_line_height * i;
 		this->_renderer->drawTexture(this->_line_textures[i], dest);
 	}
 }

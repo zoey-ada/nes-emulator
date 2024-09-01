@@ -1,11 +1,8 @@
-#include "window.hpp"
+#include "app.hpp"
 
 int main(int argv, char** args)
 {
-	Window window;
-	window.open();
-	window.run();
-	window.close();
-
+	App app;
+	app.run();
 	return 0;
 }

@@ -27,11 +27,6 @@ target_link_libraries(decompiler
 		cartridge
 		cpu
 		platform
-
-		nfd
-		SDL2main
-		SDL2-static
-		SDL2_ttf
 )
 
 target_include_directories(decompiler

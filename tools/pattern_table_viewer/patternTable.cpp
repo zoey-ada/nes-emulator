@@ -2,102 +2,108 @@
 
 #include <cartridge/cartridge.hpp>
 
-PatternTable::PatternTable(bool right_table): _is_right_table(right_table)
+PatternTable::PatternTable(PatternTableType pt_type, std::shared_ptr<IRenderer> renderer)
+	: _pt_type(pt_type), _renderer(renderer)
 {
-	this->_cart_loader = std::make_unique<CartridgeLoader>();
-	// std::string cart_name = "c:/Users/zoeya/Downloads/Super Mario Bros (E).nes";
-	// std::string cart_name = "c:/Users/zoeya/Downloads/Excitebike (E).nes";
-	// this->_cart = this->_cart_loader->load_cartridge(cart_name);
+	this->_texture = this->_renderer->createTexture(this->_width, this->_height);
 }
 
-void PatternTable::produceFrame()
+PatternTable::~PatternTable()
 {
-	if (!this->_cart)
-	{
-		for (auto& pixel : this->_frame)
-		{
-			pixel.r = 0x00;
-			pixel.g = 0x00;
-			pixel.b = 0x00;
-		}
-
-		return;
-	}
-
-	for (int y = 0; y < 16; ++y)
-	{
-		for (int x = 0; x < 16; ++x)
-		{
-			int tile_index = (y * 16) + x;
-			auto tile = this->getTile(tile_index);
-
-			// render tile
-			int coarse_y = y * 8;
-			int coarse_x = x * 8;
-
-			for (int i = 0; i < 8; ++i)
-			{
-				int fine_y = i;
-				for (int j = 0; j < 8; ++j)
-				{
-					int fine_x = j;
-
-					auto tile_pixel_index = (i * 8) + j;
-					auto wanted_pixel = tile[tile_pixel_index];
-
-					int frame_index = ((coarse_y + fine_y) * 128) + coarse_x + fine_x;
-					auto pixel = ((Pixel*)&this->_frame[frame_index]);
-					*((uint32_t*)pixel) = wanted_pixel;
-				}
-			}
-		}
-	}
+	if (this->_texture)
+		this->_renderer->destroyTexture(this->_texture);
+	this->_texture = nullptr;
 }
 
 void PatternTable::loadFile(const std::string& filepath)
 {
 	this->_cart = this->_cart_loader->load_cartridge(filepath);
+	this->draw();
 }
 
-std::array<uint32_t, 8 * 8> PatternTable::getTile(const uint8_t tile_num)
+void PatternTable::draw()
 {
-	uint16_t pattern_table_offset = static_cast<uint16_t>(this->_is_right_table) << 12;
-	uint16_t tile_offset = static_cast<uint16_t>(tile_num) << 4;
-	uint16_t plane1_offset = static_cast<uint16_t>(0b00001000);
+	if (!this->_cart)
+		return;
 
-	std::array<uint32_t, 8 * 8> tile;
+	uint16_t pt_offset = this->_pt_type == PatternTableType::Left ? 0 : 0b0001'0000'0000'0000;
+	uint16_t plane1_offset = 0b0000'0000'0000'1000;
 
-	for (int y = 0; y < 8; ++y)
+	for (uint16_t y = 0; y < 16; ++y)
 	{
-		uint16_t address = static_cast<uint16_t>(y) + tile_offset + pattern_table_offset;
-		uint8_t plane0 = this->_cart->read_character(address);
-		uint8_t plane1 = this->_cart->read_character(address + plane1_offset);
+		uint16_t coarse_y_offset = y << 8;
 
-		for (int i = 0; i < 8; ++i)
+		for (int x = 0; x < 16; ++x)
 		{
-			uint8_t mask = 0b00000001 << i;
-			uint16_t pixel_index = (y * 8) + (7 - i);
-			uint8_t index = ((plane0 & mask) >> i) + (((plane1 & mask) >> i) << 1);
-			tile[pixel_index] = this->indexToPixel(index);
+			uint16_t coarse_x_offset = x << 4;
+
+			for (uint16_t fine_y = 0; fine_y < 8; ++fine_y)
+			{
+				uint16_t address = pt_offset | coarse_y_offset | coarse_x_offset | fine_y;
+				uint8_t plane0 = this->_cart->read_character(address);
+				uint8_t plane1 = this->_cart->read_character(address + plane1_offset);
+				auto chunk = this->compilePatternTableBytes(plane0, plane1);
+
+				for (int fine_x = 0; fine_x < 8; ++fine_x)
+				{
+					int indexed_image_index = (((y * 8) + fine_y) * 128) + (x * 8) + fine_x;
+					this->_indexed_image[indexed_image_index] = chunk[fine_x];
+				}
+			}
 		}
 	}
 
-	return tile;
+	this->color();
 }
 
-uint32_t PatternTable::indexToPixel(uint8_t index)
+void PatternTable::color()
 {
-	switch (index)
+	if (!this->_cart)
+		return;
+
+	PatternTableImage image;
+
+	for (uint64_t i = 0; i < this->_indexed_image.size(); ++i)
 	{
-	case 0:
-		return 0x00ffffff;
-	case 1:
-		return 0x00aaaaaa;
-	case 2:
-		return 0x00555555;
-	case 3:
-		return 0x00000000;
-	default:
-		return 0x00ff00ff;
+		const auto& index = this->_indexed_image[i];
+		switch (index)
+		{
+		case 0:
+			image[i] = {0xff, 0xff, 0xff};
+			break;
+		case 1:
+			image[i] = {0xaa, 0xaa, 0xaa};
+			break;
+		case 2:
+			image[i] = {0x55, 0x55, 0x55};
+			break;
+		case 3:
+			image[i] = {0x00, 0x00, 0x00};
+			break;
+		default:
+			image[i] = {0xff, 0x00, 0xff};
+			break;
+		}
 	}
+
+	this->updateTexture(image);
+}
+
+void PatternTable::updateTexture(const PatternTableImage& pixel_data)
+{
+	this->_renderer->updateTexture(this->_texture, pixel_data.data(), sizeof(pixel_data));
+}
+
+std::array<uint8_t, 8> PatternTable::compilePatternTableBytes(uint8_t low_byte, uint8_t high_byte)
+{
+	std::array<uint8_t, 8> indices;
+
+	for (int i = 0; i < 8; ++i)
+	{
+		uint8_t mask = 0b1000'0000 >> i;
+		uint8_t index = ((low_byte & mask) >> (7 - i)) + (((high_byte & mask) >> (7 - i)) << 1);
+		indices[i] = index;
+	}
+
+	return indices;
 }

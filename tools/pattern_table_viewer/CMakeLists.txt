@@ -2,9 +2,9 @@ add_executable(pattern_table_viewer)
 
 target_sources(pattern_table_viewer
 	PRIVATE
+		app.cpp
 		main.cpp
 		patternTable.cpp
-		window.cpp
 )
 
 target_sources(pattern_table_viewer
@@ -12,18 +12,15 @@ target_sources(pattern_table_viewer
 	FILE_SET HEADERS
 	BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/..
 	FILES
+		app.hpp
 		patternTable.hpp
-		window.hpp
 )
 
 target_link_libraries(pattern_table_viewer
 	PUBLIC
 		base
 		cartridge
-
-		nfd
-		SDL2main
-		SDL2-static
+		platform
 )
 
 target_include_directories(pattern_table_viewer

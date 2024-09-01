@@ -17,8 +17,10 @@ public:
 	std::unique_ptr<IAlternateRenderTarget> swapRenderTarget(Texture texture) override;
 
 	void drawTexture(Texture texture, const Rect& destination) override;
-	Texture createTexture(const uint64_t width, const uint64_t height) override;
+	Texture createTexture(const uint64_t width, const uint64_t height,
+		bool updatable = true) override;
 	void destroyTexture(Texture texture) override;
+	void updateTexture(Texture texture, const Pixel* data, const uint64_t data_size) override;
 	Rect measureTexture(Texture texture) override;
 
 	Font createFont(const std::string& font_filepath, const unsigned int font_size) override;

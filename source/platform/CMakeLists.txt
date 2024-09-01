@@ -25,9 +25,11 @@ target_link_libraries(platform
 		base
 
 		nfd
-		SDL2main
 		SDL2-static
 		SDL2_ttf
+
+	INTERFACE
+		SDL2main
 )
 
 target_include_directories(platform

@@ -62,16 +62,30 @@ void SdlRenderer::drawTexture(Texture texture, const Rect& destination)
 		(SDL_Rect*)&destination);
 }
 
-Texture SdlRenderer::createTexture(const uint64_t width, const uint64_t height)
+Texture SdlRenderer::createTexture(const uint64_t width, const uint64_t height, bool updatable)
 {
-	return (Texture)SDL_CreateTexture(this->_renderer, SDL_PIXELFORMAT_RGBA8888,
-		SDL_TEXTUREACCESS_TARGET, width, height);
+	if (updatable)
+		return (Texture)SDL_CreateTexture(this->_renderer, SDL_PIXELFORMAT_ARGB8888,
+			SDL_TEXTUREACCESS_STREAMING, width, height);
+	else
+		return (Texture)SDL_CreateTexture(this->_renderer, SDL_PIXELFORMAT_ARGB8888,
+			SDL_TEXTUREACCESS_TARGET, width, height);
 }
 
 void SdlRenderer::destroyTexture(Texture texture)
 {
 	if (texture)
 		SDL_DestroyTexture((SDL_Texture*)texture);
+}
+
+void SdlRenderer::updateTexture(Texture texture, const Pixel* data, const uint64_t data_size)
+{
+	void* pixels = nullptr;
+	int pitch = 0;
+	SDL_LockTexture((SDL_Texture*)texture, nullptr, &pixels, &pitch);
+	memcpy(pixels, data, data_size);
+	pixels = nullptr;
+	SDL_UnlockTexture((SDL_Texture*)texture);
 }
 
 Rect SdlRenderer::measureTexture(Texture texture)

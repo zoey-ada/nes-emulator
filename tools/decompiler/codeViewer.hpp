@@ -16,7 +16,7 @@
 class CodeViewer
 {
 public:
-	CodeViewer(std::shared_ptr<IRenderer> renderer);
+	CodeViewer(std::shared_ptr<IRenderer> renderer, uint8_t num_lines = 5);
 	virtual ~CodeViewer();
 
 	inline Texture getTexture() const { return this->_texture; }
@@ -40,14 +40,12 @@ private:
 	int _font_size {24};
 	Font _font {nullptr};
 
-	int _width {400};
 	int _line_height {30};
-	int _vertical_padding {0};
-	int _num_lines {20};
-	int _height {(this->_line_height * this->_num_lines) +
-		(this->_vertical_padding * (this->_num_lines - 1))};
-
+	int _num_lines {0};
 	int _top_line {0};
+
+	int _width {400};
+	int _height {0};
 
 	Decompiler _decompiler {nullptr};
 	std::unique_ptr<MemoryWrapper> _program_rom {nullptr};

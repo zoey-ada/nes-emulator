@@ -19,7 +19,9 @@ void App::run()
 
 	this->_window->open();
 	this->_renderer = this->_window->getRenderer();
-	this->_viewer = std::make_unique<CodeViewer>(this->_renderer, 20);
+
+	this->_left = std::make_unique<PatternTable>(PatternTableType::Left, this->_renderer);
+	this->_right = std::make_unique<PatternTable>(PatternTableType::Right, this->_renderer);
 
 	RenderFuncDelegate render_func = std::bind(&App::render, this, _1, _2);
 	UpdateFuncDelegate update_func = std::bind(&App::update, this, _1, _2);
@@ -35,8 +37,10 @@ void App::update(Milliseconds now, Milliseconds delta_ms)
 void App::render(Milliseconds now, Milliseconds delta_ms)
 {
 	this->_renderer->preRender();
-	Rect dest {0, 0, this->_width, this->_height};
-	this->_renderer->drawTexture(this->_viewer->getTexture(), dest);
+	Rect dest {0, 0, this->_width / 2, this->_height};
+	this->_renderer->drawTexture(this->_left->getTexture(), dest);
+	dest.x = this->_width / 2;
+	this->_renderer->drawTexture(this->_right->getTexture(), dest);
 	this->_renderer->postRender();
 }
 
@@ -51,15 +55,8 @@ void App::handleEvent(const SDL_Event& e)
 			std::vector<FileFilter> filters;
 			filters.push_back({"NES ROM", "nes"});
 			auto path = this->_window->openFileDialog(filters);
-			this->_viewer->loadFile(path);
-		}
-		else if (key == SDL_Scancode::SDL_SCANCODE_UP)
-		{
-			this->_viewer->scrollUp();
-		}
-		else if (key == SDL_Scancode::SDL_SCANCODE_DOWN)
-		{
-			this->_viewer->scrollDown();
+			this->_left->loadFile(path);
+			this->_right->loadFile(path);
 		}
 	}
 }

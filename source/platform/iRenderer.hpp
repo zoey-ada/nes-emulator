@@ -5,6 +5,7 @@
 #include <string>
 
 #include <SDL.h>
+#include <base/pixel.hpp>
 
 #include "iAlternateRenderTarget.hpp"
 
@@ -46,8 +47,10 @@ public:
 	virtual std::unique_ptr<IAlternateRenderTarget> swapRenderTarget(Texture texture) = 0;
 
 	virtual void drawTexture(Texture texture, const Rect& destination) = 0;
-	virtual Texture createTexture(const uint64_t width, const uint64_t height) = 0;
+	virtual Texture createTexture(const uint64_t width, const uint64_t height,
+		bool updatable = true) = 0;
 	virtual void destroyTexture(Texture texture) = 0;
+	virtual void updateTexture(Texture texture, const Pixel* data, const uint64_t data_size) = 0;
 	virtual Rect measureTexture(Texture texture) = 0;
 
 	virtual Font createFont(const std::string& font_filepath, const unsigned int font_size) = 0;
