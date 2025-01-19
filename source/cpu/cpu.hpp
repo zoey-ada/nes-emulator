@@ -10,6 +10,7 @@
 
 #include "addressing_modes.hpp"
 #include "alu.hpp"
+#include "statusRegister.hpp"
 
 using Register = uint8_t;
 
@@ -47,92 +48,27 @@ public:
 	uint8_t data_bus() const override { return this->_data_bus(); }
 	void data_bus(const uint8_t data) override { this->_data_bus(data); }
 
-	inline bool audio_out_1() const override { return this->_audio_out_1; }
-	inline bool audio_out_2() const override { return this->_audio_out_2; }
-	inline bool read_write() const override { return this->_read_write; }
+	bool audio_out_1() const override { return this->_audio_out_1; }
+	bool audio_out_2() const override { return this->_audio_out_2; }
+	bool read_write() const override { return this->_read_write; }
 
 	void irq() override;
 	void nmi() override;
 	void reset() override;
 
-	inline void suspend() { this->_is_suspended = true; }
-	inline void activate() { this->_is_suspended = false; }
-
-	//--------------------------------------------------------------------------
-	// registers
-	//--------------------------------------------------------------------------
-	uint16_t& program_counter() { return (uint16_t&)this->_program_counter[0]; }
-	void program_counter(const uint16_t data) { (uint16_t&)this->_program_counter[0] = data; }
-	// bytes are reversed so that reading the 16 bit values is correct
-	uint8_t& program_counter_high() { return this->_program_counter[1]; }
-	uint8_t& program_counter_low() { return this->_program_counter[0]; }
-
-	inline uint8_t accumulator() const { return this->_a; }
-	inline void accumulator(const uint8_t data) { this->_a = data; }
-
-	inline uint8_t x_register() const { return this->_x; }
-	inline void x_register(const uint8_t data) { this->_x = data; }
-
-	inline uint8_t y_register() const { return this->_y; }
-	inline void y_register(const uint8_t data) { this->_y = data; }
-
-	inline uint8_t stack_register() const { return this->_s; }
-	inline void stack_register(const uint8_t data) { this->_s = data; }
-
-	inline uint8_t status_register() const { return this->_p; }
-	inline void status_register(const uint8_t data) { this->_p = data; }
-
-	inline bool n_flag() const { return (this->_p & 0b10000000) > 0; }
-	inline void n_flag(const bool state)
-	{
-		state ? this->_p |= 0b10000000 : this->_p &= 0b01111111;
-	};
-
-	inline bool v_flag() const { return (this->_p & 0b01000000) > 0; }
-	inline void v_flag(const bool state)
-	{
-		state ? this->_p |= 0b01000000 : this->_p &= 0b10111111;
-	};
-
-	inline bool b_flag() const { return (this->_p & 0b00010000) > 0; }
-	inline void b_flag(const bool state)
-	{
-		state ? this->_p |= 0b00010000 : this->_p &= 0b11101111;
-	};
-
-	inline bool d_flag() const { return (this->_p & 0b00001000) > 0; }
-	inline void d_flag(const bool state)
-	{
-		state ? this->_p |= 0b00001000 : this->_p &= 0b11110111;
-	};
-
-	inline bool i_flag() const { return (this->_p & 0b00000100) > 0; }
-	inline void i_flag(const bool state)
-	{
-		state ? this->_p |= 0b00000100 : this->_p &= 0b11111011;
-	};
-
-	inline bool z_flag() const { return (this->_p & 0b00000010) > 0; }
-	inline void z_flag(const bool state)
-	{
-		state ? this->_p |= 0b00000010 : this->_p &= 0b11111101;
-	};
-
-	inline bool c_flag() const { return (this->_p & 0b00000001) > 0; }
-	inline void c_flag(const bool state)
-	{
-		state ? this->_p |= 0b00000001 : this->_p &= 0b11111110;
-	};
+	void suspend() override { this->_is_suspended = true; }
+	void activate() override { this->_is_suspended = false; }
 
 protected:
-	IMemory* _memory;
-	std::deque<Action> _actions;
-	bool _executing_interrupt {false};
-	bool _is_interrupt_queued {false};
-	InterruptDelegate _queued_interrupt_func {nullptr};
+	Register_8bit _accumulator;
+	Register_8bit _x_register;
+	Register_8bit _y_register;
+	StatusRegister _status_register;
+	Register_8bit _stack_register;
+	Register_16bit _program_counter;
 
-	inline Register instruction_register() { return this->_instruction; }
-	inline Register input_data_latch() { return this->_input_data_latch; }
+	Register instruction_register() { return this->_instruction; }
+	Register input_data_latch() { return this->_input_data_latch; }
 
 	virtual void queue_next_instruction();
 
@@ -140,15 +76,15 @@ protected:
 	virtual void irq_impl();
 
 private:
+	IMemory* _memory;
+	std::deque<Action> _actions;
+	bool _executing_interrupt {false};
+	bool _is_interrupt_queued {false};
+	InterruptDelegate _queued_interrupt_func {nullptr};
+
 	// registers
-	Register _a {0x00};
-	Register _x {0x00};
-	Register _y {0x00};
-	Register _s {0xfd};
-	Register _p {0x34};
 	Register _instruction {0x00};
 	Register _input_data_latch {0x00};
-	std::array<uint8_t, 2> _program_counter = {0x00, 0x00};
 
 	// pins
 	Register_16bit _address_bus;

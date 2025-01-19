@@ -16,6 +16,7 @@ target_sources(cpu
 		alu.hpp
 		cpu.hpp
 		memoryMapper.hpp
+		statusRegister.hpp
 )
 
 target_link_libraries(cpu

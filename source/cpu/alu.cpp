@@ -50,26 +50,26 @@ uint8_t Alu::subtract(uint8_t a, uint8_t b, bool borrow)
 	return difference;
 }
 
-uint8_t Alu::increment(uint8_t value)
-{
-	return ++value;
-}
-
-uint8_t Alu::decrement(uint8_t value)
-{
-	return --value;
-}
-
 uint8_t Alu::shift_left(uint8_t value)
 {
 	this->_carry = (value & 0b10000000) > 0;
 	return value << 1;
 }
 
+void Alu::shift_left(Register_8bit& value)
+{
+	value(this->shift_left(value()));
+}
+
 uint8_t Alu::shift_right(uint8_t value)
 {
 	this->_carry = (value & 0b00000001) > 0;
 	return value >> 1;
+}
+
+void Alu::shift_right(Register_8bit& value)
+{
+	value(this->shift_right(value()));
 }
 
 uint8_t Alu::rotate_left(uint8_t value, bool carry)
@@ -79,9 +79,19 @@ uint8_t Alu::rotate_left(uint8_t value, bool carry)
 	return value | (carry ? 0b0000001 : 0b0000000);
 }
 
+void Alu::rotate_left(Register_8bit& value, bool carry)
+{
+	value(this->rotate_left(value(), carry));
+}
+
 uint8_t Alu::rotate_right(uint8_t value, bool carry)
 {
 	this->_carry = (value & 0b00000001) > 0;
 	value = value >> 1;
 	return value | (carry ? 0b10000000 : 0b0000000);
+}
+
+void Alu::rotate_right(Register_8bit& value, bool carry)
+{
+	value(this->rotate_right(value(), carry));
 }

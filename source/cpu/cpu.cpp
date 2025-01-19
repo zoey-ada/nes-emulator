@@ -11,6 +11,9 @@ Cpu::Cpu(IMemory* memory)
 
 	this->populate_operations();
 	this->populate_addressing_modes();
+
+	this->_stack_register(0xfd);
+	this->_status_register(0x34);
 }
 
 Cpu::~Cpu()
@@ -20,17 +23,17 @@ Cpu::~Cpu()
 
 void Cpu::clear_registers()
 {
-	accumulator(0x00);
-	x_register(0x00);
-	y_register(0x00);
-	program_counter(0xfffc);
-	stack_register(0xfd);
-	c_flag(0);
-	z_flag(0);
-	i_flag(1);
-	d_flag(0);
-	v_flag(0);
-	n_flag(0);
+	this->_accumulator(0x00);
+	this->_x_register(0x00);
+	this->_y_register(0x00);
+	this->_program_counter(0xfffc);
+	this->_stack_register(0xfd);
+	this->_status_register.n_flag(0);
+	this->_status_register.v_flag(0);
+	this->_status_register.d_flag(0);
+	this->_status_register.i_flag(1);
+	this->_status_register.z_flag(0);
+	this->_status_register.c_flag(0);
 }
 
 void Cpu::cycle()
@@ -54,21 +57,21 @@ void Cpu::cycle(const uint64_t number_of_cycles)
 
 void Cpu::fetch()
 {
-	this->_address_bus(this->program_counter());
+	this->_address_bus(this->_program_counter());
 	this->read_memory();
-	this->program_counter()++;
+	this->_program_counter++;
 }
 
 void Cpu::read_memory()
 {
 	this->_read_write = true;
-	this->_data_bus(this->_memory->read(this->address_bus()));
+	this->_data_bus(this->_memory->read(this->_address_bus()));
 }
 
 void Cpu::write_memory()
 {
 	this->_read_write = false;
-	this->_memory->write(this->address_bus(), this->_data_bus());
+	this->_memory->write(this->_address_bus(), this->_data_bus());
 }
 
 void Cpu::nmi()
@@ -82,7 +85,8 @@ void Cpu::nmi()
 
 void Cpu::irq()
 {
-	if (!this->i_flag() && !this->_executing_interrupt && !this->_is_interrupt_queued)
+	if (!this->_status_register.i_flag() && !this->_executing_interrupt &&
+		!this->_is_interrupt_queued)
 	{
 		this->_is_interrupt_queued = true;
 		this->_queued_interrupt_func = &Cpu::irq_impl;
@@ -415,26 +419,26 @@ void Cpu::relative()
 		if ((this->_data_bus() & 0b1000'0000) > 1)
 		{
 			uint8_t twos_comp = (~this->_data_bus()) + 1;
-
-			this->program_counter_low() =
-				this->_alu.subtract(this->program_counter_low(), twos_comp);
+			uint8_t diff = this->_alu.subtract(this->_program_counter.lowByte(), twos_comp);
+			this->_program_counter.lowByte(diff);
 
 			if (!this->_alu.carry())
 				this->_actions.push_front([this]() {
 					this->read_memory();
-					this->program_counter_high() =
-						this->_alu.subtract(this->program_counter_high(), 1);
+					uint8_t diff = this->_alu.subtract(this->_program_counter.highByte(), 1);
+					this->_program_counter.highByte(diff);
 				});
 		}
 		else
 		{
-			this->program_counter_low() =
-				this->_alu.add(this->program_counter_low(), this->_data_bus());
+			uint8_t sum = this->_alu.add(this->_program_counter.lowByte(), this->_data_bus());
+			this->_program_counter.lowByte(sum);
 
 			if (this->_alu.carry())
 				this->_actions.push_front([this]() {
 					this->read_memory();
-					this->program_counter_high() = this->_alu.add(this->program_counter_high(), 1);
+					uint8_t sum = this->_alu.add(this->_program_counter.highByte(), 1);
+					this->_program_counter.highByte(sum);
 				});
 		}
 	});
@@ -459,7 +463,8 @@ void Cpu::zero_page_x()
 
 	this->_actions.push_back([this]() {
 		this->read_memory();
-		this->_address_bus.lowByte(this->_alu.add(this->address_bus(), this->_x));
+		uint8_t sum = this->_alu.add(this->_address_bus.lowByte(), this->_x_register());
+		this->_address_bus.lowByte(sum);
 	});
 }
 
@@ -473,7 +478,8 @@ void Cpu::zero_page_y()
 
 	this->_actions.push_back([this]() {
 		this->read_memory();
-		this->_address_bus.lowByte(this->_alu.add(this->address_bus(), this->_y));
+		uint8_t sum = this->_alu.add(this->_address_bus.lowByte(), this->_y_register());
+		this->_address_bus.lowByte(sum);
 	});
 }
 
@@ -501,7 +507,7 @@ void Cpu::absolute_x_read()
 	this->_actions.push_back([this]() {
 		this->fetch();
 		this->_address_bus.highByte(this->_data_bus());
-		this->_address_bus.lowByte(this->_alu.add(this->_input_data_latch, this->_x));
+		this->_address_bus.lowByte(this->_alu.add(this->_input_data_latch, this->_x_register()));
 
 		if (this->_alu.carry())
 			this->_actions.push_front([this]() {
@@ -521,7 +527,7 @@ void Cpu::absolute_x_write()
 	this->_actions.push_back([this]() {
 		this->fetch();
 		this->_address_bus.highByte(this->_data_bus());
-		this->_address_bus.lowByte(this->_alu.add(this->_input_data_latch, this->_x));
+		this->_address_bus.lowByte(this->_alu.add(this->_input_data_latch, this->_x_register()));
 	});
 
 	this->_actions.push_back([this]() {
@@ -541,7 +547,7 @@ void Cpu::absolute_y_read()
 	this->_actions.push_back([this]() {
 		this->fetch();
 		this->_address_bus.highByte(this->_data_bus());
-		this->_address_bus.lowByte(this->_alu.add(this->_input_data_latch, this->_y));
+		this->_address_bus.lowByte(this->_alu.add(this->_input_data_latch, this->_y_register()));
 
 		if (this->_alu.carry())
 			this->_actions.push_front([this]() {
@@ -561,7 +567,7 @@ void Cpu::absolute_y_write()
 	this->_actions.push_back([this]() {
 		this->fetch();
 		this->_address_bus.highByte(this->_data_bus());
-		this->_address_bus.lowByte(this->_alu.add(this->_input_data_latch, this->_y));
+		this->_address_bus.lowByte(this->_alu.add(this->_input_data_latch, this->_y_register()));
 	});
 
 	this->_actions.push_back([this]() {
@@ -586,13 +592,13 @@ void Cpu::indirect()
 
 	this->_actions.push_back([this]() {
 		this->read_memory();
-		this->program_counter_low() = this->_data_bus();
+		this->_program_counter.lowByte(this->_data_bus());
 		this->_address_bus.lowByte(this->_address_bus.lowByte() + 1);
 	});
 
 	this->_actions.push_back([this]() {
 		this->read_memory();
-		this->program_counter_high() = this->_data_bus();
+		this->_program_counter.highByte(this->_data_bus());
 	});
 }
 
@@ -606,7 +612,8 @@ void Cpu::indirect_x()
 
 	this->_actions.push_back([this]() {
 		this->read_memory();
-		this->_address_bus.lowByte(this->_alu.add(this->_address_bus.lowByte(), this->_x));
+		this->_address_bus.lowByte(
+			this->_alu.add(this->_address_bus.lowByte(), this->_x_register()));
 	});
 
 	this->_actions.push_back([this]() {
@@ -639,7 +646,7 @@ void Cpu::indirect_y_read()
 	this->_actions.push_back([this]() {
 		this->read_memory();
 		this->_address_bus.highByte(this->_data_bus());
-		this->_address_bus.lowByte(this->_alu.add(_input_data_latch, this->_y));
+		this->_address_bus.lowByte(this->_alu.add(_input_data_latch, this->_y_register()));
 
 		if (this->_alu.carry())
 		{
@@ -668,7 +675,7 @@ void Cpu::indirect_y_write()
 	this->_actions.push_back([this]() {
 		this->read_memory();
 		this->_address_bus.highByte(this->_data_bus());
-		this->_address_bus.lowByte(this->_alu.add(_input_data_latch, this->_y));
+		this->_address_bus.lowByte(this->_alu.add(_input_data_latch, this->_y_register()));
 	});
 
 	this->_actions.push_back([this]() {
@@ -697,11 +704,12 @@ void Cpu::adc(AddressingMode mode)
 		else
 			this->read_memory();
 
-		this->_a = this->_alu.add(this->_a, this->_data_bus(), this->c_flag());
-		this->c_flag(this->_alu.carry());
-		this->v_flag(this->_alu.overflow());
-		this->z_flag(this->_a == 0);
-		this->n_flag((this->_a & 0b1000'0000) > 0);
+		this->_accumulator(this->_alu.add(this->_accumulator(), this->_data_bus(),
+			this->_status_register.c_flag()));
+		this->_status_register.c_flag(this->_alu.carry());
+		this->_status_register.v_flag(this->_alu.overflow());
+		this->_status_register.z_flag(this->_accumulator() == 0);
+		this->_status_register.n_flag((this->_accumulator() & 0b1000'0000) > 0);
 	});
 }
 
@@ -724,9 +732,9 @@ void Cpu::and_(AddressingMode mode)
 		else
 			this->read_memory();
 
-		this->_a &= this->_data_bus();
-		this->z_flag(this->_a == 0);
-		this->n_flag((this->_a & 0b1000'0000) > 0);
+		this->_accumulator(this->_accumulator() & this->_data_bus());
+		this->_status_register.z_flag(this->_accumulator() == 0);
+		this->_status_register.n_flag((this->_accumulator() & 0b1000'0000) > 0);
 	});
 }
 
@@ -741,10 +749,10 @@ void Cpu::asl(AddressingMode mode)
 	if (mode == AddressingMode::accumulator)
 	{
 		this->_actions.push_back([this, &mode]() {
-			this->_a = this->_alu.shift_left(this->_a);
-			this->c_flag(this->_alu.carry());
-			this->z_flag(this->_a == 0);
-			this->n_flag((this->_a & 0b1000'0000) > 0);
+			this->_alu.shift_left(this->_accumulator);
+			this->_status_register.c_flag(this->_alu.carry());
+			this->_status_register.z_flag(this->_accumulator() == 0);
+			this->_status_register.n_flag((this->_accumulator() & 0b1000'0000) > 0);
 		});
 		return;
 	}
@@ -754,10 +762,10 @@ void Cpu::asl(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() { this->read_memory(); });
 
 	this->_actions.push_back([this, &mode]() {
-		this->_data_bus(this->_alu.shift_left(this->_data_bus()));
-		this->c_flag(this->_alu.carry());
-		this->z_flag(this->_data_bus() == 0);
-		this->n_flag((this->_data_bus() & 0b1000'0000) > 0);
+		this->_alu.shift_left(this->_data_bus);
+		this->_status_register.c_flag(this->_alu.carry());
+		this->_status_register.z_flag(this->_data_bus() == 0);
+		this->_status_register.n_flag((this->_data_bus() & 0b1000'0000) > 0);
 	});
 
 	this->_actions.push_back([this, &mode]() { this->write_memory(); });
@@ -770,7 +778,7 @@ void Cpu::bcc(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() {
 		this->fetch();
 
-		if (!this->c_flag())
+		if (!this->_status_register.c_flag())
 		{
 			this->relative();
 		}
@@ -784,7 +792,7 @@ void Cpu::bcs(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() {
 		this->fetch();
 
-		if (this->c_flag())
+		if (this->_status_register.c_flag())
 		{
 			this->relative();
 		}
@@ -798,7 +806,7 @@ void Cpu::beq(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() {
 		this->fetch();
 
-		if (this->z_flag())
+		if (this->_status_register.z_flag())
 		{
 			this->relative();
 		}
@@ -814,11 +822,11 @@ void Cpu::bit(AddressingMode mode)
 
 	this->_actions.push_back([this, &mode]() {
 		this->read_memory();
-		this->n_flag((this->_data_bus() & 0b1000'0000) > 0);
-		this->v_flag((this->_data_bus() & 0b0100'0000) > 0);
+		this->_status_register.n_flag((this->_data_bus() & 0b1000'0000) > 0);
+		this->_status_register.v_flag((this->_data_bus() & 0b0100'0000) > 0);
 
-		this->_data_bus(this->_data_bus() & this->_a);
-		this->z_flag(this->_data_bus() == 0);
+		this->_data_bus(this->_data_bus() & this->_accumulator());
+		this->_status_register.z_flag(this->_data_bus() == 0);
 	});
 }
 
@@ -829,7 +837,7 @@ void Cpu::bmi(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() {
 		this->fetch();
 
-		if (this->n_flag())
+		if (this->_status_register.n_flag())
 		{
 			this->relative();
 		}
@@ -843,7 +851,7 @@ void Cpu::bne(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() {
 		this->fetch();
 
-		if (!this->z_flag())
+		if (!this->_status_register.z_flag())
 		{
 			this->relative();
 		}
@@ -857,7 +865,7 @@ void Cpu::bpl(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() {
 		this->fetch();
 
-		if (!this->n_flag())
+		if (!this->_status_register.n_flag())
 		{
 			this->relative();
 		}
@@ -871,31 +879,31 @@ void Cpu::brk(AddressingMode mode)
 	this->_actions.push_back([this]() {
 		this->fetch();
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
-		this->_data_bus(this->program_counter_high());
+		this->_address_bus.lowByte(this->_stack_register());
+		this->_data_bus(this->_program_counter.highByte());
 	});
 
 	this->_actions.push_back([this, &mode]() {
 		this->write_memory();
-		this->_s--;
+		this->_stack_register--;
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
-		this->_data_bus(this->program_counter_low());
+		this->_address_bus.lowByte(this->_stack_register());
+		this->_data_bus(this->_program_counter.lowByte());
 	});
 
 	this->_actions.push_back([this, &mode]() {
 		this->write_memory();
-		this->_s--;
+		this->_stack_register--;
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
-		this->b_flag(true);
-		this->_data_bus(this->_p);
+		this->_address_bus.lowByte(this->_stack_register());
+		this->_status_register.b_flag(true);
+		this->_data_bus(this->_status_register());
 	});
 
 	this->_actions.push_back([this, &mode]() {
 		this->write_memory();
-		this->i_flag(true);
-		this->_s--;
+		this->_status_register.i_flag(true);
+		this->_stack_register--;
 		this->_address_bus.highByte(0xff);
 		this->_address_bus.lowByte(0xfe);
 	});
@@ -909,8 +917,8 @@ void Cpu::brk(AddressingMode mode)
 
 	this->_actions.push_back([this]() {
 		this->read_memory();
-		this->program_counter_low() = this->_input_data_latch;
-		this->program_counter_high() = this->_data_bus();
+		this->_program_counter.lowByte(this->_input_data_latch);
+		this->_program_counter.highByte(this->_data_bus());
 	});
 }
 
@@ -921,7 +929,7 @@ void Cpu::bvc(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() {
 		this->fetch();
 
-		if (!this->v_flag())
+		if (!this->_status_register.v_flag())
 		{
 			this->relative();
 		}
@@ -935,7 +943,7 @@ void Cpu::bvs(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() {
 		this->fetch();
 
-		if (this->v_flag())
+		if (this->_status_register.v_flag())
 		{
 			this->relative();
 		}
@@ -946,28 +954,28 @@ void Cpu::bvs(AddressingMode mode)
 /// @param mode 0x18 Implicit
 void Cpu::clc(AddressingMode mode)
 {
-	this->_actions.push_back([this]() { this->c_flag(false); });
+	this->_actions.push_back([this]() { this->_status_register.c_flag(false); });
 }
 
 /// @brief Clear Decimal Flag (2 cycles)
 /// @param mode 0xd8 Implicit
 void Cpu::cld(AddressingMode mode)
 {
-	this->_actions.push_back([this]() { this->d_flag(false); });
+	this->_actions.push_back([this]() { this->_status_register.d_flag(false); });
 }
 
 /// @brief Clear Interrupt Flag (2 cycles)
 /// @param mode 0x58 Implicit
 void Cpu::cli(AddressingMode mode)
 {
-	this->_actions.push_back([this]() { this->i_flag(false); });
+	this->_actions.push_back([this]() { this->_status_register.i_flag(false); });
 }
 
 /// @brief Clear Overflow Flag (2 cycles)
 /// @param mode 0xb8 Implicit
 void Cpu::clv(AddressingMode mode)
 {
-	this->_actions.push_back([this]() { this->v_flag(false); });
+	this->_actions.push_back([this]() { this->_status_register.v_flag(false); });
 }
 
 /// @brief Compare (2-6 cycles)
@@ -989,10 +997,10 @@ void Cpu::cmp(AddressingMode mode)
 		else
 			this->read_memory();
 
-		this->c_flag(this->_a >= this->_data_bus());
-		this->_data_bus(this->_alu.subtract(this->_a, this->_data_bus(), false));
-		this->z_flag(this->_data_bus() == 0);
-		this->n_flag((this->_data_bus() & 0b1000'0000) > 0);
+		this->_status_register.c_flag(this->_accumulator() >= this->_data_bus());
+		this->_data_bus(this->_alu.subtract(this->_accumulator(), this->_data_bus(), false));
+		this->_status_register.z_flag(this->_data_bus() == 0);
+		this->_status_register.n_flag((this->_data_bus() & 0b1000'0000) > 0);
 	});
 }
 
@@ -1010,10 +1018,10 @@ void Cpu::cpx(AddressingMode mode)
 		else
 			this->read_memory();
 
-		this->c_flag(this->_x >= this->_data_bus());
-		this->_data_bus(this->_alu.subtract(this->_x, this->_data_bus(), false));
-		this->z_flag(this->_data_bus() == 0);
-		this->n_flag((this->_data_bus() & 0b1000'0000) > 0);
+		this->_status_register.c_flag(this->_x_register() >= this->_data_bus());
+		this->_data_bus(this->_alu.subtract(this->_x_register(), this->_data_bus(), false));
+		this->_status_register.z_flag(this->_data_bus() == 0);
+		this->_status_register.n_flag((this->_data_bus() & 0b1000'0000) > 0);
 	});
 }
 
@@ -1031,10 +1039,10 @@ void Cpu::cpy(AddressingMode mode)
 		else
 			this->read_memory();
 
-		this->c_flag(this->_y >= this->_data_bus());
-		this->_data_bus(this->_alu.subtract(this->_y, this->_data_bus(), false));
-		this->z_flag(this->_data_bus() == 0);
-		this->n_flag((this->_data_bus() & 0b1000'0000) > 0);
+		this->_status_register.c_flag(this->_y_register() >= this->_data_bus());
+		this->_data_bus(this->_alu.subtract(this->_y_register(), this->_data_bus(), false));
+		this->_status_register.z_flag(this->_data_bus() == 0);
+		this->_status_register.n_flag((this->_data_bus() & 0b1000'0000) > 0);
 	});
 }
 
@@ -1050,9 +1058,9 @@ void Cpu::dec(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() { this->read_memory(); });
 
 	this->_actions.push_back([this, &mode]() {
-		this->_data_bus(this->_alu.decrement(this->_data_bus()));
-		this->z_flag(this->_data_bus() == 0);
-		this->n_flag((this->_data_bus() & 0b1000'0000) > 0);
+		this->_data_bus--;
+		this->_status_register.z_flag(this->_data_bus() == 0);
+		this->_status_register.n_flag((this->_data_bus() & 0b1000'0000) > 0);
 	});
 
 	this->_actions.push_back([this, &mode]() { this->write_memory(); });
@@ -1063,9 +1071,9 @@ void Cpu::dec(AddressingMode mode)
 void Cpu::dex(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
-		this->_x--;
-		this->z_flag(this->_x == 0);
-		this->n_flag((this->_x & 0b1000'0000) > 0);
+		this->_x_register--;
+		this->_status_register.z_flag(this->_x_register() == 0);
+		this->_status_register.n_flag((this->_x_register() & 0b1000'0000) > 0);
 	});
 }
 
@@ -1074,9 +1082,9 @@ void Cpu::dex(AddressingMode mode)
 void Cpu::dey(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
-		this->_y--;
-		this->z_flag(this->_y == 0);
-		this->n_flag((this->_y & 0b1000'0000) > 0);
+		this->_y_register--;
+		this->_status_register.z_flag(this->_y_register() == 0);
+		this->_status_register.n_flag((this->_y_register() & 0b1000'0000) > 0);
 	});
 }
 
@@ -1099,9 +1107,9 @@ void Cpu::eor(AddressingMode mode)
 		else
 			this->read_memory();
 
-		this->_a ^= this->_data_bus();
-		this->z_flag(this->_a == 0);
-		this->n_flag((this->_a & 0b1000'0000) > 0);
+		this->_accumulator(this->_accumulator() ^ this->_data_bus());
+		this->_status_register.z_flag(this->_accumulator() == 0);
+		this->_status_register.n_flag((this->_accumulator() & 0b1000'0000) > 0);
 	});
 }
 
@@ -1117,9 +1125,9 @@ void Cpu::inc(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() { this->read_memory(); });
 
 	this->_actions.push_back([this, &mode]() {
-		this->_data_bus(this->_alu.increment(this->_data_bus()));
-		this->z_flag(this->_data_bus() == 0);
-		this->n_flag((this->_data_bus() & 0b1000'0000) > 0);
+		this->_data_bus++;
+		this->_status_register.z_flag(this->_data_bus() == 0);
+		this->_status_register.n_flag((this->_data_bus() & 0b1000'0000) > 0);
 	});
 
 	this->_actions.push_back([this, &mode]() { this->write_memory(); });
@@ -1130,9 +1138,9 @@ void Cpu::inc(AddressingMode mode)
 void Cpu::inx(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
-		this->_x = this->_alu.increment(this->_x);
-		this->z_flag(this->_x == 0);
-		this->n_flag((this->_x & 0b1000'0000) > 0);
+		this->_x_register++;
+		this->_status_register.z_flag(this->_x_register() == 0);
+		this->_status_register.n_flag((this->_x_register() & 0b1000'0000) > 0);
 	});
 }
 
@@ -1141,9 +1149,9 @@ void Cpu::inx(AddressingMode mode)
 void Cpu::iny(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
-		this->_y = this->_alu.increment(this->_y);
-		this->z_flag(this->_y == 0);
-		this->n_flag((this->_y & 0b1000'0000) > 0);
+		this->_y_register++;
+		this->_status_register.z_flag(this->_y_register() == 0);
+		this->_status_register.n_flag((this->_y_register() & 0b1000'0000) > 0);
 	});
 }
 
@@ -1163,7 +1171,7 @@ void Cpu::jmp(AddressingMode mode)
 			this->fetch();
 			this->_address_bus.lowByte(this->_input_data_latch);
 			this->_address_bus.highByte(this->_data_bus());
-			this->program_counter() = this->address_bus();
+			this->_program_counter(this->_address_bus());
 		});
 	}
 	else
@@ -1180,34 +1188,34 @@ void Cpu::jsr(AddressingMode mode)
 		this->fetch();
 		this->_input_data_latch = this->_data_bus();
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
+		this->_address_bus.lowByte(this->_stack_register());
 	});
 
 	this->_actions.push_back([this, &mode]() {
 		this->read_memory();
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
-		this->_data_bus(this->program_counter_high());
+		this->_address_bus.lowByte(this->_stack_register());
+		this->_data_bus(this->_program_counter.highByte());
 	});
 
 	this->_actions.push_back([this, &mode]() {
 		this->write_memory();
-		this->_s--;
+		this->_stack_register--;
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
-		this->_data_bus(this->program_counter_low());
+		this->_address_bus.lowByte(this->_stack_register());
+		this->_data_bus(this->_program_counter.lowByte());
 	});
 
 	this->_actions.push_back([this, &mode]() {
 		this->write_memory();
-		this->_s--;
+		this->_stack_register--;
 	});
 
 	this->_actions.push_back([this]() {
 		this->fetch();
 		this->_address_bus.lowByte(this->_input_data_latch);
 		this->_address_bus.highByte(this->_data_bus());
-		this->program_counter() = this->address_bus();
+		this->_program_counter(this->_address_bus());
 	});
 }
 
@@ -1230,9 +1238,9 @@ void Cpu::lda(AddressingMode mode)
 		else
 			this->read_memory();
 
-		this->_a = this->_data_bus();
-		this->z_flag(this->_a == 0);
-		this->n_flag((this->_a & 0b1000'0000) > 0);
+		this->_accumulator(this->_data_bus());
+		this->_status_register.z_flag(this->_accumulator() == 0);
+		this->_status_register.n_flag((this->_accumulator() & 0b1000'0000) > 0);
 	});
 }
 
@@ -1252,9 +1260,9 @@ void Cpu::ldx(AddressingMode mode)
 		else
 			this->read_memory();
 
-		this->_x = this->_data_bus();
-		this->z_flag(this->_x == 0);
-		this->n_flag((this->_x & 0b1000'0000) > 0);
+		this->_x_register(this->_data_bus());
+		this->_status_register.z_flag(this->_x_register() == 0);
+		this->_status_register.n_flag((this->_x_register() & 0b1000'0000) > 0);
 	});
 }
 
@@ -1274,9 +1282,9 @@ void Cpu::ldy(AddressingMode mode)
 		else
 			this->read_memory();
 
-		this->_y = this->_data_bus();
-		this->z_flag(this->_y == 0);
-		this->n_flag((this->_y & 0b1000'0000) > 0);
+		this->_y_register(this->_data_bus());
+		this->_status_register.z_flag(this->_y_register() == 0);
+		this->_status_register.n_flag((this->_y_register() & 0b1000'0000) > 0);
 	});
 }
 
@@ -1291,10 +1299,10 @@ void Cpu::lsr(AddressingMode mode)
 	if (mode == AddressingMode::accumulator)
 	{
 		this->_actions.push_back([this, &mode]() {
-			this->_a = this->_alu.shift_right(this->_a);
-			this->c_flag(this->_alu.carry());
-			this->z_flag(this->_a == 0);
-			this->n_flag(0);
+			this->_alu.shift_right(this->_accumulator);
+			this->_status_register.c_flag(this->_alu.carry());
+			this->_status_register.z_flag(this->_accumulator() == 0);
+			this->_status_register.n_flag(0);
 		});
 		return;
 	}
@@ -1304,10 +1312,10 @@ void Cpu::lsr(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() { this->read_memory(); });
 
 	this->_actions.push_back([this, &mode]() {
-		this->_data_bus(this->_alu.shift_right(this->_data_bus()));
-		this->c_flag(this->_alu.carry());
-		this->z_flag(this->_data_bus() == 0);
-		this->n_flag(0);
+		this->_alu.shift_right(this->_data_bus);
+		this->_status_register.c_flag(this->_alu.carry());
+		this->_status_register.z_flag(this->_data_bus() == 0);
+		this->_status_register.n_flag(0);
 	});
 
 	this->_actions.push_back([this, &mode]() { this->write_memory(); });
@@ -1341,9 +1349,9 @@ void Cpu::ora(AddressingMode mode)
 		else
 			this->read_memory();
 
-		this->_a |= this->_data_bus();
-		this->z_flag(this->_a == 0);
-		this->n_flag((this->_a & 0b1000'0000) > 0);
+		this->_accumulator(this->_accumulator() | this->_data_bus());
+		this->_status_register.z_flag(this->_accumulator() == 0);
+		this->_status_register.n_flag((this->_accumulator() & 0b1000'0000) > 0);
 	});
 }
 
@@ -1354,13 +1362,13 @@ void Cpu::pha(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() {
 		this->read_memory();
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
-		this->_data_bus(this->_a);
+		this->_address_bus.lowByte(this->_stack_register());
+		this->_data_bus(this->_accumulator());
 	});
 
 	this->_actions.push_back([this, &mode]() {
 		this->write_memory();
-		this->_s--;
+		this->_stack_register--;
 	});
 }
 
@@ -1371,14 +1379,14 @@ void Cpu::php(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() {
 		this->read_memory();
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
+		this->_address_bus.lowByte(this->_stack_register());
 		// b flag and bit 5 are set to 1
-		this->_data_bus(this->_p | 0b0011'0000);
+		this->_data_bus(this->_status_register() | 0b0011'0000);
 	});
 
 	this->_actions.push_back([this, &mode]() {
 		this->write_memory();
-		this->_s--;
+		this->_stack_register--;
 	});
 }
 
@@ -1389,20 +1397,20 @@ void Cpu::pla(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() {
 		this->read_memory();
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
+		this->_address_bus.lowByte(this->_stack_register());
 	});
 
 	this->_actions.push_back([this, &mode]() {
 		this->read_memory();
-		this->_s++;
-		this->_address_bus.lowByte(this->_s);
+		this->_stack_register++;
+		this->_address_bus.lowByte(this->_stack_register());
 	});
 
 	this->_actions.push_back([this, &mode]() {
 		this->read_memory();
-		this->_a = this->_data_bus();
-		this->z_flag(this->_a == 0);
-		this->n_flag((this->_a & 0b1000'0000) > 0);
+		this->_accumulator(this->_data_bus());
+		this->_status_register.z_flag(this->_accumulator() == 0);
+		this->_status_register.n_flag((this->_accumulator() & 0b1000'0000) > 0);
 	});
 }
 
@@ -1413,20 +1421,20 @@ void Cpu::plp(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() {
 		this->read_memory();
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
+		this->_address_bus.lowByte(this->_stack_register());
 	});
 
 	this->_actions.push_back([this, &mode]() {
 		this->read_memory();
-		this->_s++;
-		this->_address_bus.lowByte(this->_s);
+		this->_stack_register++;
+		this->_address_bus.lowByte(this->_stack_register());
 	});
 
 	this->_actions.push_back([this, &mode]() {
 		this->read_memory();
 		// b flag and bit 5 should not be changed
-		uint8_t b_and_bit_5 = this->_p & 0b0011'0000;
-		this->_p = this->_data_bus() | b_and_bit_5;
+		uint8_t b_and_bit_5 = this->_status_register() & 0b0011'0000;
+		this->_status_register(this->_data_bus() | b_and_bit_5);
 	});
 }
 
@@ -1441,10 +1449,10 @@ void Cpu::rol(AddressingMode mode)
 	if (mode == AddressingMode::accumulator)
 	{
 		this->_actions.push_back([this, &mode]() {
-			this->_a = this->_alu.rotate_left(this->_a, this->c_flag());
-			this->c_flag(this->_alu.carry());
-			this->z_flag(this->_a == 0);
-			this->n_flag((this->_a & 0b1000'0000) > 0);
+			this->_alu.rotate_left(this->_accumulator, this->_status_register.c_flag());
+			this->_status_register.c_flag(this->_alu.carry());
+			this->_status_register.z_flag(this->_accumulator() == 0);
+			this->_status_register.n_flag((this->_accumulator() & 0b1000'0000) > 0);
 		});
 		return;
 	}
@@ -1454,10 +1462,10 @@ void Cpu::rol(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() { this->read_memory(); });
 
 	this->_actions.push_back([this, &mode]() {
-		this->_data_bus(this->_alu.rotate_left(this->_data_bus(), this->c_flag()));
-		this->c_flag(this->_alu.carry());
-		this->z_flag(this->_data_bus() == 0);
-		this->n_flag((this->_data_bus() & 0b1000'0000) > 0);
+		this->_alu.rotate_left(this->_data_bus, this->_status_register.c_flag());
+		this->_status_register.c_flag(this->_alu.carry());
+		this->_status_register.z_flag(this->_data_bus() == 0);
+		this->_status_register.n_flag((this->_data_bus() & 0b1000'0000) > 0);
 	});
 
 	this->_actions.push_back([this, &mode]() { this->write_memory(); });
@@ -1474,10 +1482,10 @@ void Cpu::ror(AddressingMode mode)
 	if (mode == AddressingMode::accumulator)
 	{
 		this->_actions.push_back([this, &mode]() {
-			this->_a = this->_alu.rotate_right(this->_a, this->c_flag());
-			this->c_flag(this->_alu.carry());
-			this->z_flag(this->_a == 0);
-			this->n_flag((this->_a & 0b1000'0000) > 0);
+			this->_alu.rotate_right(this->_accumulator, this->_status_register.c_flag());
+			this->_status_register.c_flag(this->_alu.carry());
+			this->_status_register.z_flag(this->_accumulator() == 0);
+			this->_status_register.n_flag((this->_accumulator() & 0b1000'0000) > 0);
 		});
 		return;
 	}
@@ -1487,10 +1495,10 @@ void Cpu::ror(AddressingMode mode)
 	this->_actions.push_back([this, &mode]() { this->read_memory(); });
 
 	this->_actions.push_back([this, &mode]() {
-		this->_data_bus(this->_alu.rotate_right(this->_data_bus(), this->c_flag()));
-		this->c_flag(this->_alu.carry());
-		this->z_flag(this->_data_bus() == 0);
-		this->n_flag((this->_data_bus() & 0b1000'0000) > 0);
+		this->_alu.rotate_right(this->_data_bus, this->_status_register.c_flag());
+		this->_status_register.c_flag(this->_alu.carry());
+		this->_status_register.z_flag(this->_data_bus() == 0);
+		this->_status_register.n_flag((this->_data_bus() & 0b1000'0000) > 0);
 	});
 
 	this->_actions.push_back([this, &mode]() { this->write_memory(); });
@@ -1503,36 +1511,36 @@ void Cpu::rti(AddressingMode mode)
 	this->_actions.push_back([this]() {
 		this->fetch();
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
+		this->_address_bus.lowByte(this->_stack_register());
 	});
 
 	this->_actions.push_back([this, &mode]() {
 		this->read_memory();
-		this->_s++;
+		this->_stack_register++;
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
+		this->_address_bus.lowByte(this->_stack_register());
 	});
 
 	this->_actions.push_back([this, &mode]() {
 		this->read_memory();
-		this->_p = this->_data_bus();
-		this->_s++;
+		this->_status_register(this->_data_bus());
+		this->_stack_register++;
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
+		this->_address_bus.lowByte(this->_stack_register());
 	});
 
 	this->_actions.push_back([this, &mode]() {
 		this->read_memory();
 		this->_input_data_latch = this->_data_bus();
-		this->_s++;
+		this->_stack_register++;
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
+		this->_address_bus.lowByte(this->_stack_register());
 	});
 
 	this->_actions.push_back([this, &mode]() {
 		this->read_memory();
-		this->program_counter_high() = this->_data_bus();
-		this->program_counter_low() = this->_input_data_latch;
+		this->_program_counter.highByte(this->_data_bus());
+		this->_program_counter.lowByte(this->_input_data_latch);
 	});
 }
 
@@ -1543,28 +1551,28 @@ void Cpu::rts(AddressingMode mode)
 	this->_actions.push_back([this]() {
 		this->fetch();
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
+		this->_address_bus.lowByte(this->_stack_register());
 	});
 
 	this->_actions.push_back([this, &mode]() {
 		this->read_memory();
-		this->_s++;
+		this->_stack_register++;
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
+		this->_address_bus.lowByte(this->_stack_register());
 	});
 
 	this->_actions.push_back([this, &mode]() {
 		this->read_memory();
 		this->_input_data_latch = this->_data_bus();
-		this->_s++;
+		this->_stack_register++;
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
+		this->_address_bus.lowByte(this->_stack_register());
 	});
 
 	this->_actions.push_back([this, &mode]() {
 		this->read_memory();
-		this->program_counter_high() = this->_data_bus();
-		this->program_counter_low() = this->_input_data_latch;
+		this->_program_counter.highByte(this->_data_bus());
+		this->_program_counter.lowByte(this->_input_data_latch);
 	});
 
 	this->_actions.push_back([this]() { this->fetch(); });
@@ -1589,11 +1597,12 @@ void Cpu::sbc(AddressingMode mode)
 		else
 			this->read_memory();
 
-		this->_a = this->_alu.subtract(this->_a, this->_data_bus(), !this->c_flag());
-		this->c_flag(this->_alu.carry());
-		this->v_flag(this->_alu.overflow());
-		this->z_flag(this->_a == 0);
-		this->n_flag((this->_a & 0b1000'0000) > 0);
+		this->_accumulator(this->_alu.subtract(this->_accumulator(), this->_data_bus(),
+			!this->_status_register.c_flag()));
+		this->_status_register.c_flag(this->_alu.carry());
+		this->_status_register.v_flag(this->_alu.overflow());
+		this->_status_register.z_flag(this->_accumulator() == 0);
+		this->_status_register.n_flag((this->_accumulator() & 0b1000'0000) > 0);
 	});
 }
 
@@ -1601,21 +1610,21 @@ void Cpu::sbc(AddressingMode mode)
 /// @param mode 0x38 Implicit
 void Cpu::sec(AddressingMode mode)
 {
-	this->_actions.push_back([this]() { this->c_flag(true); });
+	this->_actions.push_back([this]() { this->_status_register.c_flag(true); });
 }
 
 /// @brief Set Decimal Flag (2 cycles)
 /// @param mode 0xf8 implicit
 void Cpu::sed(AddressingMode mode)
 {
-	this->_actions.push_back([this]() { this->d_flag(true); });
+	this->_actions.push_back([this]() { this->_status_register.d_flag(true); });
 }
 
 /// @brief Set Interrupt Disable (2 cycles)
 /// @param mode 0x78 Implicit
 void Cpu::sei(AddressingMode mode)
 {
-	this->_actions.push_back([this]() { this->i_flag(true); });
+	this->_actions.push_back([this]() { this->_status_register.i_flag(true); });
 }
 
 /// @brief Store Accumulator (3-6 cycles)
@@ -1631,7 +1640,7 @@ void Cpu::sta(AddressingMode mode)
 	queue_addressing_actions(mode);
 
 	this->_actions.push_back([this]() {
-		this->_data_bus(this->_a);
+		this->_data_bus(this->_accumulator());
 		this->write_memory();
 	});
 }
@@ -1644,7 +1653,7 @@ void Cpu::stx(AddressingMode mode)
 	queue_addressing_actions(mode);
 
 	this->_actions.push_back([this]() {
-		this->_data_bus(this->_x);
+		this->_data_bus(this->_x_register());
 		this->write_memory();
 	});
 }
@@ -1657,7 +1666,7 @@ void Cpu::sty(AddressingMode mode)
 	queue_addressing_actions(mode);
 
 	this->_actions.push_back([this]() {
-		this->_data_bus(this->_y);
+		this->_data_bus(this->_y_register());
 		this->write_memory();
 	});
 }
@@ -1667,9 +1676,9 @@ void Cpu::sty(AddressingMode mode)
 void Cpu::tax(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
-		this->_x = this->_a;
-		this->z_flag(this->_x == 0);
-		this->n_flag((this->_x & 0b1000'0000) > 0);
+		this->_x_register(this->_accumulator());
+		this->_status_register.z_flag(this->_x_register() == 0);
+		this->_status_register.n_flag((this->_x_register() & 0b1000'0000) > 0);
 	});
 }
 
@@ -1678,9 +1687,9 @@ void Cpu::tax(AddressingMode mode)
 void Cpu::tay(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
-		this->_y = this->_a;
-		this->z_flag(this->_y == 0);
-		this->n_flag((this->_y & 0b1000'0000) > 0);
+		this->_y_register(this->_accumulator());
+		this->_status_register.z_flag(this->_y_register() == 0);
+		this->_status_register.n_flag((this->_y_register() & 0b1000'0000) > 0);
 	});
 }
 
@@ -1689,9 +1698,9 @@ void Cpu::tay(AddressingMode mode)
 void Cpu::tsx(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
-		this->_x = this->_s;
-		this->z_flag(this->_x == 0);
-		this->n_flag((this->_x & 0b1000'0000) > 0);
+		this->_x_register(this->_stack_register());
+		this->_status_register.z_flag(this->_x_register() == 0);
+		this->_status_register.n_flag((this->_x_register() & 0b1000'0000) > 0);
 	});
 }
 
@@ -1700,9 +1709,9 @@ void Cpu::tsx(AddressingMode mode)
 void Cpu::txa(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
-		this->_a = this->_x;
-		this->z_flag(this->_a == 0);
-		this->n_flag((this->_a & 0b1000'0000) > 0);
+		this->_accumulator(this->_x_register());
+		this->_status_register.z_flag(this->_accumulator() == 0);
+		this->_status_register.n_flag((this->_accumulator() & 0b1000'0000) > 0);
 	});
 }
 
@@ -1710,7 +1719,7 @@ void Cpu::txa(AddressingMode mode)
 /// @param mode 0x9a Implicit
 void Cpu::txs(AddressingMode mode)
 {
-	this->_actions.push_back([this]() { this->_s = this->_x; });
+	this->_actions.push_back([this]() { this->_stack_register(this->_x_register()); });
 }
 
 /// @brief Transfer Y to Accumulator (2 cycles)
@@ -1718,9 +1727,9 @@ void Cpu::txs(AddressingMode mode)
 void Cpu::tya(AddressingMode mode)
 {
 	this->_actions.push_back([this]() {
-		this->_a = this->_y;
-		this->z_flag(this->_a == 0);
-		this->n_flag((this->_a & 0b1000'0000) > 0);
+		this->_accumulator(this->_y_register());
+		this->_status_register.z_flag(this->_accumulator() == 0);
+		this->_status_register.n_flag((this->_accumulator() & 0b1000'0000) > 0);
 	});
 }
 
@@ -1729,39 +1738,39 @@ void Cpu::nmi_impl()
 {
 	this->_actions.push_back([this]() {
 		this->_executing_interrupt = true;
-		this->_address_bus(this->program_counter());
+		this->_address_bus(this->_program_counter());
 		this->read_memory();
 		this->_instruction = 0x00;
-		this->_address_bus(this->program_counter());
+		this->_address_bus(this->_program_counter());
 	});
 
 	this->_actions.push_back([this]() {
 		this->read_memory();
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
-		this->_data_bus(this->program_counter_high());
+		this->_address_bus.lowByte(this->_stack_register());
+		this->_data_bus(this->_program_counter.highByte());
 	});
 
 	this->_actions.push_back([this]() {
 		this->write_memory();
-		this->_s--;
+		this->_stack_register--;
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
-		this->_data_bus(this->program_counter_low());
+		this->_address_bus.lowByte(this->_stack_register());
+		this->_data_bus(this->_program_counter.lowByte());
 	});
 
 	this->_actions.push_back([this]() {
 		this->write_memory();
-		this->_s--;
+		this->_stack_register--;
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
-		this->b_flag(false);
-		this->_data_bus(this->_p);
+		this->_address_bus.lowByte(this->_stack_register());
+		this->_status_register.b_flag(false);
+		this->_data_bus(this->_status_register());
 	});
 
 	this->_actions.push_back([this]() {
 		this->write_memory();
-		this->_s--;
+		this->_stack_register--;
 		this->_address_bus.highByte(0xff);
 		this->_address_bus.lowByte(0xfa);
 	});
@@ -1775,8 +1784,8 @@ void Cpu::nmi_impl()
 
 	this->_actions.push_back([this]() {
 		this->read_memory();
-		this->program_counter_low() = this->_input_data_latch;
-		this->program_counter_high() = this->_data_bus();
+		this->_program_counter.lowByte(this->_input_data_latch);
+		this->_program_counter.highByte(this->_data_bus());
 		this->_executing_interrupt = false;
 	});
 }
@@ -1787,39 +1796,39 @@ void Cpu::irq_impl()
 {
 	this->_actions.push_back([this]() {
 		this->_executing_interrupt = true;
-		this->_address_bus(this->program_counter());
+		this->_address_bus(this->_program_counter());
 		this->read_memory();
 		this->_instruction = 0x00;
-		this->_address_bus(this->program_counter());
+		this->_address_bus(this->_program_counter());
 	});
 
 	this->_actions.push_back([this]() {
 		this->read_memory();
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
-		this->_data_bus(this->program_counter_high());
+		this->_address_bus.lowByte(this->_stack_register());
+		this->_data_bus(this->_program_counter.highByte());
 	});
 
 	this->_actions.push_back([this]() {
 		this->write_memory();
-		this->_s--;
+		this->_stack_register--;
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
-		this->_data_bus(this->program_counter_low());
+		this->_address_bus.lowByte(this->_stack_register());
+		this->_data_bus(this->_program_counter.lowByte());
 	});
 
 	this->_actions.push_back([this]() {
 		this->write_memory();
-		this->_s--;
+		this->_stack_register--;
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
-		this->b_flag(false);
-		this->_data_bus(this->_p);
+		this->_address_bus.lowByte(this->_stack_register());
+		this->_status_register.b_flag(false);
+		this->_data_bus(this->_status_register());
 	});
 
 	this->_actions.push_back([this]() {
 		this->write_memory();
-		this->_s--;
+		this->_stack_register--;
 		this->_address_bus.highByte(0xff);
 		this->_address_bus.lowByte(0xfe);
 	});
@@ -1833,8 +1842,8 @@ void Cpu::irq_impl()
 
 	this->_actions.push_back([this]() {
 		this->read_memory();
-		this->program_counter_low() = this->_input_data_latch;
-		this->program_counter_high() = this->_data_bus();
+		this->_program_counter.lowByte(this->_input_data_latch);
+		this->_program_counter.highByte(this->_data_bus());
 		this->_executing_interrupt = false;
 	});
 }
@@ -1845,36 +1854,36 @@ void Cpu::res()
 	// writes are disabled durring reset
 	this->_actions.push_back([this]() {
 		this->_executing_interrupt = true;
-		this->_address_bus(this->program_counter());
+		this->_address_bus(this->_program_counter());
 		this->read_memory();
 		this->_instruction = 0x00;
-		this->_address_bus(this->program_counter());
+		this->_address_bus(this->_program_counter());
 	});
 
 	this->_actions.push_back([this]() {
 		this->read_memory();
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
-		this->_data_bus(this->program_counter_high());
+		this->_address_bus.lowByte(this->_stack_register());
+		this->_data_bus(this->_program_counter.highByte());
 	});
 
 	this->_actions.push_back([this]() {
-		this->_s--;
+		this->_stack_register--;
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
-		this->_data_bus(this->program_counter_low());
+		this->_address_bus.lowByte(this->_stack_register());
+		this->_data_bus(this->_program_counter.lowByte());
 	});
 
 	this->_actions.push_back([this]() {
-		this->_s--;
+		this->_stack_register--;
 		this->_address_bus.highByte(0x01);
-		this->_address_bus.lowByte(this->_s);
-		this->b_flag(false);
-		this->_data_bus(this->_p);
+		this->_address_bus.lowByte(this->_stack_register());
+		this->_status_register.b_flag(false);
+		this->_data_bus(this->_status_register());
 	});
 
 	this->_actions.push_back([this]() {
-		this->_s--;
+		this->_stack_register--;
 		this->_address_bus.highByte(0xff);
 		this->_address_bus.lowByte(0xfc);
 	});
@@ -1888,8 +1897,8 @@ void Cpu::res()
 
 	this->_actions.push_back([this]() {
 		this->read_memory();
-		this->program_counter_low() = this->_input_data_latch;
-		this->program_counter_high() = this->_data_bus();
+		this->_program_counter.lowByte(this->_input_data_latch);
+		this->_program_counter.highByte(this->_data_bus());
 		this->_executing_interrupt = false;
 	});
 }
