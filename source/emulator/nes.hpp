@@ -41,7 +41,7 @@ public:
 	Texture getCpuDebugTexture() const;
 
 	void loadFile(const std::string& filepath);
-	inline bool isGameRunning() const { return this->_game_loaded; }
+	bool isGameLoaded() const { return this->_game_loaded; }
 
 	void cycle();
 	void cycle(uint64_t num)

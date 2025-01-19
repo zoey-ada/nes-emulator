@@ -9,9 +9,6 @@ Nes::Nes(std::shared_ptr<IRenderer> renderer)
 	else
 		this->setupNes();
 
-	// std::string cart_name = "c:/Users/zoeya/Downloads/Super Mario Bros (E).nes";
-	// this->_cart = this->_cart_loader->load_cartridge(cart_name);
-
 	this->blankFrame();
 }
 
@@ -44,6 +41,7 @@ Texture Nes::getCpuDebugTexture() const
 
 void Nes::loadFile(const std::string& filepath)
 {
+	this->_game_loaded = false;
 	this->_cart = this->_cart_loader->load_cartridge(filepath);
 
 	this->_ppu_memory->load_cartridge(this->_cart.get());
@@ -113,7 +111,7 @@ void Nes::cycle()
 
 void Nes::step()
 {
-	if (!this->_cart)
+	if (!this->isGameLoaded())
 		return;
 
 	this->cycle(3);
@@ -121,7 +119,7 @@ void Nes::step()
 
 void Nes::leap()
 {
-	if (!this->_cart)
+	if (!this->isGameLoaded())
 		return;
 
 	this->cycle(3 * 10);
@@ -129,7 +127,7 @@ void Nes::leap()
 
 void Nes::bound()
 {
-	if (!this->_cart)
+	if (!this->isGameLoaded())
 		return;
 
 	this->cycle(3 * 10 * 100);

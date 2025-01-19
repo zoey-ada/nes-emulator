@@ -35,8 +35,7 @@ private:
 	int _height {_nes_height};
 	int _width {_nes_width + 1 + 2 * _pattern_table_width + 1};
 
-	bool _run {true};
-	bool _debugging {true};
+	bool _is_paused {true};
 
 	uint64_t _ppu_cycles_per_update {512};
 

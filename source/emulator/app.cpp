@@ -34,7 +34,7 @@ void App::run()
 
 void App::update(Milliseconds now, Milliseconds delta_ms)
 {
-	if (!this->_debugging)
+	if (!this->_is_paused)
 		this->_nes->cycle(this->_ppu_cycles_per_update);
 }
 
@@ -71,7 +71,8 @@ void App::handleEvent(const SDL_Event& e)
 		}
 		else if (key == SDL_Scancode::SDL_SCANCODE_SPACE)
 		{
-			this->_debugging = !this->_debugging;
+			if (this->_nes->isGameLoaded())
+				this->_is_paused = !this->_is_paused;
 		}
 		else if (key == SDL_Scancode::SDL_SCANCODE_P)
 		{
@@ -135,18 +136,18 @@ void App::renderFrame(NesFrame frame)
 
 void App::step()
 {
-	if (this->_nes->isGameRunning() && this->_debugging)
+	if (this->_nes->isGameLoaded() && this->_is_paused)
 		this->_nes->step();
 }
 
 void App::leap()
 {
-	if (this->_nes->isGameRunning() && this->_debugging)
+	if (this->_nes->isGameLoaded() && this->_is_paused)
 		this->_nes->leap();
 }
 
 void App::bound()
 {
-	if (this->_nes->isGameRunning() && this->_debugging)
+	if (this->_nes->isGameLoaded() && this->_is_paused)
 		this->_nes->bound();
 }
