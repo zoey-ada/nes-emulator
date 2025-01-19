@@ -8,6 +8,7 @@
 #include <cpu/cpu.hpp>
 #include <cpu/memoryMapper.hpp>
 #include <dma/dma.hpp>
+#include <platform/iRenderer.hpp>
 #include <ppu/ppu.hpp>
 #include <ppu/ppuMemoryMapper.hpp>
 
@@ -17,8 +18,6 @@
 #include "sdlController.hpp"
 
 class Cartridge;
-struct SDL_Renderer;
-struct SDL_Texture;
 
 const uint64_t even_cycles = 89342;
 const uint64_t odd_cycles = 89341;
@@ -33,13 +32,13 @@ using NesFrame = std::array<Pixel, nes_total_pixels>;
 class Nes
 {
 public:
-	Nes(SDL_Renderer* renderer);
+	Nes(std::shared_ptr<IRenderer> renderer);
 
 	void produceNesFrame();
 	NesFrame getFrame() { return this->_frame; }
-	SDL_Texture* getLeftPtTexture() const;
-	SDL_Texture* getRightPtTexture() const;
-	SDL_Texture* getCpuDebugTexture() const;
+	Texture getLeftPtTexture() const;
+	Texture getRightPtTexture() const;
+	Texture getCpuDebugTexture() const;
 
 	void loadFile(const std::string& filepath);
 	inline bool isGameRunning() const { return this->_game_loaded; }
@@ -91,6 +90,6 @@ private:
 	void blankFrame();
 	void resetCurrentCycle();
 
-	void setupDebugNes(SDL_Renderer* renderer);
+	void setupDebugNes(std::shared_ptr<IRenderer> renderer);
 	void setupNes();
 };

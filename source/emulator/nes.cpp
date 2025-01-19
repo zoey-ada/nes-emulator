@@ -1,9 +1,8 @@
 #include "nes.hpp"
 
-#include <SDL.h>
 #include <base/slowMemory.hpp>
 
-Nes::Nes(SDL_Renderer* renderer)
+Nes::Nes(std::shared_ptr<IRenderer> renderer)
 {
 	if (this->_debug_mode)
 		this->setupDebugNes(renderer);
@@ -19,7 +18,7 @@ Nes::Nes(SDL_Renderer* renderer)
 void Nes::produceNesFrame()
 {}
 
-SDL_Texture* Nes::getLeftPtTexture() const
+Texture Nes::getLeftPtTexture() const
 {
 	if (this->_debug_mode)
 		return this->_debug_ppu->leftPtTexture();
@@ -27,7 +26,7 @@ SDL_Texture* Nes::getLeftPtTexture() const
 		return nullptr;
 }
 
-SDL_Texture* Nes::getRightPtTexture() const
+Texture Nes::getRightPtTexture() const
 {
 	if (this->_debug_mode)
 		return this->_debug_ppu->rightPtTexture();
@@ -35,7 +34,7 @@ SDL_Texture* Nes::getRightPtTexture() const
 		return nullptr;
 }
 
-SDL_Texture* Nes::getCpuDebugTexture() const
+Texture Nes::getCpuDebugTexture() const
 {
 	if (this->_debug_mode)
 		return this->_debug_cpu->getTexture();
@@ -185,7 +184,7 @@ void Nes::resetCurrentCycle()
 	this->_current_cycle = 0;
 }
 
-void Nes::setupDebugNes(SDL_Renderer* renderer)
+void Nes::setupDebugNes(std::shared_ptr<IRenderer> renderer)
 {
 	this->_cart_loader = std::make_unique<CartridgeLoader>();
 

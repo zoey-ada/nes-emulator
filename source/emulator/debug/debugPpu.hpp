@@ -1,25 +1,25 @@
 #pragma once
 
 #include <map>
+#include <memory>
 
 #include <base/color.hpp>
+#include <platform/iRenderer.hpp>
 #include <ppu/ppu.hpp>
 
 #include "palette.hpp"
 #include "patternTable.hpp"
 
 class Cartridge;
-struct SDL_Renderer;
-struct SDL_Texture;
 
 class DebugPpu: public PictureProcessingUnit
 {
 public:
-	DebugPpu(IMemory* memory, IMemory* oam, SDL_Renderer* renderer);
+	DebugPpu(IMemory* memory, IMemory* oam, std::shared_ptr<IRenderer> renderer);
 	virtual ~DebugPpu();
 
-	SDL_Texture* leftPtTexture() const { return this->_left_pattern_table.getTexture(); }
-	SDL_Texture* rightPtTexture() const { return this->_right_pattern_table.getTexture(); }
+	Texture leftPtTexture() const { return this->_left_pattern_table.getTexture(); }
+	Texture rightPtTexture() const { return this->_right_pattern_table.getTexture(); }
 
 	void loadCartridge(Cartridge* cart);
 
@@ -35,7 +35,7 @@ private:
 
 	std::map<PaletteType, Palette> _palettes;
 
-	SDL_Renderer* _renderer;
+	std::shared_ptr<IRenderer> _renderer;
 	Cartridge* _cart;
 
 	void drawPatternTables();

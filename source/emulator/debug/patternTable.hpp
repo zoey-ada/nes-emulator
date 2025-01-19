@@ -5,12 +5,11 @@
 #include <memory>
 
 #include <base/pixel.hpp>
+#include <platform/iRenderer.hpp>
 
 #include "palette.hpp"
 
 class Cartridge;
-struct SDL_Renderer;
-struct SDL_Texture;
 
 const uint16_t pt_width_in_pixels = 128;
 const uint16_t pt_height_in_pixels = 128;
@@ -28,7 +27,7 @@ enum class PatternTableType
 class PatternTable
 {
 public:
-	PatternTable(PatternTableType pt_type, SDL_Renderer* renderer);
+	PatternTable(PatternTableType pt_type, std::shared_ptr<IRenderer> renderer);
 	virtual ~PatternTable();
 
 	void draw();
@@ -37,19 +36,19 @@ public:
 	void loadCartridge(Cartridge* cart);
 	void loadPalette(Palette palette);
 
-	SDL_Texture* getTexture() const { return this->_texture; }
+	Texture getTexture() const { return this->_texture; }
 
 private:
-	PatternTableType _pt_type;
 	Cartridge* _cart {nullptr};
 	Palette _palette {greyscale_palette};
 
 	PatternTableIndexedImage _indexed_image;
-	SDL_Renderer* _renderer {nullptr};
+	std::shared_ptr<IRenderer> _renderer {nullptr};
+	Texture _texture {nullptr};
 
-	SDL_Texture* _texture {nullptr};
-	int _texture_height {pt_width_in_pixels};
-	int _texture_width {pt_height_in_pixels};
+	PatternTableType _pt_type;
+	int _height {pt_width_in_pixels};
+	int _width {pt_height_in_pixels};
 
 	void updateTexture(const PatternTableImage& pixel_data);
 	std::array<uint8_t, 8> compilePatternTableBytes(uint8_t high_byte, uint8_t low_byte);

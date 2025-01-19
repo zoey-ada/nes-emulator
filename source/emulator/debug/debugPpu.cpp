@@ -1,11 +1,10 @@
 #include "debugPpu.hpp"
 
-#include <SDL.h>
 #include <base/iMemory.hpp>
 #include <cartridge/cartridge.hpp>
 #include <ppu/ppuMemoryMapper.hpp>
 
-DebugPpu::DebugPpu(IMemory* memory, IMemory* oam, SDL_Renderer* renderer)
+DebugPpu::DebugPpu(IMemory* memory, IMemory* oam, std::shared_ptr<IRenderer> renderer)
 	: PictureProcessingUnit(memory, oam),
 	  _renderer(renderer),
 	  _left_pattern_table(PatternTableType::Left, renderer),

@@ -3,18 +3,10 @@
 #include <SDL.h>
 #include <cartridge/cartridge.hpp>
 
-PatternTable::PatternTable(PatternTableType pt_type, SDL_Renderer* renderer)
+PatternTable::PatternTable(PatternTableType pt_type, std::shared_ptr<IRenderer> renderer)
 	: _pt_type(pt_type), _renderer(renderer)
 {
-	this->_texture = SDL_CreateTexture(this->_renderer, SDL_PIXELFORMAT_ARGB8888,
-		SDL_TEXTUREACCESS_STREAMING, this->_texture_width, this->_texture_height);
-	if (this->_texture == nullptr)
-	{
-		char message[500];
-		sprintf_s(message, 500, "left pattern table texture could not be created. SDL_Error: %s\n",
-			SDL_GetError());
-		throw std::exception(message);
-	}
+	this->_texture = this->_renderer->createTexture(this->_width, this->_height);
 
 	PatternTableImage image;
 	image.fill({0x00, 0x00, 0x00});
@@ -24,7 +16,7 @@ PatternTable::PatternTable(PatternTableType pt_type, SDL_Renderer* renderer)
 PatternTable::~PatternTable()
 {
 	if (this->_texture)
-		SDL_DestroyTexture(this->_texture);
+		this->_renderer->destroyTexture(this->_texture);
 	this->_texture = nullptr;
 
 	this->_renderer = nullptr;
@@ -114,12 +106,7 @@ void PatternTable::loadPalette(Palette palette)
 
 void PatternTable::updateTexture(const PatternTableImage& pixel_data)
 {
-	void* pixels = nullptr;
-	int pitch = 0;
-	SDL_LockTexture(this->_texture, nullptr, &pixels, &pitch);
-	memcpy(pixels, pixel_data.data(), sizeof(pixel_data));
-	pixels = nullptr;
-	SDL_UnlockTexture(this->_texture);
+	this->_renderer->updateTexture(this->_texture, pixel_data.data(), sizeof(pixel_data));
 }
 
 std::array<uint8_t, 8> PatternTable::compilePatternTableBytes(uint8_t low_byte, uint8_t high_byte)

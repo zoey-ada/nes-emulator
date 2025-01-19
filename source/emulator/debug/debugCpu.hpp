@@ -6,20 +6,20 @@
 #include <base/pixel.hpp>
 #include <cpu/addressing_modes.hpp>
 #include <cpu/cpu.hpp>
+#include <platform/iRenderer.hpp>
 
+#include "codeViewer.hpp"
 #include "cpuRecorder.hpp"
 #include "cpuRenderer.hpp"
 #include "cpuStackFrame.hpp"
 #include "decompiler.hpp"
 
 class IMemory;
-struct SDL_Renderer;
-struct SDL_Texture;
 
 class DebugCpu: public Cpu
 {
 public:
-	DebugCpu(IMemory* memory, SDL_Renderer* renderer);
+	DebugCpu(IMemory* memory, std::shared_ptr<IRenderer> renderer);
 	virtual ~DebugCpu() = default;
 
 	void reset() override;
@@ -29,14 +29,15 @@ public:
 	void cycle() override;
 	void cycle(uint64_t number_cycles) override;
 
-	SDL_Texture* getTexture();
+	Texture getTexture();
 
 	inline CpuStackFrame getLastStackFrame() const { return this->_last_cycle; }
 
 private:
 	Decompiler _decompiler;
-	CpuRecorder _recorder;
-	CpuRenderer _renderer;
+	// CodeViewer _code_viewer;
+	CpuRecorder _cpu_recorder;
+	CpuRenderer _cpu_renderer;
 
 	CpuStackFrame _last_cycle;
 	std::string _current_instruction;

@@ -3,15 +3,16 @@
 #include <format>
 
 #include <base/iMemory.hpp>
+#include <platform/sdlRenderer.hpp>
 
 #include "operations.hpp"
 
-// void DebugCpu::produceFrame()
-// {}
-
-DebugCpu::DebugCpu(IMemory* memory, SDL_Renderer* renderer)
-	: Cpu(memory), _decompiler(memory), _recorder(), _renderer(renderer)
-{}
+DebugCpu::DebugCpu(IMemory* memory, std::shared_ptr<IRenderer> renderer)
+	: Cpu(memory), _decompiler(memory), _cpu_recorder(), _cpu_renderer(renderer)
+{
+	// std::make_shared<SdlRenderer>();
+	// _code_viewer(renderer, 1)
+}
 
 void DebugCpu::reset()
 {
@@ -39,12 +40,12 @@ void DebugCpu::cycle()
 	Cpu::cycle();
 
 	this->_last_cycle = {
-		this->accumulator(),
-		this->x_register(),
-		this->y_register(),
-		this->status_register(),
-		this->stack_register(),
-		this->program_counter(),
+		this->_accumulator(),
+		this->_x_register(),
+		this->_y_register(),
+		this->_status_register(),
+		this->_stack_register(),
+		this->_program_counter(),
 		this->instruction_register(),
 		this->input_data_latch(),
 		this->address_bus(),
@@ -53,7 +54,7 @@ void DebugCpu::cycle()
 	};
 
 	if (this->_record_stack_frames)
-		this->_recorder.logFrame(this->_last_cycle);
+		this->_cpu_recorder.logFrame(this->_last_cycle);
 }
 
 void DebugCpu::cycle(const uint64_t number_cycles)
@@ -62,14 +63,14 @@ void DebugCpu::cycle(const uint64_t number_cycles)
 		this->cycle();
 }
 
-SDL_Texture* DebugCpu::getTexture()
+Texture DebugCpu::getTexture()
 {
-	this->_renderer.produceFrame(this->_last_cycle);
-	return this->_renderer.getTexture();
+	this->_cpu_renderer.produceFrame(this->_last_cycle);
+	return this->_cpu_renderer.getTexture();
 }
 
 void DebugCpu::queue_next_instruction()
 {
-	this->_current_instruction = this->_decompiler.decompileInstruction(this->program_counter());
+	this->_current_instruction = this->_decompiler.decompileInstruction(this->_program_counter());
 	Cpu::queue_next_instruction();
 }
