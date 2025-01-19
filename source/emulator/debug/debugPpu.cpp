@@ -38,7 +38,7 @@ void DebugPpu::nextPalette()
 void DebugPpu::prevPalette()
 {
 	auto palette_num = static_cast<int>(this->_current_palette);
-	palette_num = (palette_num - 1) % 9;
+	palette_num = (palette_num - 1 + NumberPalettes) % 9;
 	this->_current_palette = PaletteType(palette_num);
 
 	this->_left_pattern_table.loadPalette(this->_palettes[this->_current_palette]);

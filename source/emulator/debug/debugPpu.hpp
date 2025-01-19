@@ -12,6 +12,8 @@
 
 class Cartridge;
 
+const int NumberPalettes = 9;
+
 class DebugPpu: public PictureProcessingUnit
 {
 public:
