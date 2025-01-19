@@ -42,7 +42,7 @@ private:
 
 	int _line_height {30};
 	int _num_lines {0};
-	int _top_line {0};
+	uint16_t _top_line {0};
 
 	int _width {400};
 	int _height {0};

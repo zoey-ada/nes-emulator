@@ -30,7 +30,8 @@ std::map<uint16_t, std::string> Decompiler::decompileAllInstructions(
 		if (operations.contains(opcode))
 		{
 			auto operation = operations[opcode];
-			code[index] = this->decompileInstruction(operation, address);
+			code[index] =
+				std::format("${:04x}  {}", address, this->decompileInstruction(operation, address));
 			address += this->getNumBytes(operation.addressing_mode);
 			index++;
 		}
@@ -157,7 +158,7 @@ std::string Decompiler::readIndirectYInstruction(const OperationInfo& operation,
 	uint8_t data = this->_program_memory->read(address + 1);
 
 	char buffer[13];
-	snprintf(buffer, 13, "%s ($%02x,Y) ", operation.name.c_str(), data);
+	snprintf(buffer, 13, "%s ($%02x),Y ", operation.name.c_str(), data);
 	return std::string(buffer);
 	// return std::format("{} (${:02x}),Y ", operation.name, data);
 }

@@ -28,11 +28,6 @@ void CodeViewer::loadFile(const std::string& filepath)
 	this->_program_rom = std::make_unique<MemoryWrapper>(this->_cart->getProgramRom());
 	this->_decompiler.loadProgramMemory(this->_program_rom.get());
 	this->_code = this->_decompiler.decompileAllInstructions(this->_program_rom->size() - 6);
-	// this->_code.push_back(this->_program_rom[this->_program_rom->size() - 5]);
-	// this->_code.push_back(this->_program_rom[this->_program_rom->size() - 4]);
-	// this->_code.push_back(this->_program_rom[this->_program_rom->size() - 3]);
-	// this->_code.push_back(this->_program_rom[this->_program_rom->size() - 2]);
-	// this->_code.push_back(this->_program_rom[this->_program_rom->size() - 1]);
 
 	this->cleanup_line_textures();
 	this->_top_line = 0;
@@ -61,7 +56,7 @@ void CodeViewer::scrollUp()
 void CodeViewer::scrollDown()
 {
 	int bottom_line = this->_top_line + this->_num_lines - 1;
-	if (!this->_code.contains(bottom_line + 1))
+	if (!this->_code.contains(bottom_line))
 		return;
 
 	auto texture = this->_line_textures.front();
