@@ -19,7 +19,6 @@ PatternTable::~PatternTable()
 		this->_renderer->destroyTexture(this->_texture);
 	this->_texture = nullptr;
 
-	this->_renderer = nullptr;
 	this->_cart = nullptr;
 }
 

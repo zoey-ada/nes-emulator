@@ -36,9 +36,10 @@ public:
 
 	void produceNesFrame();
 	NesFrame getFrame() { return this->_frame; }
+	Texture getCpuDebugTexture() const;
+	Texture getPaletteTableTexture() const;
 	Texture getLeftPtTexture() const;
 	Texture getRightPtTexture() const;
-	Texture getCpuDebugTexture() const;
 
 	void loadFile(const std::string& filepath);
 	bool isGameLoaded() const { return this->_game_loaded; }

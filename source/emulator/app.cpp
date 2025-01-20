@@ -105,6 +105,27 @@ void App::renderFrame(NesFrame frame)
 	this->_renderer->updateTexture(this->_nes_texture, frame.data(), sizeof(frame));
 	this->_renderer->drawTexture(this->_nes_texture, dest_rect);
 
+	// cpu debug
+	auto size = this->_renderer->measureTexture(this->_nes->getCpuDebugTexture());
+	dest_rect = {
+		this->_nes_width + 1,
+		0,
+		size.width,
+		size.height,
+	};
+	this->_renderer->drawTexture(this->_nes->getCpuDebugTexture(), dest_rect);
+
+	// palette table
+	size = this->_renderer->measureTexture(this->_nes->getPaletteTableTexture());
+	dest_rect = {
+		this->_nes_width + 1,
+		this->_height - this->_pattern_table_height - 1 -
+			(size.height * this->_palette_table_scale),
+		size.width * this->_palette_table_scale,
+		size.height * this->_palette_table_scale,
+	};
+	this->_renderer->drawTexture(this->_nes->getPaletteTableTexture(), dest_rect);
+
 	// left pattern table
 	dest_rect = {
 		this->_nes_width + 1,
@@ -112,7 +133,7 @@ void App::renderFrame(NesFrame frame)
 		this->_pattern_table_width,
 		this->_pattern_table_height,
 	};
-	this->_renderer->drawTexture((Texture)this->_nes->getLeftPtTexture(), dest_rect);
+	this->_renderer->drawTexture(this->_nes->getLeftPtTexture(), dest_rect);
 
 	// right pattern table
 	dest_rect = {
@@ -121,17 +142,7 @@ void App::renderFrame(NesFrame frame)
 		this->_pattern_table_width,
 		this->_pattern_table_height,
 	};
-	this->_renderer->drawTexture((Texture)this->_nes->getRightPtTexture(), dest_rect);
-
-	// cpu debug
-	auto size = this->_renderer->measureTexture((Texture)this->_nes->getCpuDebugTexture());
-	dest_rect = {
-		this->_nes_width + 1,
-		0,
-		size.width,
-		size.height,
-	};
-	this->_renderer->drawTexture((Texture)this->_nes->getCpuDebugTexture(), dest_rect);
+	this->_renderer->drawTexture(this->_nes->getRightPtTexture(), dest_rect);
 }
 
 void App::step()

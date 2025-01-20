@@ -15,6 +15,22 @@ Nes::Nes(std::shared_ptr<IRenderer> renderer)
 void Nes::produceNesFrame()
 {}
 
+Texture Nes::getCpuDebugTexture() const
+{
+	if (this->_debug_mode)
+		return this->_debug_cpu->getTexture();
+	else
+		return nullptr;
+}
+
+Texture Nes::getPaletteTableTexture() const
+{
+	if (this->_debug_mode)
+		return this->_debug_ppu->paletteTableTexture();
+	else
+		return nullptr;
+}
+
 Texture Nes::getLeftPtTexture() const
 {
 	if (this->_debug_mode)
@@ -27,14 +43,6 @@ Texture Nes::getRightPtTexture() const
 {
 	if (this->_debug_mode)
 		return this->_debug_ppu->rightPtTexture();
-	else
-		return nullptr;
-}
-
-Texture Nes::getCpuDebugTexture() const
-{
-	if (this->_debug_mode)
-		return this->_debug_cpu->getTexture();
 	else
 		return nullptr;
 }

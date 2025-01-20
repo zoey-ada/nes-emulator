@@ -47,8 +47,8 @@ private:
 	Texture _texture {nullptr};
 
 	PatternTableType _pt_type;
-	int _height {pt_width_in_pixels};
-	int _width {pt_height_in_pixels};
+	int _height {pt_height_in_pixels};
+	int _width {pt_width_in_pixels};
 
 	void updateTexture(const PatternTableImage& pixel_data);
 	std::array<uint8_t, 8> compilePatternTableBytes(uint8_t high_byte, uint8_t low_byte);

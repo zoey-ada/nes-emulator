@@ -8,6 +8,7 @@
 #include <ppu/ppu.hpp>
 
 #include "palette.hpp"
+#include "paletteRenderer.hpp"
 #include "patternTable.hpp"
 
 class Cartridge;
@@ -22,6 +23,7 @@ public:
 
 	Texture leftPtTexture() const { return this->_left_pattern_table.getTexture(); }
 	Texture rightPtTexture() const { return this->_right_pattern_table.getTexture(); }
+	Texture paletteTableTexture() const { return this->_palette_renderer.getTexture(); }
 
 	void loadCartridge(Cartridge* cart);
 
@@ -34,6 +36,7 @@ private:
 	PaletteType _current_palette {PaletteType::Grayscale};
 	PatternTable _left_pattern_table;
 	PatternTable _right_pattern_table;
+	PaletteRenderer _palette_renderer;
 
 	std::map<PaletteType, Palette> _palettes;
 

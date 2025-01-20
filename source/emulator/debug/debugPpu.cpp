@@ -7,6 +7,7 @@
 DebugPpu::DebugPpu(IMemory* memory, IMemory* oam, std::shared_ptr<IRenderer> renderer)
 	: PictureProcessingUnit(memory, oam),
 	  _renderer(renderer),
+	  _palette_renderer(renderer),
 	  _left_pattern_table(PatternTableType::Left, renderer),
 	  _right_pattern_table(PatternTableType::Right, renderer)
 {
@@ -23,6 +24,9 @@ void DebugPpu::loadCartridge(Cartridge* cart)
 	this->_cart = cart;
 	this->_left_pattern_table.loadCartridge(cart);
 	this->_right_pattern_table.loadCartridge(cart);
+
+	this->loadPalettes();
+	this->_palette_renderer.renderPalettes(this->_palettes, this->_current_palette);
 }
 
 void DebugPpu::nextPalette()
@@ -33,6 +37,7 @@ void DebugPpu::nextPalette()
 
 	this->_left_pattern_table.loadPalette(this->_palettes[this->_current_palette]);
 	this->_right_pattern_table.loadPalette(this->_palettes[this->_current_palette]);
+	this->_palette_renderer.renderPalettes(this->_palettes, this->_current_palette);
 }
 
 void DebugPpu::prevPalette()
@@ -43,6 +48,7 @@ void DebugPpu::prevPalette()
 
 	this->_left_pattern_table.loadPalette(this->_palettes[this->_current_palette]);
 	this->_right_pattern_table.loadPalette(this->_palettes[this->_current_palette]);
+	this->_palette_renderer.renderPalettes(this->_palettes, this->_current_palette);
 }
 
 void DebugPpu::dumpMemory()
@@ -131,6 +137,7 @@ void DebugPpu::write_memory()
 		this->loadPalettes();
 		this->_left_pattern_table.loadPalette(this->_palettes[this->_current_palette]);
 		this->_right_pattern_table.loadPalette(this->_palettes[this->_current_palette]);
+		this->_palette_renderer.renderPalettes(this->_palettes, this->_current_palette);
 	}
 	// else if (this->_address_bus() >= 0x23c0 and this->_address_bus() < 0x2400)
 	// {

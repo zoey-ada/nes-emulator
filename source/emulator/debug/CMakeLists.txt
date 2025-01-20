@@ -7,6 +7,7 @@ target_sources(emulator
 		decompiler.cpp
 		operations.cpp
 		palette.cpp
+		paletteRenderer.cpp
 		patternTable.cpp
 )
 
@@ -23,5 +24,6 @@ target_sources(emulator
 		decompiler.hpp
 		operations.hpp
 		palette.hpp
+		paletteRenderer.hpp
 		patternTable.hpp
 )
