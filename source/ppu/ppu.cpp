@@ -330,7 +330,7 @@ void PictureProcessingUnit::load_next_operation()
 		this->_actions.push_back([this] {
 			this->vertical_blank_flag(true);
 
-			if (this->nmi_enable_flag())
+			if (this->_ppuctrl.nmi_enable_flag())
 				this->_cpu->nmi();
 		});
 	}
@@ -535,7 +535,7 @@ void PictureProcessingUnit::evaluate_sprites()
 		auto& sprite_y = this->_sprite_data_latch;
 		this->write_secondary_oam(sprite_y);
 
-		auto sprite_height = this->sprite_height_flag() ? 16 : 8;
+		auto sprite_height = this->_ppuctrl.sprite_height_flag() ? 16 : 8;
 		auto sprite_bottom_y = sprite_y + sprite_height;
 		if (this->_row >= sprite_y && this->_row < sprite_bottom_y)
 		{
@@ -771,7 +771,7 @@ uint16_t PictureProcessingUnit::calculate_pattern_table_address(bool bit_plane)
 	uint16_t address = tile_offset | fine_y_scroll_offset;
 	if (bit_plane)
 		address |= plane1_offset;
-	if (this->background_pattern_table_select_flag())
+	if (this->_ppuctrl.background_pattern_table_select_flag())
 		address |= right_pattern_table_offset;
 
 	return address;
@@ -786,7 +786,7 @@ uint16_t PictureProcessingUnit::calclutate_sprite_pt_address(bool bit_plane)
 
 	uint8_t sprite_index = this->get_prev_sprite_index();
 	bool vertical_flip = (this->_sprite_attribute_latches[sprite_index] & 0b1000'0000) > 0;
-	auto sprite_height = this->sprite_height_flag() ? 16 : 8;
+	auto sprite_height = this->_ppuctrl.sprite_height_flag() ? 16 : 8;
 
 	uint8_t fine_y = this->_row - this->_sprite_y_pos_latch;
 	if (vertical_flip)
@@ -794,9 +794,9 @@ uint16_t PictureProcessingUnit::calclutate_sprite_pt_address(bool bit_plane)
 
 	uint8_t fine_y_scroll_offset = static_cast<uint16_t>(fine_y & 0b0000'0111);
 
-	if (!this->sprite_height_flag())
+	if (!this->_ppuctrl.sprite_height_flag())
 	{
-		is_right_pt = this->sprite_pattern_table_select_flag();
+		is_right_pt = this->_ppuctrl.sprite_pattern_table_select_flag();
 		tile_offset = static_cast<uint16_t>(this->_sprite_pt_index_latch) << 4;
 	}
 	else
@@ -942,7 +942,7 @@ void PictureProcessingUnit::reset_coarse_y_scroll()
 
 void PictureProcessingUnit::increment_vram_address()
 {
-	if (this->increment_mode_flag())
+	if (this->_ppuctrl.increment_mode_flag())
 		this->_vram_address(this->_vram_address() + 32);
 	else
 		this->_vram_address(this->_vram_address() + 1);

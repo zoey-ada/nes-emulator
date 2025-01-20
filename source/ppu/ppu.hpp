@@ -9,6 +9,7 @@
 #include <base/iPpu.hpp>
 #include <base/register.hpp>
 
+#include "ppuCtrlRegister.hpp"
 #include "systemPalette.hpp"
 
 using Action = std::function<void()>;
@@ -64,7 +65,11 @@ public:
 
 protected:
 	IMemory* _memory {nullptr};
+	IMemory* _object_attribute_memory {nullptr};                            // 64 sprites * 4 bytes
+	std::unique_ptr<IMemory> _secondary_object_attribute_memory {nullptr};  // 8 sprite cache
 	std::unique_ptr<SystemPalette> _sys_palette {nullptr};
+
+	PpuCtrlRegister _ppuctrl;
 
 	Register_14bit _address_bus;
 	// TODO: technically this is supposed to be the lower byte of the address bus
@@ -76,7 +81,6 @@ protected:
 	virtual void write_memory();
 
 private:
-	Register_8bit _ppuctrl;
 	Register_8bit _ppumask;
 	Register_8bit _ppustatus;
 	Register_8bit _ppu_data_read_buffer;
@@ -107,8 +111,6 @@ private:
 	std::deque<Action> _sprite_actions;
 
 	// sprites
-	IMemory* _object_attribute_memory {nullptr};                            // 64 sprites * 4 bytes
-	std::unique_ptr<IMemory> _secondary_object_attribute_memory {nullptr};  // 8 sprite cache
 	Register_8bit _oam_address;
 	Register_5bit _secondary_oam_address;
 	bool _oam_force_ff_read {false};
@@ -129,23 +131,6 @@ private:
 
 	bool _is_starting_up {true};
 	uint64_t _startup_delay {ppu_startup_delay};
-
-	//--------------------------------------------------------------------------
-	// PPUCTRL
-	//--------------------------------------------------------------------------
-	inline bool nmi_enable_flag() const { return (this->_ppuctrl() & 0b1000'0000) > 0; }
-	inline bool ppu_master_slave_flag() const { return (this->_ppuctrl() & 0b0100'0000) > 0; }
-	inline bool sprite_height_flag() const { return (this->_ppuctrl() & 0b0010'0000) > 0; }
-	inline bool background_pattern_table_select_flag() const
-	{
-		return (this->_ppuctrl() & 0b0001'0000) > 0;
-	}
-	inline bool sprite_pattern_table_select_flag() const
-	{
-		return (this->_ppuctrl() & 0b0000'1000) > 0;
-	}
-	inline bool increment_mode_flag() const { return (this->_ppuctrl() & 0b0000'0100) > 0; }
-	inline uint8_t nametable_select() const { return this->_ppuctrl() & 0b0000'0011; }
 
 	//--------------------------------------------------------------------------
 	// PPUSTATUS

@@ -23,6 +23,14 @@ Texture Nes::getCpuDebugTexture() const
 		return nullptr;
 }
 
+Texture Nes::getSpriteTableTexture() const
+{
+	if (this->_debug_mode)
+		return this->_debug_ppu->spriteTableTexture();
+	else
+		return nullptr;
+}
+
 Texture Nes::getPaletteTableTexture() const
 {
 	if (this->_debug_mode)
@@ -107,11 +115,15 @@ void Nes::cycle()
 	if (this->_cpu_cycle_delay == 0)
 	{
 		if (this->_debug_mode)
+		{
 			this->_debug_cpu->cycle();
+			this->_debug_dma->cycle();
+		}
 		else
+		{
 			this->_cpu->cycle();
-
-		this->_dma->cycle();
+			this->_dma->cycle();
+		}
 
 		this->_cpu_cycle_delay = cpu_cycle_delay;
 	}
@@ -195,14 +207,16 @@ void Nes::setupDebugNes(std::shared_ptr<IRenderer> renderer)
 	this->_cart_loader = std::make_unique<CartridgeLoader>();
 
 	this->_oam = std::make_unique<SlowMemory>(0x0100);
-	this->_dma = std::make_unique<DirectMemoryAccess>();
+	this->_debug_dma = std::make_unique<DebugDma>();
 	this->_ppu_memory = std::make_unique<PpuMemoryMapper>();
 	this->_debug_ppu =
 		std::make_unique<DebugPpu>(this->_ppu_memory.get(), this->_oam.get(), renderer);
-	this->_cpu_memory = std::make_unique<MemoryMapper>(this->_debug_ppu.get(), this->_dma.get());
+	this->_cpu_memory =
+		std::make_unique<MemoryMapper>(this->_debug_ppu.get(), this->_debug_dma.get());
 	this->_debug_cpu = std::make_unique<DebugCpu>(this->_cpu_memory.get(), renderer);
 	this->_debug_ppu->init(this->_debug_cpu.get());
-	this->_dma->initialize(this->_debug_cpu.get(), this->_cpu_memory.get(), this->_oam.get());
+	this->_debug_dma->initialize(this->_debug_cpu.get(), this->_cpu_memory.get(), this->_oam.get(),
+		this->_debug_ppu.get());
 
 	this->_p1_controller = std::make_unique<SdlController>();
 	this->_cpu_memory->connect_controller(ControllerPort::Port1, this->_p1_controller.get());

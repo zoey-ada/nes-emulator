@@ -3,12 +3,14 @@ target_sources(emulator
 		cpuRecorder.cpp
 		cpuRenderer.cpp
 		debugCpu.cpp
+		debugDma.cpp
 		debugPpu.cpp
 		decompiler.cpp
 		operations.cpp
 		palette.cpp
 		paletteRenderer.cpp
 		patternTable.cpp
+		spriteTable.cpp
 )
 
 target_sources(emulator
@@ -20,10 +22,12 @@ target_sources(emulator
 		cpuRenderer.hpp
 		cpuStackFrame.hpp
 		debugCpu.hpp
+		debugDma.hpp
 		debugPpu.hpp
 		decompiler.hpp
 		operations.hpp
 		palette.hpp
 		paletteRenderer.hpp
 		patternTable.hpp
+		spriteTable.hpp
 )

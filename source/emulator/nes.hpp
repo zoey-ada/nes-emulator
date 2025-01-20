@@ -14,6 +14,7 @@
 
 #include "debug/cpuRenderer.hpp"
 #include "debug/debugCpu.hpp"
+#include "debug/debugDma.hpp"
 #include "debug/debugPpu.hpp"
 #include "sdlController.hpp"
 
@@ -37,6 +38,7 @@ public:
 	void produceNesFrame();
 	NesFrame getFrame() { return this->_frame; }
 	Texture getCpuDebugTexture() const;
+	Texture getSpriteTableTexture() const;
 	Texture getPaletteTableTexture() const;
 	Texture getLeftPtTexture() const;
 	Texture getRightPtTexture() const;
@@ -70,6 +72,7 @@ private:
 
 	std::unique_ptr<Cpu> _cpu;
 	std::unique_ptr<DebugCpu> _debug_cpu;
+	std::unique_ptr<DebugDma> _debug_dma;
 
 	std::unique_ptr<PictureProcessingUnit> _ppu;
 	std::unique_ptr<DebugPpu> _debug_ppu;

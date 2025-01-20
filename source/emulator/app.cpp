@@ -106,23 +106,33 @@ void App::renderFrame(NesFrame frame)
 	this->_renderer->drawTexture(this->_nes_texture, dest_rect);
 
 	// cpu debug
-	auto size = this->_renderer->measureTexture(this->_nes->getCpuDebugTexture());
+	Rect cpu_debug_size = this->_renderer->measureTexture(this->_nes->getCpuDebugTexture());
 	dest_rect = {
 		this->_nes_width + 1,
 		0,
-		size.width,
-		size.height,
+		cpu_debug_size.width,
+		cpu_debug_size.height,
 	};
 	this->_renderer->drawTexture(this->_nes->getCpuDebugTexture(), dest_rect);
 
+	// sprite table
+	Rect sprite_table_size = this->_renderer->measureTexture(this->_nes->getSpriteTableTexture());
+	dest_rect = {
+		this->_nes_width + 1,
+		cpu_debug_size.height + 1,
+		sprite_table_size.width * this->_sprite_table_scale,
+		sprite_table_size.height * this->_sprite_table_scale,
+	};
+	this->_renderer->drawTexture(this->_nes->getSpriteTableTexture(), dest_rect);
+
 	// palette table
-	size = this->_renderer->measureTexture(this->_nes->getPaletteTableTexture());
+	Rect palette_table_size = this->_renderer->measureTexture(this->_nes->getPaletteTableTexture());
 	dest_rect = {
 		this->_nes_width + 1,
 		this->_height - this->_pattern_table_height - 1 -
-			(size.height * this->_palette_table_scale),
-		size.width * this->_palette_table_scale,
-		size.height * this->_palette_table_scale,
+			(palette_table_size.height * this->_palette_table_scale),
+		palette_table_size.width * this->_palette_table_scale,
+		palette_table_size.height * this->_palette_table_scale,
 	};
 	this->_renderer->drawTexture(this->_nes->getPaletteTableTexture(), dest_rect);
 

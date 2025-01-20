@@ -6,20 +6,22 @@
 
 #include <base/iDma.hpp>
 
+class IApu;
 class ICpu;
 class IMemory;
+class DebugPpu;
 
 using Action = std::function<void()>;
 
-const uint16_t oam_length = 256;
+const uint16_t debug_oam_length = 256;
 
-class DirectMemoryAccess: public IDma
+class DebugDma: public IDma
 {
 public:
-	DirectMemoryAccess() = default;
-	virtual ~DirectMemoryAccess();
+	DebugDma() = default;
+	virtual ~DebugDma();
 
-	void initialize(ICpu* cpu, IMemory* cpu_memory, IMemory* oam_memory);
+	void initialize(ICpu* cpu, IMemory* cpu_memory, IMemory* oam_memory, DebugPpu* ppu);
 
 	void cycle() override;
 
@@ -27,6 +29,7 @@ public:
 
 private:
 	ICpu* _cpu {nullptr};
+	DebugPpu* _ppu {nullptr};
 	IMemory* _cpu_memory {nullptr};
 	IMemory* _oam_memory {nullptr};
 

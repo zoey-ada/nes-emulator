@@ -7,9 +7,10 @@
 DebugPpu::DebugPpu(IMemory* memory, IMemory* oam, std::shared_ptr<IRenderer> renderer)
 	: PictureProcessingUnit(memory, oam),
 	  _renderer(renderer),
-	  _palette_renderer(renderer),
+	  _sprite_table(renderer, oam),
 	  _left_pattern_table(PatternTableType::Left, renderer),
-	  _right_pattern_table(PatternTableType::Right, renderer)
+	  _right_pattern_table(PatternTableType::Right, renderer),
+	  _palette_renderer(renderer)
 {
 	this->_palettes[PaletteType::Grayscale] = greyscale_palette;
 }
@@ -22,6 +23,8 @@ DebugPpu::~DebugPpu()
 void DebugPpu::loadCartridge(Cartridge* cart)
 {
 	this->_cart = cart;
+	this->_sprite_table.loadCartridge(cart, this->_ppuctrl.sprite_pattern_table_select_flag(),
+		this->_ppuctrl.sprite_height_flag());
 	this->_left_pattern_table.loadCartridge(cart);
 	this->_right_pattern_table.loadCartridge(cart);
 
@@ -55,6 +58,18 @@ void DebugPpu::dumpMemory()
 {
 	static_cast<PpuMemoryMapper*>(this->_memory)->dumpPaletteRam();
 	static_cast<PpuMemoryMapper*>(this->_memory)->dumpVideoRam();
+}
+
+void DebugPpu::oam_data(const uint8_t value)
+{
+	PictureProcessingUnit::oam_data(value);
+	this->drawSpriteTable();
+}
+
+void DebugPpu::drawSpriteTable()
+{
+	this->_sprite_table.draw(this->_ppuctrl.sprite_pattern_table_select_flag(),
+		this->_ppuctrl.sprite_height_flag());
 }
 
 void DebugPpu::drawPatternTables()
@@ -130,11 +145,13 @@ void DebugPpu::write_memory()
 
 	if (this->_cart->usesCharacterRam() && this->_address_bus() < 0x2000)
 	{
+		this->drawSpriteTable();
 		this->drawPatternTables();
 	}
 	else if (this->_address_bus() >= 0x3f00)
 	{
 		this->loadPalettes();
+		this->_sprite_table.updatePalettes(this->_palettes, this->_ppuctrl.sprite_height_flag());
 		this->_left_pattern_table.loadPalette(this->_palettes[this->_current_palette]);
 		this->_right_pattern_table.loadPalette(this->_palettes[this->_current_palette]);
 		this->_palette_renderer.renderPalettes(this->_palettes, this->_current_palette);

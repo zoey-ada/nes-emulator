@@ -13,6 +13,7 @@ target_sources(ppu
 	BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/..
 	FILES
 		ppu.hpp
+		ppuCtrlRegister.hpp
 		ppuMemoryMapper.hpp
 		systemPalette.hpp
 )

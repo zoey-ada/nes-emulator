@@ -32,6 +32,7 @@ private:
 	int _pattern_table_height {_pattern_table_base_height * _pattern_table_scale};
 	int _pattern_table_width {_pattern_table_base_width * _pattern_table_scale};
 
+	int _sprite_table_scale {2};
 	int _palette_table_scale {2};
 
 	int _height {_nes_height};
