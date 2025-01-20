@@ -8,7 +8,6 @@
 #include <cpu/cpu.hpp>
 #include <platform/iRenderer.hpp>
 
-#include "codeViewer.hpp"
 #include "cpuRecorder.hpp"
 #include "cpuRenderer.hpp"
 #include "cpuStackFrame.hpp"

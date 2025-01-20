@@ -113,29 +113,29 @@ void DebugPpu::loadPalettes()
 	this->_palettes[PaletteType::Sprite0] = {
 		shared_color,
 		this->_sys_palette->getColor(this->_memory->read(0x3f11)),
-		this->_sys_palette->getColor(this->_memory->read(0x3f02)),
-		this->_sys_palette->getColor(this->_memory->read(0x3f03)),
+		this->_sys_palette->getColor(this->_memory->read(0x3f12)),
+		this->_sys_palette->getColor(this->_memory->read(0x3f13)),
 	};
 
 	this->_palettes[PaletteType::Sprite1] = {
 		shared_color,
 		this->_sys_palette->getColor(this->_memory->read(0x3f15)),
-		this->_sys_palette->getColor(this->_memory->read(0x3f06)),
-		this->_sys_palette->getColor(this->_memory->read(0x3f07)),
+		this->_sys_palette->getColor(this->_memory->read(0x3f16)),
+		this->_sys_palette->getColor(this->_memory->read(0x3f17)),
 	};
 
 	this->_palettes[PaletteType::Sprite2] = {
 		shared_color,
 		this->_sys_palette->getColor(this->_memory->read(0x3f19)),
-		this->_sys_palette->getColor(this->_memory->read(0x3f0a)),
-		this->_sys_palette->getColor(this->_memory->read(0x3f0b)),
+		this->_sys_palette->getColor(this->_memory->read(0x3f1a)),
+		this->_sys_palette->getColor(this->_memory->read(0x3f1b)),
 	};
 
 	this->_palettes[PaletteType::Sprite3] = {
 		shared_color,
 		this->_sys_palette->getColor(this->_memory->read(0x3f1d)),
-		this->_sys_palette->getColor(this->_memory->read(0x3f0e)),
-		this->_sys_palette->getColor(this->_memory->read(0x3f0f)),
+		this->_sys_palette->getColor(this->_memory->read(0x3f1e)),
+		this->_sys_palette->getColor(this->_memory->read(0x3f1f)),
 	};
 }
 

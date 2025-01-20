@@ -39,10 +39,11 @@ uint8_t PpuMemoryMapper::read(uint16_t address) const
 	}
 	else
 	{
-		if (address == 0x3f10 || address == 0x3f14 || address == 0x3f18 || address == 0x3f1c)
-			address -= 0x0010;
-
 		auto ram_address = address % 0x0020;
+
+		if (ram_address % 4 == 0)
+			ram_address = 0x0000;
+
 		return this->_palette_ram->read(ram_address);
 	}
 }
@@ -55,10 +56,11 @@ void PpuMemoryMapper::write(uint16_t address, const uint8_t data)
 	}
 	else
 	{
-		if (address == 0x3f10 || address == 0x3f14 || address == 0x3f18 || address == 0x3f1c)
-			address -= 0x0010;
-
 		auto ram_address = address % 0x0020;
+
+		if (ram_address % 4 == 0)
+			ram_address = 0x0000;
+
 		this->_palette_ram->write(ram_address, data);
 	}
 }
