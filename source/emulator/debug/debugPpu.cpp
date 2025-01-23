@@ -7,10 +7,10 @@
 DebugPpu::DebugPpu(IMemory* memory, IMemory* oam, std::shared_ptr<IRenderer> renderer)
 	: PictureProcessingUnit(memory, oam),
 	  _renderer(renderer),
-	  _sprite_table(renderer, oam),
-	  _left_pattern_table(PatternTableType::Left, renderer),
-	  _right_pattern_table(PatternTableType::Right, renderer),
-	  _palette_renderer(renderer)
+	  _sprite_table(renderer.get(), oam),
+	  _left_pattern_table(PatternTableType::Left, renderer.get()),
+	  _right_pattern_table(PatternTableType::Right, renderer.get()),
+	  _palette_renderer(renderer.get())
 {
 	this->_palettes[PaletteType::Grayscale] = greyscale_palette;
 }
@@ -70,6 +70,15 @@ void DebugPpu::drawSpriteTable()
 {
 	this->_sprite_table.draw(this->_ppuctrl.sprite_pattern_table_select_flag(),
 		this->_ppuctrl.sprite_height_flag());
+}
+
+void DebugPpu::setDebugRenderer(IRenderer* renderer)
+{
+	this->_debug_renderer = renderer;
+	this->_sprite_table.setRenderer(renderer);
+	this->_palette_renderer.setRenderer(renderer);
+	this->_left_pattern_table.setRenderer(renderer);
+	this->_right_pattern_table.setRenderer(renderer);
 }
 
 void DebugPpu::drawPatternTables()

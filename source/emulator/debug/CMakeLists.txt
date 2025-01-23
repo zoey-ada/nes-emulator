@@ -5,6 +5,7 @@ target_sources(emulator
 		debugCpu.cpp
 		debugDma.cpp
 		debugPpu.cpp
+		debugWindow.cpp
 		decompiler.cpp
 		operations.cpp
 		palette.cpp
@@ -24,6 +25,7 @@ target_sources(emulator
 		debugCpu.hpp
 		debugDma.hpp
 		debugPpu.hpp
+		debugWindow.hpp
 		decompiler.hpp
 		operations.hpp
 		palette.hpp

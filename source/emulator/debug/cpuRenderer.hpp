@@ -36,14 +36,16 @@ struct StatusFlags
 class CpuRenderer
 {
 public:
-	CpuRenderer(std::shared_ptr<IRenderer> renderer);
+	CpuRenderer(IRenderer* renderer);
 	virtual ~CpuRenderer();
 
 	void produceFrame(const CpuStackFrame& cycle_data);
 	Texture getTexture() const { return this->_texture; }
 
+	void setRenderer(IRenderer* renderer);
+
 private:
-	std::shared_ptr<IRenderer> _renderer {nullptr};
+	IRenderer* _renderer {nullptr};
 	SDL_Color _background_color {0x00, 0x00, 0x00, 0xff};
 	SDL_Color _text_color {0xff, 0xff, 0xff, 0xff};
 	std::string _font_name = "c:/repos/nes-emulator/source/emulator/FiraCode-Regular.ttf";
@@ -55,6 +57,9 @@ private:
 	int _vertical_padding {20};
 	int _height {(this->_row_height * 5) + (this->_vertical_padding * 2)};
 	Texture _texture {nullptr};
+
+	void loadRenderer();
+	void unloadRenderer();
 
 	void createMainTexture();
 

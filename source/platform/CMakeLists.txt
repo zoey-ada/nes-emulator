@@ -4,7 +4,6 @@ target_sources(platform
 	PRIVATE
 		sdlAlternateRenderTarget.cpp
 		sdlRenderer.cpp
-		sdlWindow.cpp
 )
 
 target_sources(platform
@@ -14,11 +13,11 @@ target_sources(platform
 	FILES
 		iAlternateRenderTarget.hpp
 		iRenderer.hpp
-		iWindow.hpp
 		sdlAlternateRenderTarget.hpp
 		sdlRenderer.hpp
-		sdlWindow.hpp
 )
+
+add_subdirectory(window)
 
 target_link_libraries(platform
 	PUBLIC

@@ -186,6 +186,15 @@ void Nes::dumpMemory()
 		this->_debug_ppu->dumpMemory();
 }
 
+void Nes::setDebugRenderer(IRenderer* renderer)
+{
+	if (this->_debug_mode)
+	{
+		this->_debug_cpu->setDebugRenderer(renderer);
+		this->_debug_ppu->setDebugRenderer(renderer);
+	}
+}
+
 void Nes::blankFrame()
 {
 	for (auto& pixel : this->_frame)

@@ -46,6 +46,8 @@ public:
 
 	virtual std::unique_ptr<IAlternateRenderTarget> swapRenderTarget(Texture texture) = 0;
 
+	virtual void setBackgroundColor(const SDL_Color& color) = 0;
+
 	virtual void drawTexture(Texture texture, const Rect& destination) = 0;
 	virtual Texture createTexture(const uint64_t width, const uint64_t height,
 		bool updatable = true) = 0;

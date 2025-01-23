@@ -25,12 +25,14 @@ public:
 	void nmi_impl() override;
 	void irq_impl() override;
 
-	void cycle() override;
-	void cycle(uint64_t number_cycles) override;
+	// void cycle() override;
+	// void cycle(uint64_t number_cycles) override;
 
 	Texture getTexture();
 
 	inline CpuStackFrame getLastStackFrame() const { return this->_last_cycle; }
+
+	void setDebugRenderer(IRenderer* renderer);
 
 private:
 	Decompiler _decompiler;
@@ -46,5 +48,5 @@ private:
 
 	// Cartridge* _cart;
 
-	void queue_next_instruction() override;
+	// void queue_next_instruction() override;
 };

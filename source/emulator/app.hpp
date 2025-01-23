@@ -3,8 +3,9 @@
 #include <cstdint>
 #include <memory>
 
-#include <platform/iWindow.hpp>
+#include <platform/window/iWindow.hpp>
 
+#include "debug/debugWindow.hpp"
 #include "nes.hpp"
 
 class App
@@ -18,6 +19,8 @@ private:
 	std::unique_ptr<IWindow> _window {nullptr};
 	std::shared_ptr<IRenderer> _renderer {nullptr};
 	std::unique_ptr<Nes> _nes;
+
+	DebugWindow _debug_window;
 
 	int _nes_base_height {262};
 	int _nes_base_width {341};
@@ -36,7 +39,7 @@ private:
 	int _palette_table_scale {2};
 
 	int _height {_nes_height};
-	int _width {_nes_width + 1 + 2 * _pattern_table_width + 1};
+	int _width {_nes_width};
 
 	bool _is_paused {true};
 

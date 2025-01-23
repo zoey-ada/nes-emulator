@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <format>
 
-CpuRenderer::CpuRenderer(std::shared_ptr<IRenderer> renderer): _renderer(renderer)
+CpuRenderer::CpuRenderer(IRenderer* renderer): _renderer(renderer)
 {
 	this->_font = this->_renderer->createFont(this->_font_name, this->_font_size);
 	this->createMainTexture();
@@ -24,6 +24,33 @@ CpuRenderer::~CpuRenderer()
 void CpuRenderer::produceFrame(const CpuStackFrame& cycle_data)
 {
 	this->renderDynamicText(cycle_data);
+}
+
+void CpuRenderer::setRenderer(IRenderer* renderer)
+{
+	this->unloadRenderer();
+	this->_renderer = renderer;
+	this->loadRenderer();
+}
+
+void CpuRenderer::loadRenderer()
+{
+	this->_font = this->_renderer->createFont(this->_font_name, this->_font_size);
+	this->createMainTexture();
+	this->renderStaticText();
+}
+
+void CpuRenderer::unloadRenderer()
+{
+	if (this->_texture)
+		this->_renderer->destroyTexture(this->_texture);
+	this->_texture = nullptr;
+
+	if (this->_font)
+		this->_renderer->destroyFont(this->_font);
+	this->_font = nullptr;
+
+	this->_renderer = nullptr;
 }
 
 void CpuRenderer::createMainTexture()

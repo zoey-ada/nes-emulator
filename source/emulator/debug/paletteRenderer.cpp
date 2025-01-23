@@ -2,16 +2,14 @@
 
 #include <array>
 
-PaletteRenderer::PaletteRenderer(std::shared_ptr<IRenderer> renderer): _renderer(renderer)
+PaletteRenderer::PaletteRenderer(IRenderer* renderer): _renderer(renderer)
 {
-	this->_texture = this->_renderer->createTexture(this->_width, this->_height);
+	this->loadRenderer();
 }
 
 PaletteRenderer::~PaletteRenderer()
 {
-	if (this->_texture)
-		this->_renderer->destroyTexture(this->_texture);
-	this->_texture = nullptr;
+	this->unloadRenderer();
 }
 
 void PaletteRenderer::renderPalettes(const std::map<PaletteType, Palette>& palettes,
@@ -19,9 +17,8 @@ void PaletteRenderer::renderPalettes(const std::map<PaletteType, Palette>& palet
 {
 	this->_texture = this->_renderer->createTexture(this->_width, this->_height, false);
 	auto swapped_target = this->_renderer->swapRenderTarget(this->_texture);
-	SDL_Color magenta = {0xff, 0x00, 0xff, 0xff};
 	auto size = this->_renderer->measureTexture(this->_texture);
-	this->_renderer->drawRectangle(size, magenta, true);
+	this->_renderer->drawRectangle(size, palette_background_color, true);
 
 	std::array<PaletteType, 9> types = {PaletteType::Grayscale, PaletteType::Background0,
 		PaletteType::Background1, PaletteType::Background2, PaletteType::Background3,
@@ -33,6 +30,27 @@ void PaletteRenderer::renderPalettes(const std::map<PaletteType, Palette>& palet
 		bool is_selected = types[i] == selected_palette;
 		this->renderPalette(palettes.at(types[i]), x_offset, is_selected);
 	}
+}
+
+void PaletteRenderer::setRenderer(IRenderer* renderer)
+{
+	this->unloadRenderer();
+	this->_renderer = renderer;
+	this->loadRenderer();
+}
+
+void PaletteRenderer::loadRenderer()
+{
+	this->_texture = this->_renderer->createTexture(this->_width, this->_height);
+}
+
+void PaletteRenderer::unloadRenderer()
+{
+	if (this->_texture)
+		this->_renderer->destroyTexture(this->_texture);
+	this->_texture = nullptr;
+
+	this->_renderer = nullptr;
 }
 
 void PaletteRenderer::renderPalette(const Palette& palette, const int x_offset,

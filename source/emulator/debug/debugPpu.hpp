@@ -38,6 +38,8 @@ public:
 
 	void drawSpriteTable();
 
+	void setDebugRenderer(IRenderer* renderer);
+
 private:
 	PaletteType _current_palette {PaletteType::Grayscale};
 	SpriteTable _sprite_table;
@@ -48,6 +50,7 @@ private:
 	std::map<PaletteType, Palette> _palettes;
 
 	std::shared_ptr<IRenderer> _renderer;
+	IRenderer* _debug_renderer {nullptr};
 	Cartridge* _cart;
 
 	void drawPatternTables();

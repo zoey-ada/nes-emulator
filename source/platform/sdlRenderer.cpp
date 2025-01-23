@@ -41,7 +41,8 @@ void SdlRenderer::deinitialize()
 
 void SdlRenderer::preRender()
 {
-	SDL_SetRenderDrawColor(this->_renderer, 255, 0, 255, 255);
+	SDL_SetRenderDrawColor(this->_renderer, _background_color.r, _background_color.g,
+		_background_color.b, 255);
 	SDL_RenderClear(this->_renderer);
 }
 

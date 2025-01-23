@@ -16,6 +16,8 @@ public:
 
 	std::unique_ptr<IAlternateRenderTarget> swapRenderTarget(Texture texture) override;
 
+	void setBackgroundColor(const SDL_Color& color) override { this->_background_color = color; }
+
 	void drawTexture(Texture texture, const Rect& destination) override;
 	Texture createTexture(const uint64_t width, const uint64_t height,
 		bool updatable = true) override;
@@ -35,4 +37,6 @@ public:
 private:
 	SDL_Window* _window;
 	SDL_Renderer* _renderer;
+
+	SDL_Color _background_color {0xff, 0x00, 0xff, 0xff};
 };

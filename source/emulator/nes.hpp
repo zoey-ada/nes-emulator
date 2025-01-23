@@ -64,6 +64,8 @@ public:
 
 	void dumpMemory();
 
+	void setDebugRenderer(IRenderer* renderer);
+
 private:
 	std::unique_ptr<MemoryMapper> _cpu_memory;
 	std::unique_ptr<PpuMemoryMapper> _ppu_memory;

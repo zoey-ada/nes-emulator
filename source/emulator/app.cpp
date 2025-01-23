@@ -4,9 +4,9 @@
 #include <vector>
 
 #include <platform/iRenderer.hpp>
-#include <platform/sdlWindow.hpp>
+#include <platform/window/sdlWindow.hpp>
 
-using namespace std::placeholders;
+namespace ph = std::placeholders;
 
 App::~App()
 {
@@ -24,9 +24,11 @@ void App::run()
 		this->_renderer->createTexture(this->_nes_base_width, this->_nes_base_height, true);
 	this->_nes = std::make_unique<Nes>(this->_renderer);
 
-	RenderFuncDelegate render_func = std::bind(&App::render, this, _1, _2);
-	UpdateFuncDelegate update_func = std::bind(&App::update, this, _1, _2);
-	HandleKeyboardDelegate handle_key_func = std::bind(&App::handleEvent, this, _1);
+	RenderFuncDelegate render_func = std::bind(&App::render, this, ph::_1, ph::_2);
+	UpdateFuncDelegate update_func = std::bind(&App::update, this, ph::_1, ph::_2);
+	HandleKeyboardDelegate handle_key_func = std::bind(&App::handleEvent, this, ph::_1);
+
+	this->_debug_window.open(this->_window.get(), this->_nes.get());
 
 	this->_window->run(render_func, update_func, handle_key_func);
 	this->_window->close();
@@ -104,55 +106,6 @@ void App::renderFrame(NesFrame frame)
 	};
 	this->_renderer->updateTexture(this->_nes_texture, frame.data(), sizeof(frame));
 	this->_renderer->drawTexture(this->_nes_texture, dest_rect);
-
-	// cpu debug
-	Rect cpu_debug_size = this->_renderer->measureTexture(this->_nes->getCpuDebugTexture());
-	dest_rect = {
-		this->_nes_width + 1,
-		0,
-		cpu_debug_size.width,
-		cpu_debug_size.height,
-	};
-	this->_renderer->drawTexture(this->_nes->getCpuDebugTexture(), dest_rect);
-
-	// sprite table
-	Rect sprite_table_size = this->_renderer->measureTexture(this->_nes->getSpriteTableTexture());
-	dest_rect = {
-		this->_nes_width + 1,
-		cpu_debug_size.height + 1,
-		sprite_table_size.width * this->_sprite_table_scale,
-		sprite_table_size.height * this->_sprite_table_scale,
-	};
-	this->_renderer->drawTexture(this->_nes->getSpriteTableTexture(), dest_rect);
-
-	// palette table
-	Rect palette_table_size = this->_renderer->measureTexture(this->_nes->getPaletteTableTexture());
-	dest_rect = {
-		this->_nes_width + 1,
-		this->_height - this->_pattern_table_height - 1 -
-			(palette_table_size.height * this->_palette_table_scale),
-		palette_table_size.width * this->_palette_table_scale,
-		palette_table_size.height * this->_palette_table_scale,
-	};
-	this->_renderer->drawTexture(this->_nes->getPaletteTableTexture(), dest_rect);
-
-	// left pattern table
-	dest_rect = {
-		this->_nes_width + 1,
-		this->_height - this->_pattern_table_height,
-		this->_pattern_table_width,
-		this->_pattern_table_height,
-	};
-	this->_renderer->drawTexture(this->_nes->getLeftPtTexture(), dest_rect);
-
-	// right pattern table
-	dest_rect = {
-		this->_nes_width + 2 + this->_pattern_table_width,
-		this->_height - this->_pattern_table_height,
-		this->_pattern_table_width,
-		this->_pattern_table_height,
-	};
-	this->_renderer->drawTexture(this->_nes->getRightPtTexture(), dest_rect);
 }
 
 void App::step()

@@ -3,22 +3,15 @@
 #include <SDL.h>
 #include <cartridge/cartridge.hpp>
 
-PatternTable::PatternTable(PatternTableType pt_type, std::shared_ptr<IRenderer> renderer)
+PatternTable::PatternTable(PatternTableType pt_type, IRenderer* renderer)
 	: _pt_type(pt_type), _renderer(renderer)
 {
-	this->_texture = this->_renderer->createTexture(this->_width, this->_height);
-
-	PatternTableImage image;
-	image.fill({0x00, 0x00, 0x00});
-	this->updateTexture(image);
+	this->loadRenderer();
 }
 
 PatternTable::~PatternTable()
 {
-	if (this->_texture)
-		this->_renderer->destroyTexture(this->_texture);
-	this->_texture = nullptr;
-
+	this->unloadRenderer();
 	this->_cart = nullptr;
 }
 
@@ -101,6 +94,31 @@ void PatternTable::loadPalette(Palette palette)
 {
 	this->_palette = palette;
 	this->color();
+}
+
+void PatternTable::setRenderer(IRenderer* renderer)
+{
+	this->unloadRenderer();
+	this->_renderer = renderer;
+	this->loadRenderer();
+}
+
+void PatternTable::loadRenderer()
+{
+	this->_texture = this->_renderer->createTexture(this->_width, this->_height);
+
+	PatternTableImage image;
+	image.fill({0x00, 0x00, 0x00});
+	this->updateTexture(image);
+}
+
+void PatternTable::unloadRenderer()
+{
+	if (this->_texture)
+		this->_renderer->destroyTexture(this->_texture);
+	this->_texture = nullptr;
+
+	this->_renderer = nullptr;
 }
 
 void PatternTable::updateTexture(const PatternTableImage& pixel_data)
