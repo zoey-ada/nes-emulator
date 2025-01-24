@@ -58,7 +58,9 @@ void App::handleEvent(const SDL_Event& e)
 			std::vector<FileFilter> filters;
 			filters.push_back({"NES ROM", "nes"});
 			auto path = this->_window->openFileDialog(filters);
-			this->_nes->loadFile(path);
+
+			if (!path.empty())
+				this->_nes->loadFile(path);
 		}
 		else if (key == SDL_Scancode::SDL_SCANCODE_RIGHT)
 		{
