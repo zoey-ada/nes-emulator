@@ -15,6 +15,14 @@ Nes::Nes(std::shared_ptr<IRenderer> renderer)
 void Nes::produceNesFrame()
 {}
 
+Texture Nes::getNametableTexture() const
+{
+	if (this->_debug_mode)
+		return this->_debug_ppu->nametableTexture();
+	else
+		return nullptr;
+}
+
 Texture Nes::getCpuDebugTexture() const
 {
 	if (this->_debug_mode)

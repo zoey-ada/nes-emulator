@@ -25,8 +25,8 @@ public:
 	void nmi_impl() override;
 	void irq_impl() override;
 
-	// void cycle() override;
-	// void cycle(uint64_t number_cycles) override;
+	void cycle() override;
+	void cycle(uint64_t number_cycles) override;
 
 	Texture getTexture();
 
@@ -48,5 +48,5 @@ private:
 
 	// Cartridge* _cart;
 
-	// void queue_next_instruction() override;
+	void queue_next_instruction() override;
 };

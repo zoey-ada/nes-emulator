@@ -9,6 +9,8 @@ class ISubWindow;
 class IWindow;
 class Nes;
 
+const int nametable_height = 240 * 2;
+const int nametable_width = 256 * 2;
 const int sprite_table_height = 128;
 const int palette_table_height = 4;
 const int pattern_table_height = 128;
@@ -32,11 +34,15 @@ private:
 	int _pattern_table_height {pattern_table_height * _pattern_table_scale};
 	int _pattern_table_width {pattern_table_width * _pattern_table_scale};
 
+	uint8_t _nametable_scale {2};
+	int _nametable_height {nametable_height * _nametable_scale};
+	int _nametable_width {nametable_width * _nametable_scale};
+
 	uint8_t _sprite_table_scale {2};
 	uint8_t _palette_table_scale {2};
 
-	int _height {262 * 3};
-	int _width {_pattern_table_width + 1 + _pattern_table_width};
+	int _height {_nametable_height};
+	int _width {_nametable_width + 1 + _pattern_table_width + 1 + _pattern_table_width};
 
 	void render(Milliseconds now, Milliseconds delta_ms);
 	void renderFrame();

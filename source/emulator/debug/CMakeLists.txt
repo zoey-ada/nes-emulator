@@ -7,6 +7,7 @@ target_sources(emulator
 		debugPpu.cpp
 		debugWindow.cpp
 		decompiler.cpp
+		nametable.cpp
 		operations.cpp
 		palette.cpp
 		paletteRenderer.cpp
@@ -27,6 +28,7 @@ target_sources(emulator
 		debugPpu.hpp
 		debugWindow.hpp
 		decompiler.hpp
+		nametable.hpp
 		operations.hpp
 		palette.hpp
 		paletteRenderer.hpp

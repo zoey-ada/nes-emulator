@@ -38,10 +38,20 @@ void DebugWindow::render(Milliseconds now, Milliseconds delta_ms)
 
 void DebugWindow::renderFrame()
 {
-	// cpu debug
-	Rect cpu_debug_size = this->_renderer->measureTexture(this->_nes->getCpuDebugTexture());
+	// nametable
+	Rect nametable_size = this->_renderer->measureTexture(this->_nes->getNametableTexture());
 	Rect dest_rect = {
 		0,
+		0,
+		nametable_size.width * this->_nametable_scale,
+		nametable_size.height * this->_nametable_scale,
+	};
+	this->_renderer->drawTexture(this->_nes->getNametableTexture(), dest_rect);
+
+	// cpu debug
+	Rect cpu_debug_size = this->_renderer->measureTexture(this->_nes->getCpuDebugTexture());
+	dest_rect = {
+		nametable_size.width * this->_nametable_scale + 1,
 		0,
 		cpu_debug_size.width,
 		cpu_debug_size.height,
@@ -51,7 +61,7 @@ void DebugWindow::renderFrame()
 	// left pattern table
 	auto left_pt_size = this->_renderer->measureTexture(this->_nes->getLeftPtTexture());
 	dest_rect = {
-		0,
+		nametable_size.width * this->_nametable_scale + 1,
 		this->_height - left_pt_size.height * this->_pattern_table_scale,
 		left_pt_size.width * this->_pattern_table_scale,
 		left_pt_size.height * this->_pattern_table_scale,
@@ -61,7 +71,8 @@ void DebugWindow::renderFrame()
 	// right pattern table
 	auto right_pt_size = this->_renderer->measureTexture(this->_nes->getRightPtTexture());
 	dest_rect = {
-		left_pt_size.width * this->_pattern_table_scale + 1,
+		nametable_size.width * this->_nametable_scale + 1 +
+			left_pt_size.width * this->_pattern_table_scale + 1,
 		this->_height - right_pt_size.height * this->_pattern_table_scale,
 		right_pt_size.width * this->_pattern_table_scale,
 		right_pt_size.height * this->_pattern_table_scale,
@@ -71,7 +82,7 @@ void DebugWindow::renderFrame()
 	// palette table
 	Rect palette_table_size = this->_renderer->measureTexture(this->_nes->getPaletteTableTexture());
 	dest_rect = {
-		0,
+		nametable_size.width * this->_nametable_scale + 1,
 		this->_height - left_pt_size.height * this->_pattern_table_scale - 1 -
 			(palette_table_size.height * this->_palette_table_scale),
 		palette_table_size.width * this->_palette_table_scale,
@@ -82,7 +93,7 @@ void DebugWindow::renderFrame()
 	// sprite table
 	Rect sprite_table_size = this->_renderer->measureTexture(this->_nes->getSpriteTableTexture());
 	dest_rect = {
-		0,
+		nametable_size.width * this->_nametable_scale + 1,
 		this->_height - (left_pt_size.height * this->_pattern_table_scale) - 1 -
 			(palette_table_size.height * this->_palette_table_scale) - 1 -
 			(sprite_table_size.height * this->_sprite_table_scale),

@@ -7,6 +7,7 @@
 #include <platform/iRenderer.hpp>
 #include <ppu/ppu.hpp>
 
+#include "nametable.hpp"
 #include "palette.hpp"
 #include "paletteRenderer.hpp"
 #include "patternTable.hpp"
@@ -22,6 +23,7 @@ public:
 	DebugPpu(IMemory* memory, IMemory* oam, std::shared_ptr<IRenderer> renderer);
 	virtual ~DebugPpu();
 
+	Texture nametableTexture() const { return this->_nametable.getTexture(); }
 	Texture spriteTableTexture() const { return this->_sprite_table.getTexture(); }
 	Texture leftPtTexture() const { return this->_left_pattern_table.getTexture(); }
 	Texture rightPtTexture() const { return this->_right_pattern_table.getTexture(); }
@@ -42,6 +44,7 @@ public:
 
 private:
 	PaletteType _current_palette {PaletteType::Grayscale};
+	Nametable _nametable;
 	SpriteTable _sprite_table;
 	PatternTable _left_pattern_table;
 	PatternTable _right_pattern_table;

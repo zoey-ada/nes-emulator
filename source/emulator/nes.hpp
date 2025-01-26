@@ -37,6 +37,7 @@ public:
 
 	void produceNesFrame();
 	NesFrame getFrame() { return this->_frame; }
+	Texture getNametableTexture() const;
 	Texture getCpuDebugTexture() const;
 	Texture getSpriteTableTexture() const;
 	Texture getPaletteTableTexture() const;
