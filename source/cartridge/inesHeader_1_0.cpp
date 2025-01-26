@@ -35,9 +35,9 @@ void InesHeader_1_0::parse_flag_info()
 	if ((this->_header_data.flags_6 & 0b00001000) > 0)
 		this->_nametable_arrangement = NameTableArrangement::alternative;
 	else if ((this->_header_data.flags_6 & 0b00000001) > 0)
-		this->_nametable_arrangement = NameTableArrangement::horizontal;
-	else
 		this->_nametable_arrangement = NameTableArrangement::vertical;
+	else
+		this->_nametable_arrangement = NameTableArrangement::horizontal;
 
 	// battery-backed RAM
 	if ((this->_header_data.flags_6 & 0b00000010) > 0)

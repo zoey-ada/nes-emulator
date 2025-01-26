@@ -3,22 +3,25 @@ add_executable(nes_emulator_tests)
 target_link_libraries(nes_emulator_tests
 	PRIVATE
 		Catch2::Catch2WithMain
+		cartridge
 		cpu
 )
 
-target_sources(nes_emulator_tests
-	PRIVATE
-		cpu/arithmetic_operations.cpp
-		cpu/branch_operations.cpp
-		cpu/load_operations.cpp
-		cpu/logical_operations.cpp
-		cpu/shift_operations.cpp
-		cpu/status_register_operations.cpp
-		cpu/stack_operations.cpp
-		cpu/store_operations.cpp
-		cpu/subroutine_operations.cpp
-		cpu/transfer_operations.cpp
-)
+# target_sources(nes_emulator_tests
+# 	PRIVATE
+# 		cpu/arithmetic_operations.cpp
+# 		cpu/branch_operations.cpp
+# 		cpu/load_operations.cpp
+# 		cpu/logical_operations.cpp
+# 		cpu/shift_operations.cpp
+# 		cpu/status_register_operations.cpp
+# 		cpu/stack_operations.cpp
+# 		cpu/store_operations.cpp
+# 		cpu/subroutine_operations.cpp
+# 		cpu/transfer_operations.cpp
+# )
+
+add_subdirectory(mappers)
 
 target_include_directories(nes_emulator_tests
 	PRIVATE
