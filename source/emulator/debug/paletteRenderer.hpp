@@ -45,5 +45,5 @@ private:
 	void loadRenderer();
 	void unloadRenderer();
 
-	void renderPalette(const Palette& palette, const int x_offset, const bool is_selected);
+	void renderPalette(const Palette& palette, const uint64_t x_offset, const bool is_selected);
 };

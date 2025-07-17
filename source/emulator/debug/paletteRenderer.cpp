@@ -15,7 +15,6 @@ PaletteRenderer::~PaletteRenderer()
 void PaletteRenderer::renderPalettes(const std::map<PaletteType, Palette>& palettes,
 	const PaletteType selected_palette)
 {
-	this->_texture = this->_renderer->createTexture(this->_width, this->_height, false);
 	auto swapped_target = this->_renderer->swapRenderTarget(this->_texture);
 	auto size = this->_renderer->measureTexture(this->_texture);
 	this->_renderer->drawRectangle(size, palette_background_color, true);
@@ -41,7 +40,7 @@ void PaletteRenderer::setRenderer(IRenderer* renderer)
 
 void PaletteRenderer::loadRenderer()
 {
-	this->_texture = this->_renderer->createTexture(this->_width, this->_height);
+	this->_texture = this->_renderer->createTexture(this->_width, this->_height, false);
 }
 
 void PaletteRenderer::unloadRenderer()
@@ -53,7 +52,7 @@ void PaletteRenderer::unloadRenderer()
 	this->_renderer = nullptr;
 }
 
-void PaletteRenderer::renderPalette(const Palette& palette, const int x_offset,
+void PaletteRenderer::renderPalette(const Palette& palette, const uint64_t x_offset,
 	const bool is_selected)
 {
 	SDL_Color outline_color = is_selected ? selected_outline_color : unselected_outline_color;

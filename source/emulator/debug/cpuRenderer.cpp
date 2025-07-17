@@ -36,6 +36,7 @@ void CpuRenderer::setRenderer(IRenderer* renderer)
 void CpuRenderer::loadRenderer()
 {
 	this->_font = this->_renderer->createFont(this->_font_name, this->_font_size);
+	this->_texture = this->_renderer->createTexture(this->_width, this->_height, false);
 	this->createMainTexture();
 	this->renderStaticText();
 }
@@ -55,8 +56,6 @@ void CpuRenderer::unloadRenderer()
 
 void CpuRenderer::createMainTexture()
 {
-	this->_texture = this->_renderer->createTexture(this->_width, this->_height, false);
-
 	auto swapped_target = this->_renderer->swapRenderTarget(this->_texture);
 	SDL_Color black = {0x00, 0x00, 0x00, 0xff};
 	auto size = this->_renderer->measureTexture(this->_texture);
