@@ -20,16 +20,24 @@ struct FileFilter
 	const char* extension;
 };
 
+struct WindowCreateInfo
+{
+	uint64_t width;
+	uint64_t height;
+	uint8_t frame_rate;
+	RenderFuncDelegate render_func;
+	UpdateFuncDelegate update_func;
+};
+
 class IWindow
 {
 public:
 	virtual ~IWindow() = default;
 
-	virtual bool open() = 0;
+	virtual bool open(const WindowCreateInfo& create_info) = 0;
 	virtual void close() = 0;
 
-	virtual void run(RenderFuncDelegate render, UpdateFuncDelegate update,
-		HandleKeyboardDelegate handle_key_event) = 0;
+	virtual void run(HandleKeyboardDelegate handle_key_event) = 0;
 
 	virtual std::string openFileDialog(std::vector<FileFilter> filters) const = 0;
 

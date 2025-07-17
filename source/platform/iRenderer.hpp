@@ -19,10 +19,10 @@ typedef _Texture* Texture;
 
 struct Rect
 {
-	int x;
-	int y;
-	int width;
-	int height;
+	uint64_t x;
+	uint64_t y;
+	uint64_t width;
+	uint64_t height;
 };
 
 struct TextRenderOptions

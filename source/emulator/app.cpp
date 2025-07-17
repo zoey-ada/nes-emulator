@@ -15,22 +15,13 @@ App::~App()
 
 void App::run()
 {
-	this->_window = std::make_unique<SdlWindow>(this->_width, this->_height);
-
-	this->_window->open();
-	this->_renderer = this->_window->getRenderer();
-
-	this->_nes_texture =
-		this->_renderer->createTexture(this->_nes_base_width, this->_nes_base_height, true);
-	this->_nes = std::make_unique<Nes>(this->_renderer);
-
-	RenderFuncDelegate render_func = std::bind(&App::render, this, ph::_1, ph::_2);
-	UpdateFuncDelegate update_func = std::bind(&App::update, this, ph::_1, ph::_2);
-	HandleKeyboardDelegate handle_key_func = std::bind(&App::handleEvent, this, ph::_1);
+	this->createWindow();
+	this->createNes();
 
 	this->_debug_window.open(this->_window.get(), this->_nes.get());
 
-	this->_window->run(render_func, update_func, handle_key_func);
+	HandleKeyboardDelegate handle_key_func = std::bind(&App::handleEvent, this, ph::_1);
+	this->_window->run(handle_key_func);
 	this->_window->close();
 }
 
@@ -108,6 +99,27 @@ void App::renderFrame(NesFrame frame)
 	};
 	this->_renderer->updateTexture(this->_nes_texture, frame.data(), sizeof(frame));
 	this->_renderer->drawTexture(this->_nes_texture, dest_rect);
+}
+
+void App::createWindow()
+{
+	this->_window = std::make_unique<SdlWindow>();
+
+	RenderFuncDelegate render_func = std::bind(&App::render, this, ph::_1, ph::_2);
+	UpdateFuncDelegate update_func = std::bind(&App::update, this, ph::_1, ph::_2);
+
+	this->_window->open({this->_width, this->_height, this->_frame_rate, render_func, update_func});
+	this->_renderer = this->_window->getRenderer();
+}
+
+void App::createNes()
+{
+	if (!this->_renderer)
+		throw std::runtime_error("Renderer not created");
+
+	this->_nes_texture =
+		this->_renderer->createTexture(this->_nes_base_width, this->_nes_base_height, true);
+	this->_nes = std::make_unique<Nes>(this->_renderer);
 }
 
 void App::step()

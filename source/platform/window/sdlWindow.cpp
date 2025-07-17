@@ -6,11 +6,10 @@
 
 namespace chrono = std::chrono;
 
-SdlWindow::SdlWindow(uint64_t width, uint64_t height): _width(width), _height(height)
-{}
-
-bool SdlWindow::open()
+bool SdlWindow::open(const WindowCreateInfo& create_info)
 {
+	this->parseWindowSettings(create_info);
+
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
 		printf("SDL could not initialize. SDL_Error: %s\n", SDL_GetError());
@@ -56,8 +55,7 @@ void SdlWindow::close()
 	NFD_Quit();
 }
 
-void SdlWindow::run(RenderFuncDelegate render, UpdateFuncDelegate update,
-	HandleKeyboardDelegate handle_key_event)
+void SdlWindow::run(HandleKeyboardDelegate handle_key_event)
 {
 	this->_handle_key_event = handle_key_event;
 
@@ -72,23 +70,25 @@ void SdlWindow::run(RenderFuncDelegate render, UpdateFuncDelegate update,
 		{
 			auto now = this->getTime();
 			auto delta_ms = now - this->_prev_time;
-			if (delta_ms == 0)
-				continue;
+			auto draw_delta_ms = now - this->_last_draw;
 
 			this->_prev_time = now;
-			update(now, delta_ms);
-			render(now, delta_ms);
+			this->_update_func(now, delta_ms);
 
-			for (auto& sub_window : this->_sub_windows)
+			if (draw_delta_ms >= this->_frametime)
 			{
-				sub_window.second->render(now, delta_ms);
+				this->_last_draw = now;
+				this->_render_func(now, draw_delta_ms);
+
+				for (auto& sub_window : this->_sub_windows)
+				{
+					sub_window.second->render(now, delta_ms);
+				}
 			}
 		}
 	}
 
-	SDL_Event e;
-	while (SDL_PollEvent(&e) != 0)
-		;
+	drainMessageQueue();
 }
 
 std::string SdlWindow::openFileDialog(std::vector<FileFilter> filters) const
@@ -137,6 +137,15 @@ ISubWindow* SdlWindow::openSubWindow(SubWindowCreateInfo sub_window_info)
 	return nullptr;
 }
 
+void SdlWindow::parseWindowSettings(const WindowCreateInfo& settings)
+{
+	this->_height = settings.height;
+	this->_width = settings.width;
+	this->_frametime = static_cast<Milliseconds>(1000 / settings.frame_rate);
+	this->_update_func = settings.update_func;
+	this->_render_func = settings.render_func;
+}
+
 Milliseconds SdlWindow::getTime() const
 {
 	auto now = chrono::system_clock::now();
@@ -177,4 +186,11 @@ void SdlWindow::handleEvent(const SDL_Event& e)
 	// {
 	// 	this->_run = false;
 	// }
+}
+
+void SdlWindow::drainMessageQueue()
+{
+	SDL_Event e;
+	while (SDL_PollEvent(&e) != 0)
+		;
 }
