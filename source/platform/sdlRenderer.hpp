@@ -39,4 +39,8 @@ private:
 	SDL_Renderer* _renderer;
 
 	SDL_Color _background_color {0xff, 0x00, 0xff, 0xff};
+
+	SDL_Rect toSdlRect(const Rect& rect);
+	Rect fromSdlRect(const SDL_Rect& rect);
+	SDL_Rect _measureTexture(Texture texture) const;
 };

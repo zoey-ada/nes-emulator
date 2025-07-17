@@ -58,9 +58,10 @@ std::unique_ptr<IAlternateRenderTarget> SdlRenderer::swapRenderTarget(Texture te
 
 void SdlRenderer::drawTexture(Texture texture, const Rect& destination)
 {
-	auto dimensions = this->measureTexture(texture);
+	auto dimensions = this->_measureTexture(texture);
+	auto destination_sdl = this->toSdlRect(destination);
 	SDL_RenderCopy(this->_renderer, (SDL_Texture*)texture, (SDL_Rect*)&dimensions,
-		(SDL_Rect*)&destination);
+		(SDL_Rect*)&destination_sdl);
 }
 
 Texture SdlRenderer::createTexture(const uint64_t width, const uint64_t height, bool updatable)
@@ -93,7 +94,7 @@ Rect SdlRenderer::measureTexture(Texture texture)
 {
 	int h, w;
 	SDL_QueryTexture((SDL_Texture*)texture, nullptr, nullptr, &w, &h);
-	return {0, 0, w, h};
+	return {0, 0, static_cast<uint64_t>(w), static_cast<uint64_t>(h)};
 }
 
 Font SdlRenderer::createFont(const std::string& font_filepath, const unsigned int font_size)
@@ -134,10 +135,11 @@ void SdlRenderer::drawRectangle(const Rect& destination, const SDL_Color& color,
 	SDL_GetRenderDrawColor(this->_renderer, &r, &g, &b, &a);
 	SDL_SetRenderDrawColor(this->_renderer, color.r, color.g, color.b, color.a);
 
+	auto destination_sdl = this->toSdlRect(destination);
 	if (fill)
-		SDL_RenderFillRect(this->_renderer, (SDL_Rect*)&destination);
+		SDL_RenderFillRect(this->_renderer, &destination_sdl);
 	else
-		SDL_RenderDrawRect(this->_renderer, (SDL_Rect*)&destination);
+		SDL_RenderDrawRect(this->_renderer, &destination_sdl);
 
 	SDL_SetRenderDrawColor(this->_renderer, r, g, b, a);
 }
@@ -155,4 +157,23 @@ void SdlRenderer::horizontallyCenterRectangle(const Rect& total_area, Rect& rect
 		return;
 
 	rectangle.x = h_diff / 2;
+}
+
+SDL_Rect SdlRenderer::toSdlRect(const Rect& rect)
+{
+	return {static_cast<int>(rect.x), static_cast<int>(rect.y), static_cast<int>(rect.width),
+		static_cast<int>(rect.height)};
+}
+
+Rect SdlRenderer::fromSdlRect(const SDL_Rect& rect)
+{
+	return {static_cast<uint64_t>(rect.x), static_cast<uint64_t>(rect.y),
+		static_cast<uint64_t>(rect.w), static_cast<uint64_t>(rect.h)};
+}
+
+SDL_Rect SdlRenderer::_measureTexture(Texture texture) const
+{
+	int h, w;
+	SDL_QueryTexture((SDL_Texture*)texture, nullptr, nullptr, &w, &h);
+	return {0, 0, w, h};
 }
