@@ -53,16 +53,21 @@ void App::handleEvent(const SDL_Event& e)
 			if (!path.empty())
 				this->_nes->loadFile(path);
 		}
-		else if (key == SDL_Scancode::SDL_SCANCODE_RIGHT)
+		else if (key == SDL_Scancode::SDL_SCANCODE_1)
 		{
 			this->step();
 		}
-		else if (key == SDL_Scancode::SDL_SCANCODE_DOWN)
+		else if (key == SDL_Scancode::SDL_SCANCODE_2)
 		{
-			if ((mod & KMOD_CTRL) > 0)
-				this->bound();
-			else
-				this->leap();
+			this->leap();
+		}
+		else if (key == SDL_Scancode::SDL_SCANCODE_3)
+		{
+			this->bound();
+		}
+		else if (key == SDL_Scancode::SDL_SCANCODE_4)
+		{
+			this->_nes->nextFrame();
 		}
 		else if (key == SDL_Scancode::SDL_SCANCODE_SPACE)
 		{
@@ -77,13 +82,17 @@ void App::handleEvent(const SDL_Event& e)
 		{
 			this->_nes->prevPalette();
 		}
-		else if (key == SDL_Scancode::SDL_SCANCODE_PERIOD)
-		{
-			this->_nes->nextFrame();
-		}
-		else if (key == SDL_Scancode::SDL_SCANCODE_D)
+		else if (key == SDL_Scancode::SDL_SCANCODE_Y)
 		{
 			this->_nes->dumpMemory();
+		}
+		else if (key == SDL_Scancode::SDL_SCANCODE_I)
+		{
+			this->_nes->nextNametableDisplayMode();
+		}
+		else if (key == SDL_Scancode::SDL_SCANCODE_U)
+		{
+			this->_nes->prevNametableDisplayMode();
 		}
 	}
 }

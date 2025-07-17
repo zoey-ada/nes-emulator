@@ -65,6 +65,9 @@ public:
 
 	void dumpMemory();
 
+	void nextNametableDisplayMode();
+	void prevNametableDisplayMode();
+
 	void setDebugRenderer(IRenderer* renderer);
 
 private:

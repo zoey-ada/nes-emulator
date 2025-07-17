@@ -137,6 +137,20 @@ void Nametable::setDisplayMode(const DisplayMode mode)
 	}
 }
 
+void Nametable::nextDisplayMode()
+{
+	auto display_mode_num = static_cast<int>(this->_display_mode);
+	display_mode_num = (display_mode_num + 1) % numberDisplayModes;
+	this->_display_mode = DisplayMode(display_mode_num);
+}
+
+void Nametable::prevDisplayMode()
+{
+	auto display_mode_num = static_cast<int>(this->_display_mode);
+	display_mode_num = (display_mode_num - 1 + numberDisplayModes) % numberDisplayModes;
+	this->_display_mode = DisplayMode(display_mode_num);
+}
+
 void Nametable::loadRenderer()
 {
 	this->_texture = this->_renderer->createTexture(this->_width, this->_height, true);

@@ -62,6 +62,18 @@ void DebugPpu::dumpMemory()
 	static_cast<PpuMemoryMapper*>(this->_memory)->dumpVideoRam();
 }
 
+void DebugPpu::nextNametableDisplayMode()
+{
+	this->_nametable.nextDisplayMode();
+	this->_nametable.draw(this->_ppuctrl.background_pattern_table_select_flag());
+}
+
+void DebugPpu::prevNametableDisplayMode()
+{
+	this->_nametable.prevDisplayMode();
+	this->_nametable.draw(this->_ppuctrl.background_pattern_table_select_flag());
+}
+
 void DebugPpu::oam_data(const uint8_t value)
 {
 	PictureProcessingUnit::oam_data(value);

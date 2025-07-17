@@ -36,6 +36,9 @@ public:
 
 	void dumpMemory();
 
+	void nextNametableDisplayMode();
+	void prevNametableDisplayMode();
+
 	void oam_data(const uint8_t value);
 
 	void drawSpriteTable();

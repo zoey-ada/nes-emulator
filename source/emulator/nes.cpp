@@ -194,6 +194,18 @@ void Nes::dumpMemory()
 		this->_debug_ppu->dumpMemory();
 }
 
+void Nes::nextNametableDisplayMode()
+{
+	if (this->_debug_mode)
+		this->_debug_ppu->nextNametableDisplayMode();
+}
+
+void Nes::prevNametableDisplayMode()
+{
+	if (this->_debug_mode)
+		this->_debug_ppu->prevNametableDisplayMode();
+}
+
 void Nes::setDebugRenderer(IRenderer* renderer)
 {
 	if (this->_debug_mode)

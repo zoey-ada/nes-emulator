@@ -36,6 +36,8 @@ enum class DisplayMode
 	ColoredPatternTiles,
 };
 
+const int numberDisplayModes = 3;
+
 class Nametable
 {
 public:
@@ -53,6 +55,8 @@ public:
 	void setRenderer(IRenderer* renderer);
 
 	void setDisplayMode(const DisplayMode mode);
+	void nextDisplayMode();
+	void prevDisplayMode();
 
 private:
 	Cartridge* _cart {nullptr};
