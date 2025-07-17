@@ -7,6 +7,7 @@
 #include <base/iDma.hpp>
 
 class ICpu;
+class IPpu;
 class IMemory;
 
 using Action = std::function<void()>;
@@ -19,7 +20,7 @@ public:
 	DirectMemoryAccess() = default;
 	virtual ~DirectMemoryAccess();
 
-	void initialize(ICpu* cpu, IMemory* cpu_memory, IMemory* oam_memory);
+	void initialize(ICpu* cpu, IPpu* ppu, IMemory* cpu_memory, IMemory* oam_memory);
 
 	void cycle() override;
 
@@ -27,6 +28,7 @@ public:
 
 private:
 	ICpu* _cpu {nullptr};
+	IPpu* _ppu {nullptr};
 	IMemory* _cpu_memory {nullptr};
 	IMemory* _oam_memory {nullptr};
 

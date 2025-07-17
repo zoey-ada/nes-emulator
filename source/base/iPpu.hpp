@@ -29,4 +29,6 @@ public:
 
 	virtual bool read_write() const = 0;
 	virtual uint32_t vout() const = 0;
+
+	virtual uint8_t oam_addr() const = 0;
 };

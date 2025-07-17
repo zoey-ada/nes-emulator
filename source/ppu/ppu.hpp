@@ -53,9 +53,10 @@ public:
 
 	// registers
 	void ppu_ctrl(const uint8_t value);
-	inline void ppu_mask(const uint8_t value) { this->_ppumask(value); }
+	void ppu_mask(const uint8_t value) { this->_ppumask(value); }
 	uint8_t ppu_status();
-	inline void oam_addr(const uint8_t value) { this->_oam_address(value); }
+	void oam_addr(const uint8_t value) { this->_oam_address(value); }
+	uint8_t oam_addr() const override { return this->_oam_address(); }
 	uint8_t oam_data() const;
 	void oam_data(const uint8_t value);
 	void ppu_scroll(const uint8_t value);

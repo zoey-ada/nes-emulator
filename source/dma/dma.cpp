@@ -9,17 +9,20 @@
 DirectMemoryAccess::~DirectMemoryAccess()
 {
 	this->_cpu = nullptr;
+	this->_ppu = nullptr;
 	this->_cpu_memory = nullptr;
 	this->_oam_memory = nullptr;
 }
 
-void DirectMemoryAccess::initialize(ICpu* cpu, IMemory* cpu_memory, IMemory* oam_memory)
+void DirectMemoryAccess::initialize(ICpu* cpu, IPpu* ppu, IMemory* cpu_memory, IMemory* oam_memory)
 {
 	this->_cpu = cpu;
+	this->_ppu = ppu;
 	this->_cpu_memory = cpu_memory;
 	this->_oam_memory = oam_memory;
 
 	assert(this->_cpu);
+	assert(this->_ppu);
 	assert(this->_cpu_memory);
 	assert(this->_oam_memory);
 }
@@ -55,6 +58,7 @@ void DirectMemoryAccess::copyToOam(const uint16_t address)
 	this->_read_address_latch = address;
 	this->_address_offset = 0x00;
 	this->_cpu->suspend();
+	uint8_t oam_offset = this->_ppu->oam_addr();
 
 	for (auto i = 0; i < oam_length - 1; ++i)
 	{
@@ -62,8 +66,8 @@ void DirectMemoryAccess::copyToOam(const uint16_t address)
 			uint16_t mem_addr = this->_read_address_latch + this->_address_offset;
 			this->_data_latch = this->_cpu_memory->read(mem_addr);
 		});
-		this->_actions.push_back([this] {
-			this->_oam_memory->write(this->_address_offset, this->_data_latch);
+		this->_actions.push_back([this, oam_offset] {
+			this->_oam_memory->write(this->_address_offset + oam_offset, this->_data_latch);
 			this->_address_offset++;
 		});
 	}
@@ -72,8 +76,8 @@ void DirectMemoryAccess::copyToOam(const uint16_t address)
 		uint16_t mem_addr = this->_read_address_latch + this->_address_offset;
 		this->_data_latch = this->_cpu_memory->read(mem_addr);
 	});
-	this->_actions.push_back([this] {
-		this->_oam_memory->write(this->_address_offset, this->_data_latch);
+	this->_actions.push_back([this, oam_offset] {
+		this->_oam_memory->write(this->_address_offset + oam_offset, this->_data_latch);
 		this->_address_offset++;
 		this->_cpu->activate();
 	});

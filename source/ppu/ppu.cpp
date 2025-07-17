@@ -299,8 +299,13 @@ uint8_t PictureProcessingUnit::ppu_data()
 	uint8_t return_data = this->_ppu_data_read_buffer();
 	this->_address_bus(this->_vram_address());
 	this->read_memory();
+
+	if (this->_address_bus() >= 0x3f00)
+		return_data = this->_data_bus();
+
 	this->increment_vram_address();
 	this->_ppu_data_read_buffer(this->_data_bus());
+
 	return return_data;
 }
 
