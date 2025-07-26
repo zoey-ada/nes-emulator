@@ -465,6 +465,8 @@ void PictureProcessingUnit::attribute_table_read()
 	this->_background_actions.push_back([this] {
 		this->read_memory();
 		this->_attribute_table_latch = this->_data_bus();
+		this->_x_scroll_attribute_flag = (this->_vram_address.lowByte() & 0b0000'0010) > 1;
+		this->_y_scroll_attribute_flag = (this->_vram_address.lowByte() & 0b0100'0000) > 1;
 	});
 }
 
@@ -482,13 +484,12 @@ void PictureProcessingUnit::process_visible_pixels()
 	this->_background_actions.push_back([this] {
 		this->read_memory();
 		this->_pattern_table_tile_high_latch = this->_data_bus();
+		this->_background_index_latch = std::move(this->compile_pattern_table_bytes());
 
 		if (this->_column == 256)
 			this->reset_coarse_x_scroll();
 		else
 			this->increment_coarse_x_scroll();
-
-		this->_background_index_latch = std::move(this->compile_pattern_table_bytes());
 	});
 }
 
@@ -682,14 +683,10 @@ ChunkIndices PictureProcessingUnit::compile_sprite_pt_bytes() const
 
 uint8_t PictureProcessingUnit::parse_background_palette_number() const
 {
-	bool x = (this->_vram_address.lowByte() & 0b0000'0010) > 1;
-	bool y = (this->_vram_address.lowByte() & 0b0100'0000) > 1;
-
-	uint8_t palette_num = this->_attribute_table_latch;
-	if (x)
-		palette_num = palette_num >> 2;
-	if (y)
-		palette_num = palette_num >> 4;
+	uint8_t x_shift = static_cast<uint8_t>(this->_x_scroll_attribute_flag) << 1;
+	uint8_t y_shift = static_cast<uint8_t>(this->_y_scroll_attribute_flag) << 2;
+	uint8_t total_shift = x_shift | y_shift;
+	uint8_t palette_num = this->_attribute_table_latch >> total_shift;
 	return palette_num & 0b0000'0011;
 }
 
@@ -703,14 +700,8 @@ uint32_t PictureProcessingUnit::apply_palette_color(const uint8_t& index,
 	const uint8_t palette_number) const
 {
 	uint16_t palette_address = 0x3f00;
-
-	if (index == 0)
-		return this->_memory->read(palette_address);
-	else
-	{
-		uint16_t palette_offset = palette_number << 2;
-		return this->_memory->read(palette_address + palette_offset + index);
-	}
+	uint16_t palette_offset = palette_number << 2;
+	return this->_memory->read(palette_address | palette_offset | index);
 }
 
 ChunkPixels PictureProcessingUnit::apply_palette_colors(const ChunkIndices& indices,

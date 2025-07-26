@@ -93,6 +93,8 @@ private:
 
 	Register _nametable_latch {0x00};
 	Register _attribute_table_latch {0x00};
+	bool _x_scroll_attribute_flag {false};
+	bool _y_scroll_attribute_flag {false};
 	Register _pattern_table_tile_low_latch {0x00};
 	Register _pattern_table_tile_high_latch {0x00};
 
