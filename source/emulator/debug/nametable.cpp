@@ -1,5 +1,6 @@
 #include "nametable.hpp"
 
+#include <format>
 #include <stdexcept>
 
 #include <cartridge/cartridge.hpp>
@@ -53,7 +54,11 @@ void Nametable::draw(const bool use_right_table)
 				uint16_t index = y * num_tiles_wide + x;
 				uint64_t x_offset = x * tile_width + nametable_x_offset;
 				uint64_t y_offset = y * tile_height + nametable_y_offset;
-				this->drawTile(x_offset, y_offset, nametable_offset, index, use_right_table);
+
+				if (this->_display_mode == DisplayMode::PaletteIndices)
+					this->drawPatternIndex(x_offset, y_offset, nametable_offset, index);
+				else
+					this->drawTile(x_offset, y_offset, nametable_offset, index, use_right_table);
 			}
 		}
 	}
@@ -63,7 +68,7 @@ void Nametable::draw(const bool use_right_table)
 
 void Nametable::color()
 {
-	if (!this->_cart)
+	if (!this->_cart || this->_display_mode == DisplayMode::PaletteIndices)
 		return;
 
 	NametableImage image;
@@ -142,6 +147,7 @@ void Nametable::nextDisplayMode()
 	auto display_mode_num = static_cast<int>(this->_display_mode);
 	display_mode_num = (display_mode_num + 1) % numberDisplayModes;
 	this->_display_mode = DisplayMode(display_mode_num);
+	this->recreateTexture();
 }
 
 void Nametable::prevDisplayMode()
@@ -149,24 +155,74 @@ void Nametable::prevDisplayMode()
 	auto display_mode_num = static_cast<int>(this->_display_mode);
 	display_mode_num = (display_mode_num - 1 + numberDisplayModes) % numberDisplayModes;
 	this->_display_mode = DisplayMode(display_mode_num);
+	this->recreateTexture();
 }
 
 void Nametable::loadRenderer()
 {
+	this->_font = this->_renderer->createFont(this->_font_name, this->_font_size);
 	this->_texture = this->_renderer->createTexture(this->_width, this->_height, true);
 
 	NametableImage image;
 	image.fill({nt_background_color.r, nt_background_color.g, nt_background_color.b});
 	this->updateTexture(image);
+
+	this->createDigitTextures();
 }
 
 void Nametable::unloadRenderer()
 {
+	this->destroyDigitTextures();
+
 	if (this->_texture)
 		this->_renderer->destroyTexture(this->_texture);
 	this->_texture = nullptr;
 
+	if (this->_font)
+		this->_renderer->destroyFont(this->_font);
+	this->_font = nullptr;
+
 	this->_renderer = nullptr;
+}
+
+void Nametable::recreateTexture()
+{
+	if (this->_texture)
+		this->_renderer->destroyTexture(this->_texture);
+
+	if (this->_display_mode == DisplayMode::PaletteIndices)
+	{
+		this->_texture = this->_renderer->createTexture(this->_width * 2, this->_height * 2, false);
+	}
+	else
+	{
+		this->_texture = this->_renderer->createTexture(this->_width, this->_height, true);
+	}
+}
+
+void Nametable::createDigitTextures()
+{
+	for (uint8_t i = 0; i < 16; ++i)
+	{
+		SDL_Color white {0xff, 0xff, 0xff, 0xff};
+		SDL_Color black {0x00, 0x00, 0x00, 0xff};
+		TextRenderOptions text_render_options {this->_font, white, black};
+
+		std::string index_str = std::format("{:01X}", i);
+		auto index_texture = this->_renderer->renderText(index_str, text_render_options);
+
+		this->_digit_textures[i] = index_texture;
+	}
+}
+
+void Nametable::destroyDigitTextures()
+{
+	while (!this->_digit_textures.empty())
+	{
+		auto texture = this->_digit_textures.begin();
+		this->_renderer->destroyTexture(texture->second);
+		this->_digit_textures.erase(texture);
+	}
 }
 
 std::array<uint8_t, 8> Nametable::compilePatternTableBytes(const uint8_t low_byte,
@@ -182,6 +238,30 @@ std::array<uint8_t, 8> Nametable::compilePatternTableBytes(const uint8_t low_byt
 	}
 
 	return indices;
+}
+
+void Nametable::drawPatternIndex(const uint64_t x_offset, const uint64_t y_offset,
+	const uint16_t nametable_offset, const uint16_t tile_index)
+{
+	uint16_t nt_address = nametable_offset | tile_index;
+	uint8_t pt_offset = this->_cart->read_character(nt_address);
+
+	auto swapped_target = this->_renderer->swapRenderTarget(this->_texture);
+
+	uint8_t left_digit = pt_offset >> 4;
+	uint8_t right_digit = pt_offset & 0b0000'1111;
+
+	Rect source_rect = this->_renderer->measureTexture(this->_digit_textures[left_digit]);
+	Rect dest_rect = {
+		x_offset * 2,
+		y_offset * 2,
+		tile_width,
+		tile_height * 2,
+	};
+	this->_renderer->drawTexture(this->_digit_textures[left_digit], dest_rect);
+
+	dest_rect.x += tile_width;
+	this->_renderer->drawTexture(this->_digit_textures[right_digit], dest_rect);
 }
 
 void Nametable::drawTile(const uint64_t x_offset, const uint64_t y_offset,
@@ -280,16 +360,19 @@ PaletteType Nametable::getBackgroundPalette(const uint8_t palette_index) const
 
 uint8_t Nametable::getPaletteIndex(const uint16_t nametable_offset, const uint16_t tile_index) const
 {
-	uint16_t attribute_table_offset = 0b0011'1100'0000;
 	uint16_t y_offset = tile_index / num_tiles_wide;
+	uint16_t coarse_y_offset = (y_offset & 0b0001'1100) << 1;
 	uint16_t x_offset = tile_index % num_tiles_wide;
-	uint8_t attribute_index = (x_offset & 0b0000'1110 >> 1) | (y_offset & 0b0000'1110 << 2);
-	uint16_t attribute_address = nametable_offset | attribute_table_offset | attribute_index;
+	uint16_t coarse_x_offset = (x_offset & 0b0001'1100) >> 2;
+
+	uint16_t attribute_table_offset = 0b0011'1100'0000;
+	uint16_t attribute_address =
+		nametable_offset | attribute_table_offset | coarse_x_offset | coarse_y_offset;
 	uint8_t attribute_data = this->_cart->read_character(attribute_address);
 
 	// will be 0, 2, 4, or 6
 	uint8_t shift_ammount =
-		static_cast<uint8_t>((x_offset & 0b0000'0001 << 1) | (y_offset & 0b0000'0001 << 2));
+		static_cast<uint8_t>((x_offset & 0b0000'0010) | ((y_offset & 0b0000'0010) << 1));
 	uint8_t palette_index = (attribute_data >> shift_ammount) & 0b0000'0011;
 	return palette_index;
 }

@@ -66,6 +66,11 @@ private:
 	IRenderer* _renderer {nullptr};
 	Texture _texture {nullptr};
 
+	std::string _font_name = "c:/repos/nes-emulator/source/emulator/FiraCode-Regular.ttf";
+	Font _font {nullptr};
+	int _font_size {10};
+	std::map<uint8_t, Texture> _digit_textures {};
+
 	DisplayMode _display_mode {DisplayMode::ColoredPatternTiles};
 
 	int _height {nt_height * 2};
@@ -74,10 +79,17 @@ private:
 
 	void loadRenderer();
 	void unloadRenderer();
+	void recreateTexture();
+
+	void createDigitTextures();
+	void destroyDigitTextures();
 
 	void updateTexture(const NametableImage& pixel_data);
 	std::array<uint8_t, 8> compilePatternTableBytes(const uint8_t high_byte,
 		const uint8_t low_byte);
+
+	void drawPatternIndex(const uint64_t x_offset, const uint64_t y_offset,
+		const uint16_t nametable_offset, const uint16_t tile_index);
 
 	void drawTile(const uint64_t x_offset, const uint64_t y_offset, const uint16_t nametable_offset,
 		const uint16_t tile_index, const bool use_right_pt);
