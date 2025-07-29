@@ -47,19 +47,21 @@ void Nametable::draw(const bool use_right_table)
 			nametable_y_offset = nt_height;
 		}
 
-		for (uint16_t y = 0; y < num_tiles_tall; ++y)
+		switch (this->_display_mode)
 		{
-			for (uint16_t x = 0; x < num_tiles_wide; ++x)
-			{
-				uint16_t index = y * num_tiles_wide + x;
-				uint64_t x_offset = x * tile_width + nametable_x_offset;
-				uint64_t y_offset = y * tile_height + nametable_y_offset;
-
-				if (this->_display_mode == DisplayMode::PaletteIndices)
-					this->drawPatternIndex(x_offset, y_offset, nametable_offset, index);
-				else
-					this->drawTile(x_offset, y_offset, nametable_offset, index, use_right_table);
-			}
+		case DisplayMode::ColoredPatternTiles:
+		case DisplayMode::GreyscalePatternTiles:
+		case DisplayMode::PatternIndices:
+			this->drawSmallTiles(nametable_offset, nametable_x_offset, nametable_y_offset,
+				use_right_table);
+			break;
+		case DisplayMode::PaletteIndices:
+		case DisplayMode::PaletteColors:
+			this->drawLargeTiles(nametable_offset, nametable_x_offset, nametable_y_offset,
+				use_right_table);
+			break;
+		default:
+			throw std::exception("unknown DisplayMode selected!!");
 		}
 	}
 
@@ -68,7 +70,7 @@ void Nametable::draw(const bool use_right_table)
 
 void Nametable::color()
 {
-	if (!this->_cart || this->_display_mode == DisplayMode::PaletteIndices)
+	if (!this->_cart || this->_display_mode > DisplayMode::GreyscalePatternTiles)
 		return;
 
 	NametableImage image;
@@ -160,7 +162,8 @@ void Nametable::prevDisplayMode()
 
 void Nametable::loadRenderer()
 {
-	this->_font = this->_renderer->createFont(this->_font_name, this->_font_size);
+	this->_small_font = this->_renderer->createFont(this->_font_name, this->_small_font_size);
+	this->_large_font = this->_renderer->createFont(this->_font_name, this->_large_font_size);
 	this->_texture = this->_renderer->createTexture(this->_width, this->_height, true);
 
 	NametableImage image;
@@ -178,9 +181,13 @@ void Nametable::unloadRenderer()
 		this->_renderer->destroyTexture(this->_texture);
 	this->_texture = nullptr;
 
-	if (this->_font)
-		this->_renderer->destroyFont(this->_font);
-	this->_font = nullptr;
+	if (this->_large_font)
+		this->_renderer->destroyFont(this->_large_font);
+	this->_large_font = nullptr;
+
+	if (this->_small_font)
+		this->_renderer->destroyFont(this->_small_font);
+	this->_small_font = nullptr;
 
 	this->_renderer = nullptr;
 }
@@ -190,13 +197,17 @@ void Nametable::recreateTexture()
 	if (this->_texture)
 		this->_renderer->destroyTexture(this->_texture);
 
-	if (this->_display_mode == DisplayMode::PaletteIndices)
+	switch (this->_display_mode)
 	{
-		this->_texture = this->_renderer->createTexture(this->_width * 2, this->_height * 2, false);
-	}
-	else
-	{
+	case DisplayMode::ColoredPatternTiles:
+	case DisplayMode::GreyscalePatternTiles:
 		this->_texture = this->_renderer->createTexture(this->_width, this->_height, true);
+		break;
+	case DisplayMode::PatternIndices:
+	case DisplayMode::PaletteIndices:
+	case DisplayMode::PaletteColors:
+		this->_texture = this->_renderer->createTexture(this->_width * 2, this->_height * 2, false);
+		break;
 	}
 }
 
@@ -213,6 +224,16 @@ void Nametable::createDigitTextures()
 
 		this->_digit_textures[i] = index_texture;
 	}
+
+	text_render_options.font = this->_large_font;
+
+	for (uint8_t i = 0; i < 4; ++i)
+	{
+		std::string index_str = std::format("{:1X}", i);
+		auto index_texture = this->_renderer->renderText(index_str, text_render_options);
+
+		this->_large_digit_textures[i] = index_texture;
+	}
 }
 
 void Nametable::destroyDigitTextures()
@@ -222,6 +243,13 @@ void Nametable::destroyDigitTextures()
 		auto texture = this->_digit_textures.begin();
 		this->_renderer->destroyTexture(texture->second);
 		this->_digit_textures.erase(texture);
+	}
+
+	while (!this->_large_digit_textures.empty())
+	{
+		auto texture = this->_large_digit_textures.begin();
+		this->_renderer->destroyTexture(texture->second);
+		this->_large_digit_textures.erase(texture);
 	}
 }
 
@@ -240,6 +268,59 @@ std::array<uint8_t, 8> Nametable::compilePatternTableBytes(const uint8_t low_byt
 	return indices;
 }
 
+void Nametable::drawSmallTiles(const uint16_t nametable_offset, const uint64_t nametable_x_offset,
+	const uint64_t nametable_y_offset, const bool use_right_table)
+{
+	for (uint16_t y = 0; y < num_tiles_tall; ++y)
+	{
+		for (uint16_t x = 0; x < num_tiles_wide; ++x)
+		{
+			uint16_t index = y * num_tiles_wide + x;
+			uint64_t x_offset = x * tile_width + nametable_x_offset;
+			uint64_t y_offset = y * tile_height + nametable_y_offset;
+
+			switch (this->_display_mode)
+			{
+			case DisplayMode::ColoredPatternTiles:
+			case DisplayMode::GreyscalePatternTiles:
+				this->drawTile(x_offset, y_offset, nametable_offset, index, use_right_table);
+				break;
+			case DisplayMode::PatternIndices:
+				this->drawPatternIndex(x_offset, y_offset, nametable_offset, index);
+				break;
+			default:
+				throw std::exception("unknown DisplayMode selected!!");
+			}
+		}
+	}
+}
+
+void Nametable::drawLargeTiles(const uint16_t nametable_offset, const uint64_t nametable_x_offset,
+	const uint64_t nametable_y_offset, const bool use_right_table)
+{
+	for (uint16_t y = 0; y < num_tiles_tall; y += 2)
+	{
+		for (uint16_t x = 0; x < num_tiles_wide; x += 2)
+		{
+			uint16_t index = y * num_tiles_wide + x;
+			uint64_t x_offset = x * tile_width + nametable_x_offset;
+			uint64_t y_offset = y * tile_height + nametable_y_offset;
+
+			switch (this->_display_mode)
+			{
+			case DisplayMode::PaletteIndices:
+				this->drawPaletteIndex(x_offset, y_offset, nametable_offset, index);
+				break;
+			case DisplayMode::PaletteColors:
+				this->drawPaletteColors(x_offset, y_offset, nametable_offset, index);
+				break;
+			default:
+				throw std::exception("unknown DisplayMode selected!!");
+			}
+		}
+	}
+}
+
 void Nametable::drawPatternIndex(const uint64_t x_offset, const uint64_t y_offset,
 	const uint16_t nametable_offset, const uint16_t tile_index)
 {
@@ -251,17 +332,71 @@ void Nametable::drawPatternIndex(const uint64_t x_offset, const uint64_t y_offse
 	uint8_t left_digit = pt_offset >> 4;
 	uint8_t right_digit = pt_offset & 0b0000'1111;
 
-	Rect source_rect = this->_renderer->measureTexture(this->_digit_textures[left_digit]);
+	Rect source_rect_left = this->_renderer->measureTexture(this->_digit_textures[left_digit]);
+	Rect source_rect_right = this->_renderer->measureTexture(this->_digit_textures[right_digit]);
+	uint32_t total_width = source_rect_left.width + source_rect_right.width;
+	uint32_t x_padding = (tile_width * 2 - total_width) / 2;
+	uint32_t y_padding = (tile_height * 2 - source_rect_left.height) / 2;
+
 	Rect dest_rect = {
-		x_offset * 2,
-		y_offset * 2,
-		tile_width,
-		tile_height * 2,
+		x_offset * 2 + x_padding,
+		y_offset * 2 + y_padding,
+		source_rect_left.width,
+		source_rect_left.height,
 	};
 	this->_renderer->drawTexture(this->_digit_textures[left_digit], dest_rect);
 
-	dest_rect.x += tile_width;
+	dest_rect.width = source_rect_right.width;
+	dest_rect.x += source_rect_left.width;
 	this->_renderer->drawTexture(this->_digit_textures[right_digit], dest_rect);
+}
+
+void Nametable::drawPaletteIndex(const uint64_t x_offset, const uint64_t y_offset,
+	const uint16_t nametable_offset, const uint16_t tile_index)
+{
+	uint8_t palette_index = this->getPaletteIndex(nametable_offset, tile_index);
+
+	auto swapped_target = this->_renderer->swapRenderTarget(this->_texture);
+
+	Rect source_rect = this->_renderer->measureTexture(this->_large_digit_textures[palette_index]);
+	uint32_t x_padding = (tile_width * 4 - source_rect.width) / 2;
+	uint32_t y_padding = (tile_height * 4 - source_rect.height) / 2;
+
+	Rect dest_rect = {
+		x_offset * 2 + x_padding,
+		y_offset * 2 + y_padding,
+		source_rect.width,
+		source_rect.height,
+	};
+
+	this->_renderer->drawTexture(this->_large_digit_textures[palette_index], dest_rect);
+}
+
+void Nametable::drawPaletteColors(const uint64_t x_offset, const uint64_t y_offset,
+	const uint16_t nametable_offset, const uint16_t tile_index)
+{
+	const uint8_t palette_index = this->getPaletteIndex(nametable_offset, tile_index);
+	const PaletteType palette_type = this->getBackgroundPalette(palette_index);
+	Palette palette = this->_palettes[palette_type];
+
+	const auto swapped_target = this->_renderer->swapRenderTarget(this->_texture);
+
+	Rect dest_rect = {
+		x_offset * 2,
+		y_offset * 2,
+		tile_width * 2,
+		tile_height * 2,
+	};
+	this->_renderer->drawRectangle(dest_rect, palette.index0, true);
+
+	dest_rect.x += tile_width * 2;
+	this->_renderer->drawRectangle(dest_rect, palette.index1, true);
+
+	dest_rect.y += tile_height * 2;
+	this->_renderer->drawRectangle(dest_rect, palette.index3, true);
+
+	dest_rect.x -= tile_width * 2;
+	this->_renderer->drawRectangle(dest_rect, palette.index2, true);
 }
 
 void Nametable::drawTile(const uint64_t x_offset, const uint64_t y_offset,
@@ -333,10 +468,6 @@ void Nametable::colorTile(const uint64_t x_offset, const uint64_t y_offset,
 	const uint16_t nametable_offset, const uint16_t tile_index, NametableImage& image)
 {
 	uint8_t palette_index = this->getPaletteIndex(nametable_offset, tile_index);
-	if (palette_index != 0)
-	{
-		auto here = 0;
-	}
 	PaletteType palette_type = this->getBackgroundPalette(palette_index);
 	this->colorTile(x_offset, y_offset, palette_type, image);
 }

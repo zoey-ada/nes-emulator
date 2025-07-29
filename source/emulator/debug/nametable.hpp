@@ -31,12 +31,14 @@ using NametableImage = std::array<Pixel, nt_total_pixels>;
 
 enum class DisplayMode
 {
-	GreyscalePatternTiles,
-	PaletteIndices,
 	ColoredPatternTiles,
+	GreyscalePatternTiles,
+	PatternIndices,
+	PaletteIndices,
+	PaletteColors,
 };
 
-const int numberDisplayModes = 3;
+const int numberDisplayModes = 5;
 
 class Nametable
 {
@@ -67,9 +69,12 @@ private:
 	Texture _texture {nullptr};
 
 	std::string _font_name = "c:/repos/nes-emulator/source/emulator/FiraCode-Regular.ttf";
-	Font _font {nullptr};
-	int _font_size {10};
+	Font _small_font {nullptr};
+	Font _large_font {nullptr};
+	int _small_font_size {10};
+	int _large_font_size {20};
 	std::map<uint8_t, Texture> _digit_textures {};
+	std::map<uint8_t, Texture> _large_digit_textures {};
 
 	DisplayMode _display_mode {DisplayMode::ColoredPatternTiles};
 
@@ -88,7 +93,18 @@ private:
 	std::array<uint8_t, 8> compilePatternTableBytes(const uint8_t high_byte,
 		const uint8_t low_byte);
 
+	void drawSmallTiles(const uint16_t nametable_offset, const uint64_t nametable_x_offset,
+		const uint64_t nametable_y_offset, const bool use_right_table);
+	void drawLargeTiles(const uint16_t nametable_offset, const uint64_t nametable_x_offset,
+		const uint64_t nametable_y_offset, const bool use_right_table);
+
 	void drawPatternIndex(const uint64_t x_offset, const uint64_t y_offset,
+		const uint16_t nametable_offset, const uint16_t tile_index);
+
+	void drawPaletteIndex(const uint64_t x_offset, const uint64_t y_offset,
+		const uint16_t nametable_offset, const uint16_t tile_index);
+
+	void drawPaletteColors(const uint64_t x_offset, const uint64_t y_offset,
 		const uint16_t nametable_offset, const uint16_t tile_index);
 
 	void drawTile(const uint64_t x_offset, const uint64_t y_offset, const uint16_t nametable_offset,
