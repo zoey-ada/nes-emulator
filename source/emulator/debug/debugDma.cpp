@@ -16,7 +16,7 @@ DebugDma::~DebugDma()
 	this->_oam_memory = nullptr;
 }
 
-void DebugDma::initialize(ICpu* cpu, IMemory* cpu_memory, IMemory* oam_memory, DebugPpu* ppu)
+void DebugDma::initialize(ICpu* cpu, DebugPpu* ppu, IMemory* cpu_memory, IMemory* oam_memory)
 {
 	this->_cpu = cpu;
 	this->_ppu = ppu;
@@ -61,6 +61,7 @@ void DebugDma::copyToOam(const uint16_t address)
 	this->_read_address_latch = address;
 	this->_address_offset = 0x00;
 	this->_cpu->suspend();
+	uint8_t oam_offset = this->_ppu->oam_addr();
 
 	for (auto i = 0; i < debug_oam_length - 1; ++i)
 	{
@@ -68,8 +69,8 @@ void DebugDma::copyToOam(const uint16_t address)
 			uint16_t mem_addr = this->_read_address_latch + this->_address_offset;
 			this->_data_latch = this->_cpu_memory->read(mem_addr);
 		});
-		this->_actions.push_back([this] {
-			this->_oam_memory->write(this->_address_offset, this->_data_latch);
+		this->_actions.push_back([this, oam_offset] {
+			this->_oam_memory->write(this->_address_offset + oam_offset, this->_data_latch);
 			this->_address_offset++;
 		});
 	}
@@ -78,8 +79,8 @@ void DebugDma::copyToOam(const uint16_t address)
 		uint16_t mem_addr = this->_read_address_latch + this->_address_offset;
 		this->_data_latch = this->_cpu_memory->read(mem_addr);
 	});
-	this->_actions.push_back([this] {
-		this->_oam_memory->write(this->_address_offset, this->_data_latch);
+	this->_actions.push_back([this, oam_offset] {
+		this->_oam_memory->write(this->_address_offset + oam_offset, this->_data_latch);
 		this->_address_offset++;
 		this->_cpu->activate();
 	});

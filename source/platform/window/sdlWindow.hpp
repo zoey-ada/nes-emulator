@@ -11,14 +11,13 @@
 class SdlWindow: public IWindow
 {
 public:
-	SdlWindow(uint64_t width, uint64_t height);
+	SdlWindow() = default;
 	virtual ~SdlWindow() { close(); }
 
-	bool open() override;
+	bool open(const WindowCreateInfo& create_info) override;
 	void close() override;
 
-	void run(RenderFuncDelegate render, UpdateFuncDelegate update,
-		HandleKeyboardDelegate handle_key_event) override;
+	void run(HandleKeyboardDelegate handle_key_event) override;
 
 	std::string openFileDialog(std::vector<FileFilter> filters) const override;
 
@@ -31,12 +30,15 @@ public:
 	ISubWindow* openSubWindow(SubWindowCreateInfo sub_window_info) override;
 
 private:
-	int _height;
-	int _width;
+	int _height {0};
+	int _width {0};
 	uint32_t _id {0};
 
 	SDL_Window* _window {nullptr};
 	std::shared_ptr<SdlRenderer> _renderer {nullptr};
+
+	UpdateFuncDelegate _update_func;
+	RenderFuncDelegate _render_func;
 
 	std::map<WindowId, std::unique_ptr<SdlSubWindow>> _sub_windows;
 
@@ -47,7 +49,9 @@ private:
 
 	HandleKeyboardDelegate _handle_key_event;
 
+	void parseWindowSettings(const WindowCreateInfo& create_info);
 	Milliseconds getTime() const;
 
 	void handleEvent(const SDL_Event& e);
+	void drainMessageQueue();
 };

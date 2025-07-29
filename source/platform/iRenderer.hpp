@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-#include <SDL.h>
+#include <base/color.hpp>
 #include <base/pixel.hpp>
 
 #include "iAlternateRenderTarget.hpp"
@@ -19,18 +19,17 @@ typedef _Texture* Texture;
 
 struct Rect
 {
-	int x;
-	int y;
-	int width;
-	int height;
+	uint64_t x;
+	uint64_t y;
+	uint64_t width;
+	uint64_t height;
 };
 
 struct TextRenderOptions
 {
 	Font font;
-	// TODO: abstract this
-	SDL_Color text_color;
-	SDL_Color background_color;
+	Color text_color;
+	Color background_color;
 };
 
 class IRenderer
@@ -46,7 +45,7 @@ public:
 
 	virtual std::unique_ptr<IAlternateRenderTarget> swapRenderTarget(Texture texture) = 0;
 
-	virtual void setBackgroundColor(const SDL_Color& color) = 0;
+	virtual void setBackgroundColor(const Color& color) = 0;
 
 	virtual void drawTexture(Texture texture, const Rect& destination) = 0;
 	virtual Texture createTexture(const uint64_t width, const uint64_t height,
@@ -60,7 +59,7 @@ public:
 
 	virtual Texture renderText(const std::string& text, TextRenderOptions options) = 0;
 
-	virtual void drawRectangle(const Rect& destination, const SDL_Color& color, bool fill) = 0;
+	virtual void drawRectangle(const Rect& destination, const Color& color, bool fill) = 0;
 
 	virtual void horizontallyCenterRectangle(const Rect& total_area, Rect& rectangle) = 0;
 };

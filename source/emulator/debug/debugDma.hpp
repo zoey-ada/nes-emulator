@@ -21,7 +21,7 @@ public:
 	DebugDma() = default;
 	virtual ~DebugDma();
 
-	void initialize(ICpu* cpu, IMemory* cpu_memory, IMemory* oam_memory, DebugPpu* ppu);
+	void initialize(ICpu* cpu, DebugPpu* ppu, IMemory* cpu_memory, IMemory* oam_memory);
 
 	void cycle() override;
 

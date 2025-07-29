@@ -22,28 +22,32 @@ private:
 
 	DebugWindow _debug_window;
 
-	int _nes_base_height {262};
-	int _nes_base_width {341};
-	int _nes_scale {3};
-	int _nes_height {_nes_base_height * _nes_scale};
-	int _nes_width {_nes_base_width * _nes_scale};
+	uint64_t _nes_base_height {262};
+	uint64_t _nes_base_width {341};
+	uint8_t _nes_scale {3};
+	uint64_t _nes_height {_nes_base_height * _nes_scale};
+	uint64_t _nes_width {_nes_base_width * _nes_scale};
 	Texture _nes_texture {nullptr};
 
-	int _pattern_table_base_height {128};
-	int _pattern_table_base_width {128};
-	int _pattern_table_scale {2};
-	int _pattern_table_height {_pattern_table_base_height * _pattern_table_scale};
-	int _pattern_table_width {_pattern_table_base_width * _pattern_table_scale};
+	uint64_t _pattern_table_base_height {128};
+	uint64_t _pattern_table_base_width {128};
+	uint8_t _pattern_table_scale {2};
+	uint64_t _pattern_table_height {_pattern_table_base_height * _pattern_table_scale};
+	uint64_t _pattern_table_width {_pattern_table_base_width * _pattern_table_scale};
 
-	int _sprite_table_scale {2};
-	int _palette_table_scale {2};
+	uint8_t _sprite_table_scale {2};
+	uint8_t _palette_table_scale {2};
 
-	int _height {_nes_height};
-	int _width {_nes_width};
+	uint64_t _height {_nes_height};
+	uint64_t _width {_nes_width};
+	uint8_t _frame_rate {30};
 
 	bool _is_paused {true};
 
 	uint64_t _ppu_cycles_per_update {512};
+
+	void createWindow();
+	void createNes();
 
 	void update(Milliseconds now, Milliseconds delta_ms);
 	void render(Milliseconds now, Milliseconds delta_ms);

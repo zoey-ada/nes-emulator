@@ -7,6 +7,7 @@
 DebugPpu::DebugPpu(IMemory* memory, IMemory* oam, std::shared_ptr<IRenderer> renderer)
 	: PictureProcessingUnit(memory, oam),
 	  _renderer(renderer),
+	  _nametable(renderer.get()),
 	  _sprite_table(renderer.get(), oam),
 	  _left_pattern_table(PatternTableType::Left, renderer.get()),
 	  _right_pattern_table(PatternTableType::Right, renderer.get()),
@@ -23,6 +24,7 @@ DebugPpu::~DebugPpu()
 void DebugPpu::loadCartridge(Cartridge* cart)
 {
 	this->_cart = cart;
+	this->_nametable.loadCartridge(cart, this->_ppuctrl.background_pattern_table_select_flag());
 	this->_sprite_table.loadCartridge(cart, this->_ppuctrl.sprite_pattern_table_select_flag(),
 		this->_ppuctrl.sprite_height_flag());
 	this->_left_pattern_table.loadCartridge(cart);
@@ -60,6 +62,18 @@ void DebugPpu::dumpMemory()
 	static_cast<PpuMemoryMapper*>(this->_memory)->dumpVideoRam();
 }
 
+void DebugPpu::nextNametableDisplayMode()
+{
+	this->_nametable.nextDisplayMode();
+	this->_nametable.draw(this->_ppuctrl.background_pattern_table_select_flag());
+}
+
+void DebugPpu::prevNametableDisplayMode()
+{
+	this->_nametable.prevDisplayMode();
+	this->_nametable.draw(this->_ppuctrl.background_pattern_table_select_flag());
+}
+
 void DebugPpu::oam_data(const uint8_t value)
 {
 	PictureProcessingUnit::oam_data(value);
@@ -75,6 +89,7 @@ void DebugPpu::drawSpriteTable()
 void DebugPpu::setDebugRenderer(IRenderer* renderer)
 {
 	this->_debug_renderer = renderer;
+	this->_nametable.setRenderer(renderer);
 	this->_sprite_table.setRenderer(renderer);
 	this->_palette_renderer.setRenderer(renderer);
 	this->_left_pattern_table.setRenderer(renderer);
@@ -154,16 +169,22 @@ void DebugPpu::write_memory()
 
 	if (this->_cart->usesCharacterRam() && this->_address_bus() < 0x2000)
 	{
+		this->_nametable.draw(this->_ppuctrl.background_pattern_table_select_flag());
 		this->drawSpriteTable();
 		this->drawPatternTables();
 	}
 	else if (this->_address_bus() >= 0x3f00)
 	{
 		this->loadPalettes();
+		this->_nametable.updatePalettes(this->_palettes);
 		this->_sprite_table.updatePalettes(this->_palettes, this->_ppuctrl.sprite_height_flag());
 		this->_left_pattern_table.loadPalette(this->_palettes[this->_current_palette]);
 		this->_right_pattern_table.loadPalette(this->_palettes[this->_current_palette]);
 		this->_palette_renderer.renderPalettes(this->_palettes, this->_current_palette);
+	}
+	else
+	{
+		this->_nametable.draw(this->_ppuctrl.background_pattern_table_select_flag());
 	}
 	// else if (this->_address_bus() >= 0x23c0 and this->_address_bus() < 0x2400)
 	// {

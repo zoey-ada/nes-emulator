@@ -53,9 +53,10 @@ public:
 
 	// registers
 	void ppu_ctrl(const uint8_t value);
-	inline void ppu_mask(const uint8_t value) { this->_ppumask(value); }
+	void ppu_mask(const uint8_t value) { this->_ppumask(value); }
 	uint8_t ppu_status();
-	inline void oam_addr(const uint8_t value) { this->_oam_address(value); }
+	void oam_addr(const uint8_t value) { this->_oam_address(value); }
+	uint8_t oam_addr() const override { return this->_oam_address(); }
 	uint8_t oam_data() const;
 	void oam_data(const uint8_t value);
 	void ppu_scroll(const uint8_t value);
@@ -92,6 +93,8 @@ private:
 
 	Register _nametable_latch {0x00};
 	Register _attribute_table_latch {0x00};
+	bool _x_scroll_attribute_flag {false};
+	bool _y_scroll_attribute_flag {false};
 	Register _pattern_table_tile_low_latch {0x00};
 	Register _pattern_table_tile_high_latch {0x00};
 

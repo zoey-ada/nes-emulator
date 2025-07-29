@@ -32,4 +32,6 @@ private:
 	IDma* _dma {nullptr};
 	IInput* _controller_1 {nullptr};
 	IInput* _controller_2 {nullptr};
+
+	uint8_t _data_latch {0x00};
 };

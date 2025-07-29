@@ -70,10 +70,7 @@ uint8_t MemoryMapper::read(uint16_t address) const
 		case 0x4012:  // DMC_START
 		case 0x4013:  // DMC_LEN
 		case 0x4014:  // OAMDMA
-			// TODO: should return previous read data
-			return 0;
-			assert(false);
-			break;
+			return this->_data_latch;
 		case 0x4015:  // SND_CHN
 			break;
 		case 0x4016:  // JOY1
@@ -114,6 +111,8 @@ uint8_t MemoryMapper::read(uint16_t address) const
 
 void MemoryMapper::write(uint16_t address, const uint8_t data)
 {
+	this->_data_latch = data;
+
 	if (address < 0x2000)
 	{
 		auto ram_address = address % 0x0800;

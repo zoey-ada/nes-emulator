@@ -15,22 +15,13 @@ App::~App()
 
 void App::run()
 {
-	this->_window = std::make_unique<SdlWindow>(this->_width, this->_height);
-
-	this->_window->open();
-	this->_renderer = this->_window->getRenderer();
-
-	this->_nes_texture =
-		this->_renderer->createTexture(this->_nes_base_width, this->_nes_base_height, true);
-	this->_nes = std::make_unique<Nes>(this->_renderer);
-
-	RenderFuncDelegate render_func = std::bind(&App::render, this, ph::_1, ph::_2);
-	UpdateFuncDelegate update_func = std::bind(&App::update, this, ph::_1, ph::_2);
-	HandleKeyboardDelegate handle_key_func = std::bind(&App::handleEvent, this, ph::_1);
+	this->createWindow();
+	this->createNes();
 
 	this->_debug_window.open(this->_window.get(), this->_nes.get());
 
-	this->_window->run(render_func, update_func, handle_key_func);
+	HandleKeyboardDelegate handle_key_func = std::bind(&App::handleEvent, this, ph::_1);
+	this->_window->run(handle_key_func);
 	this->_window->close();
 }
 
@@ -58,18 +49,25 @@ void App::handleEvent(const SDL_Event& e)
 			std::vector<FileFilter> filters;
 			filters.push_back({"NES ROM", "nes"});
 			auto path = this->_window->openFileDialog(filters);
-			this->_nes->loadFile(path);
+
+			if (!path.empty())
+				this->_nes->loadFile(path);
 		}
-		else if (key == SDL_Scancode::SDL_SCANCODE_RIGHT)
+		else if (key == SDL_Scancode::SDL_SCANCODE_1)
 		{
 			this->step();
 		}
-		else if (key == SDL_Scancode::SDL_SCANCODE_DOWN)
+		else if (key == SDL_Scancode::SDL_SCANCODE_2)
 		{
-			if ((mod & KMOD_CTRL) > 0)
-				this->bound();
-			else
-				this->leap();
+			this->leap();
+		}
+		else if (key == SDL_Scancode::SDL_SCANCODE_3)
+		{
+			this->bound();
+		}
+		else if (key == SDL_Scancode::SDL_SCANCODE_4)
+		{
+			this->_nes->nextFrame();
 		}
 		else if (key == SDL_Scancode::SDL_SCANCODE_SPACE)
 		{
@@ -84,13 +82,17 @@ void App::handleEvent(const SDL_Event& e)
 		{
 			this->_nes->prevPalette();
 		}
-		else if (key == SDL_Scancode::SDL_SCANCODE_PERIOD)
-		{
-			this->_nes->nextFrame();
-		}
-		else if (key == SDL_Scancode::SDL_SCANCODE_D)
+		else if (key == SDL_Scancode::SDL_SCANCODE_Y)
 		{
 			this->_nes->dumpMemory();
+		}
+		else if (key == SDL_Scancode::SDL_SCANCODE_I)
+		{
+			this->_nes->nextNametableDisplayMode();
+		}
+		else if (key == SDL_Scancode::SDL_SCANCODE_U)
+		{
+			this->_nes->prevNametableDisplayMode();
 		}
 	}
 }
@@ -106,6 +108,27 @@ void App::renderFrame(NesFrame frame)
 	};
 	this->_renderer->updateTexture(this->_nes_texture, frame.data(), sizeof(frame));
 	this->_renderer->drawTexture(this->_nes_texture, dest_rect);
+}
+
+void App::createWindow()
+{
+	this->_window = std::make_unique<SdlWindow>();
+
+	RenderFuncDelegate render_func = std::bind(&App::render, this, ph::_1, ph::_2);
+	UpdateFuncDelegate update_func = std::bind(&App::update, this, ph::_1, ph::_2);
+
+	this->_window->open({this->_width, this->_height, this->_frame_rate, render_func, update_func});
+	this->_renderer = this->_window->getRenderer();
+}
+
+void App::createNes()
+{
+	if (!this->_renderer)
+		throw std::runtime_error("Renderer not created");
+
+	this->_nes_texture =
+		this->_renderer->createTexture(this->_nes_base_width, this->_nes_base_height, true);
+	this->_nes = std::make_unique<Nes>(this->_renderer);
 }
 
 void App::step()

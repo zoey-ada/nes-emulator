@@ -15,6 +15,14 @@ Nes::Nes(std::shared_ptr<IRenderer> renderer)
 void Nes::produceNesFrame()
 {}
 
+Texture Nes::getNametableTexture() const
+{
+	if (this->_debug_mode)
+		return this->_debug_ppu->nametableTexture();
+	else
+		return nullptr;
+}
+
 Texture Nes::getCpuDebugTexture() const
 {
 	if (this->_debug_mode)
@@ -186,6 +194,18 @@ void Nes::dumpMemory()
 		this->_debug_ppu->dumpMemory();
 }
 
+void Nes::nextNametableDisplayMode()
+{
+	if (this->_debug_mode)
+		this->_debug_ppu->nextNametableDisplayMode();
+}
+
+void Nes::prevNametableDisplayMode()
+{
+	if (this->_debug_mode)
+		this->_debug_ppu->prevNametableDisplayMode();
+}
+
 void Nes::setDebugRenderer(IRenderer* renderer)
 {
 	if (this->_debug_mode)
@@ -224,8 +244,8 @@ void Nes::setupDebugNes(std::shared_ptr<IRenderer> renderer)
 		std::make_unique<MemoryMapper>(this->_debug_ppu.get(), this->_debug_dma.get());
 	this->_debug_cpu = std::make_unique<DebugCpu>(this->_cpu_memory.get(), renderer);
 	this->_debug_ppu->init(this->_debug_cpu.get());
-	this->_debug_dma->initialize(this->_debug_cpu.get(), this->_cpu_memory.get(), this->_oam.get(),
-		this->_debug_ppu.get());
+	this->_debug_dma->initialize(this->_debug_cpu.get(), this->_debug_ppu.get(),
+		this->_cpu_memory.get(), this->_oam.get());
 
 	this->_p1_controller = std::make_unique<SdlController>();
 	this->_cpu_memory->connect_controller(ControllerPort::Port1, this->_p1_controller.get());
@@ -242,7 +262,8 @@ void Nes::setupNes()
 	this->_cpu_memory = std::make_unique<MemoryMapper>(this->_ppu.get(), this->_dma.get());
 	this->_cpu = std::make_unique<Cpu>(this->_cpu_memory.get());
 	this->_ppu->init(this->_cpu.get());
-	this->_dma->initialize(this->_cpu.get(), this->_cpu_memory.get(), this->_oam.get());
+	this->_dma->initialize(this->_cpu.get(), this->_ppu.get(), this->_cpu_memory.get(),
+		this->_oam.get());
 
 	this->_p1_controller = std::make_unique<SdlController>();
 	this->_cpu_memory->connect_controller(ControllerPort::Port1, this->_p1_controller.get());

@@ -34,8 +34,8 @@ private:
 	std::deque<Texture> _line_textures;
 	Texture _texture {nullptr};
 
-	SDL_Color _background_color {0x00, 0x00, 0x00, 0xff};
-	SDL_Color _text_color {0xff, 0xff, 0xff, 0xff};
+	Color _background_color {0x00, 0x00, 0x00};
+	Color _text_color {0xff, 0xff, 0xff};
 	std::string _font_name = "c:/repos/nes-emulator/source/emulator/FiraCode-Regular.ttf";
 	int _font_size {24};
 	Font _font {nullptr};

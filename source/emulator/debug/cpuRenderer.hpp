@@ -46,16 +46,16 @@ public:
 
 private:
 	IRenderer* _renderer {nullptr};
-	SDL_Color _background_color {0x00, 0x00, 0x00, 0xff};
-	SDL_Color _text_color {0xff, 0xff, 0xff, 0xff};
+	Color _background_color {0x00, 0x00, 0x00};
+	Color _text_color {0xff, 0xff, 0xff};
 	std::string _font_name = "c:/repos/nes-emulator/source/emulator/FiraCode-Regular.ttf";
 	Font _font {nullptr};
 	int _font_size {24};
 
-	int _width {513};
-	int _row_height {30};
-	int _vertical_padding {20};
-	int _height {(this->_row_height * 5) + (this->_vertical_padding * 2)};
+	uint64_t _width {513};
+	uint64_t _row_height {30};
+	uint64_t _vertical_padding {20};
+	uint64_t _height {(this->_row_height * 5) + (this->_vertical_padding * 2)};
 	Texture _texture {nullptr};
 
 	void loadRenderer();

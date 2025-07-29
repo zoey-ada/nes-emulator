@@ -14,9 +14,9 @@ const uint16_t palette_table_spacing = 11;
 
 const uint16_t outline_height = palette_index_height + 2;
 const uint16_t outline_width = palette_width + 2;
-const SDL_Color unselected_outline_color = {0xff, 0xff, 0xff, 0xff};
-const SDL_Color selected_outline_color = {0xff, 0x00, 0x00, 0xff};
-const SDL_Color palette_background_color = {0x22, 0x22, 0x22, 0xff};
+const Color unselected_outline_color = {0xff, 0xff, 0xff};
+const Color selected_outline_color = {0xff, 0x00, 0x00};
+const Color palette_background_color = {0x22, 0x22, 0x22};
 
 const uint16_t palette_table_padding = 3;
 const uint16_t palette_table_width =
@@ -45,5 +45,5 @@ private:
 	void loadRenderer();
 	void unloadRenderer();
 
-	void renderPalette(const Palette& palette, const int x_offset, const bool is_selected);
+	void renderPalette(const Palette& palette, const uint64_t x_offset, const bool is_selected);
 };

@@ -13,9 +13,11 @@ struct Color
 		b = (byte & 0x00'00'00'ff);
 	}
 
-	uint8_t r;
-	uint8_t g;
-	uint8_t b;
+	Color(uint8_t r, uint8_t g, uint8_t b): r(r), g(g), b(b) {}
+
+	uint8_t r {0};
+	uint8_t g {0};
+	uint8_t b {0};
 
 	uint32_t get()
 	{

@@ -37,6 +37,7 @@ public:
 
 	void produceNesFrame();
 	NesFrame getFrame() { return this->_frame; }
+	Texture getNametableTexture() const;
 	Texture getCpuDebugTexture() const;
 	Texture getSpriteTableTexture() const;
 	Texture getPaletteTableTexture() const;
@@ -63,6 +64,9 @@ public:
 	void prevPalette();
 
 	void dumpMemory();
+
+	void nextNametableDisplayMode();
+	void prevNametableDisplayMode();
 
 	void setDebugRenderer(IRenderer* renderer);
 
