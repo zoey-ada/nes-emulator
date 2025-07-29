@@ -202,12 +202,12 @@ void Nametable::recreateTexture()
 
 void Nametable::createDigitTextures()
 {
+	Color white {0xff, 0xff, 0xff};
+	Color black {0x00, 0x00, 0x00};
+	TextRenderOptions text_render_options {this->_small_font, white, black};
+
 	for (uint8_t i = 0; i < 16; ++i)
 	{
-		SDL_Color white {0xff, 0xff, 0xff, 0xff};
-		SDL_Color black {0x00, 0x00, 0x00, 0xff};
-		TextRenderOptions text_render_options {this->_font, white, black};
-
 		std::string index_str = std::format("{:01X}", i);
 		auto index_texture = this->_renderer->renderText(index_str, text_render_options);
 

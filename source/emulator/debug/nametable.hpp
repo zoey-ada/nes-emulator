@@ -24,7 +24,7 @@ const uint16_t nt_height = tile_height * num_tiles_tall;
 const uint64_t nt_total_pixels = nt_width * 2 * nt_height * 2;
 const uint16_t nt_attribute_bytes = 64;
 
-const SDL_Color nt_background_color = {0x22, 0x22, 0x22, 0xff};
+const Color nt_background_color = {0x22, 0x22, 0x22};
 
 using NametableIndexedImage = std::array<uint8_t, nt_total_pixels>;
 using NametableImage = std::array<Pixel, nt_total_pixels>;

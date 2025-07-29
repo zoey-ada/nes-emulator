@@ -28,7 +28,7 @@ const uint16_t st_width_in_pixels = 64;
 const uint16_t st_height_in_pixels = 128;
 const uint64_t st_total_pixels = st_width * st_height;
 
-const SDL_Color st_background_color = {0x22, 0x22, 0x22, 0xff};
+const Color st_background_color = {0x22, 0x22, 0x22};
 
 using SpriteTableIndexedImage = std::array<uint8_t, st_total_pixels>;
 using SpriteTableImage = std::array<Pixel, st_total_pixels>;

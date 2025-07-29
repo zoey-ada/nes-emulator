@@ -1,5 +1,7 @@
 #pragma once
 
+#include <SDL.h>
+
 #include "iRenderer.hpp"
 
 class SdlRenderer: public IRenderer
@@ -16,7 +18,7 @@ public:
 
 	std::unique_ptr<IAlternateRenderTarget> swapRenderTarget(Texture texture) override;
 
-	void setBackgroundColor(const SDL_Color& color) override { this->_background_color = color; }
+	void setBackgroundColor(const Color& color) override;
 
 	void drawTexture(Texture texture, const Rect& destination) override;
 	Texture createTexture(const uint64_t width, const uint64_t height,
@@ -30,7 +32,7 @@ public:
 
 	Texture renderText(const std::string& text, TextRenderOptions options) override;
 
-	void drawRectangle(const Rect& destination, const SDL_Color& color, bool fill) override;
+	void drawRectangle(const Rect& destination, const Color& color, bool fill) override;
 
 	void horizontallyCenterRectangle(const Rect& total_area, Rect& rectangle) override;
 
@@ -42,5 +44,7 @@ private:
 
 	SDL_Rect toSdlRect(const Rect& rect);
 	Rect fromSdlRect(const SDL_Rect& rect);
+	SDL_Color toSdlColor(const Color& color) const;
+	Color fromSdlColor(const SDL_Color& color) const;
 	SDL_Rect _measureTexture(Texture texture) const;
 };

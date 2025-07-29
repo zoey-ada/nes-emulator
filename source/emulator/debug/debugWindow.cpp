@@ -25,7 +25,7 @@ void DebugWindow::open(IWindow* window, Nes* nes)
 	SubWindowCreateInfo sub_window_info = {this->_width, this->_height, render_func};
 	this->_window = window->openSubWindow(sub_window_info);
 	this->_renderer = this->_window->getRenderer();
-	this->_renderer->setBackgroundColor({0x22, 0x22, 0x22, 0xff});
+	this->_renderer->setBackgroundColor({0x22, 0x22, 0x22});
 	this->_nes->setDebugRenderer(this->_renderer);
 }
 

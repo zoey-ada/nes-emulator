@@ -55,11 +55,11 @@ void PaletteRenderer::unloadRenderer()
 void PaletteRenderer::renderPalette(const Palette& palette, const uint64_t x_offset,
 	const bool is_selected)
 {
-	SDL_Color outline_color = is_selected ? selected_outline_color : unselected_outline_color;
-	SDL_Color color1 = {palette.index0.r, palette.index0.g, palette.index0.b, 0xff};
-	SDL_Color color2 = {palette.index1.r, palette.index1.g, palette.index1.b, 0xff};
-	SDL_Color color3 = {palette.index2.r, palette.index2.g, palette.index2.b, 0xff};
-	SDL_Color color4 = {palette.index3.r, palette.index3.g, palette.index3.b, 0xff};
+	Color outline_color = is_selected ? selected_outline_color : unselected_outline_color;
+	Color color1 = {palette.index0.r, palette.index0.g, palette.index0.b};
+	Color color2 = {palette.index1.r, palette.index1.g, palette.index1.b};
+	Color color3 = {palette.index2.r, palette.index2.g, palette.index2.b};
+	Color color4 = {palette.index3.r, palette.index3.g, palette.index3.b};
 
 	Rect dest = {
 		x_offset,

@@ -57,7 +57,7 @@ void CpuRenderer::unloadRenderer()
 void CpuRenderer::createMainTexture()
 {
 	auto swapped_target = this->_renderer->swapRenderTarget(this->_texture);
-	SDL_Color black = {0x00, 0x00, 0x00, 0xff};
+	Color black {0x00, 0x00, 0x00};
 	auto size = this->_renderer->measureTexture(this->_texture);
 	this->_renderer->drawRectangle(size, black, true);
 }
@@ -94,8 +94,8 @@ void CpuRenderer::renderStaticText()
 
 StaticTextures CpuRenderer::generateStaticText()
 {
-	SDL_Color white {0xff, 0xff, 0xff, 0xff};
-	SDL_Color black {0x00, 0x00, 0x00, 0xff};
+	Color white {0xff, 0xff, 0xff};
+	Color black {0x00, 0x00, 0x00};
 	TextRenderOptions text_render_options {this->_font, white, black};
 
 	std::string row_1_labels = " A     X     Y     S     PC  ";
@@ -159,8 +159,8 @@ void CpuRenderer::renderDynamicText(const CpuStackFrame& cycle_data)
 
 DynamicTextures CpuRenderer::generateDynamicText(const CpuStackFrame& cycle_data)
 {
-	SDL_Color white {0xff, 0xff, 0xff, 0xff};
-	SDL_Color black {0x00, 0x00, 0x00, 0xff};
+	Color white {0xff, 0xff, 0xff};
+	Color black {0x00, 0x00, 0x00};
 	TextRenderOptions text_render_options {this->_font, white, black};
 
 	std::string row_1_data = std::format("{:#04x}  {:#04x}  {:#04x}  {:#04x}  {:#06x}",

@@ -56,12 +56,16 @@ std::unique_ptr<IAlternateRenderTarget> SdlRenderer::swapRenderTarget(Texture te
 	return std::make_unique<SdlAlternateRenderTarget>(this->_renderer, (SDL_Texture*)texture);
 }
 
+void SdlRenderer::setBackgroundColor(const Color& color)
+{
+	this->_background_color = toSdlColor(color);
+}
+
 void SdlRenderer::drawTexture(Texture texture, const Rect& destination)
 {
 	auto dimensions = this->_measureTexture(texture);
 	auto destination_sdl = this->toSdlRect(destination);
-	SDL_RenderCopy(this->_renderer, (SDL_Texture*)texture, (SDL_Rect*)&dimensions,
-		(SDL_Rect*)&destination_sdl);
+	SDL_RenderCopy(this->_renderer, (SDL_Texture*)texture, &dimensions, &destination_sdl);
 }
 
 Texture SdlRenderer::createTexture(const uint64_t width, const uint64_t height, bool updatable)
@@ -120,20 +124,21 @@ void SdlRenderer::destroyFont(Font font)
 Texture SdlRenderer::renderText(const std::string& text, TextRenderOptions options)
 {
 	auto font = (TTF_Font*)options.font;
+	SDL_Color text_color = toSdlColor(options.text_color);
+	SDL_Color background_color = toSdlColor(options.background_color);
 
-	auto temp_surface =
-		TTF_RenderText_Shaded(font, text.c_str(), options.text_color, options.background_color);
+	auto temp_surface = TTF_RenderText_Shaded(font, text.c_str(), text_color, background_color);
 
 	auto texture = SDL_CreateTextureFromSurface(this->_renderer, temp_surface);
 	SDL_FreeSurface(temp_surface);
 	return (Texture)texture;
 }
 
-void SdlRenderer::drawRectangle(const Rect& destination, const SDL_Color& color, bool fill)
+void SdlRenderer::drawRectangle(const Rect& destination, const Color& color, bool fill)
 {
 	uint8_t r, g, b, a;
 	SDL_GetRenderDrawColor(this->_renderer, &r, &g, &b, &a);
-	SDL_SetRenderDrawColor(this->_renderer, color.r, color.g, color.b, color.a);
+	SDL_SetRenderDrawColor(this->_renderer, color.r, color.g, color.b, 255);
 
 	auto destination_sdl = this->toSdlRect(destination);
 	if (fill)
@@ -176,4 +181,14 @@ SDL_Rect SdlRenderer::_measureTexture(Texture texture) const
 	int h, w;
 	SDL_QueryTexture((SDL_Texture*)texture, nullptr, nullptr, &w, &h);
 	return {0, 0, w, h};
+}
+
+SDL_Color SdlRenderer::toSdlColor(const Color& color) const
+{
+	return {color.r, color.g, color.b, 255};
+}
+
+Color SdlRenderer::fromSdlColor(const SDL_Color& color) const
+{
+	return {color.r, color.g, color.b};
 }
